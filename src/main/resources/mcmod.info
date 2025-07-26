@@ -1,0 +1,16 @@
+[
+  {
+    "modid": "SkyBlockModVX",
+    "name": "SkyBlockModVX",
+    "description": "Um mod completo para o SkyBlock da Rede Worth!",
+    "version": "1.0.1-alpha",
+    "mcversion": "1.8.9",
+    "authorList": ["vitorxp"],
+    "url": "https://discord.gg/2a2DDexaer",
+    "updateUrl": "",
+    "credits": "Desenvolvido por vitorxp",
+    "logoFile": "https://cdn.discordapp.com/icons/910782844555644958/d5517540243a2a892e2dd2cba26de5af.png",
+    "screenshots": [],
+    "dependencies": []
+  }
+]
