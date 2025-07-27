@@ -3,6 +3,7 @@ package com.vitorxp.SkyBlockModVX;
 import com.vitorxp.SkyBlockModVX.anticheat.SuspiciousBehaviorDetector;
 import com.vitorxp.SkyBlockModVX.chat.*;
 import com.vitorxp.SkyBlockModVX.commands.*;
+import com.vitorxp.SkyBlockModVX.config.KeystrokesColors;
 import com.vitorxp.SkyBlockModVX.events.AnnounceMutanteEvent;
 import com.vitorxp.SkyBlockModVX.events.GuiMenuEvent;
 import com.vitorxp.SkyBlockModVX.hud.*;
@@ -62,6 +63,7 @@ public class SkyBlockMod {
         ConfigManager.load();
         HudPositionManager.load();
         Keybinds.init();
+        KeystrokesColors.loadColors();
 
         net.minecraftforge.common.MinecraftForge.EVENT_BUS.register(this);
         MinecraftForge.EVENT_BUS.register(new PingHUD());
@@ -92,6 +94,7 @@ public class SkyBlockMod {
         ClientCommandHandler.instance.registerCommand(new CommandEditHud());
         ClientCommandHandler.instance.registerCommand(new CommandTest());
         ClientCommandHandler.instance.registerCommand(new CopyMessageCommand());
+        ClientCommandHandler.instance.registerCommand(new AdminCommandStaff());
 
         //MinecraftForge.EVENT_BUS.register(new GlowItemRenderer()); - beta
 

@@ -1,36 +1,30 @@
 package com.vitorxp.SkyBlockModVX.commands;
 
-import com.vitorxp.SkyBlockModVX.manager.ActivationManager;
-import com.vitorxp.SkyBlockModVX.util.RankUtils;
+import com.vitorxp.SkyBlockModVX.gui.AdminGui;
 import net.minecraft.client.Minecraft;
 import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.BlockPos;
-import net.minecraft.util.ChatComponentText;
 
 import java.util.Collections;
 import java.util.List;
 
-public class CommandTest implements ICommand {
-
+public class AdminCommandStaff implements ICommand {
     @Override
     public String getCommandName() {
-        return "test";
+        return "abrir_admin_gui";
     }
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/test";
+        return "/abrir_admin_gui <player>";
     }
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
-        EntityPlayer player = Minecraft.getMinecraft().thePlayer;
-
-        boolean staff = RankUtils.isStaff(player);
-
-        Minecraft.getMinecraft().thePlayer.addChatMessage(new ChatComponentText(staff ? "Você é da staff, boa!" : "Que pena, você não é da staff."));
+        if (args.length >= 1) {
+            Minecraft.getMinecraft().displayGuiScreen(new AdminGui(args[0]));
+        }
     }
 
     @Override public int compareTo(ICommand o) { return getCommandName().compareTo(o.getCommandName()); }

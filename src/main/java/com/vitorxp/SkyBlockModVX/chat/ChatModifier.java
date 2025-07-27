@@ -1,6 +1,7 @@
 package com.vitorxp.SkyBlockModVX.chat;
 
 import com.vitorxp.SkyBlockModVX.SkyBlockMod;
+import com.vitorxp.SkyBlockModVX.util.RankUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.event.ClickEvent;
@@ -47,6 +48,16 @@ public class ChatModifier {
 
         if (SkyBlockMod.enableCopy) originalComponent.appendSibling(copyButton);
 
+        if (RankUtils.isStaff(Minecraft.getMinecraft().thePlayer)) {
+            IChatComponent adminButton = new ChatComponentText(" " + EnumChatFormatting.RED + "[❈]");
+            adminButton.setChatStyle(new ChatStyle()
+                    .setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/abrir_admin_gui " + extrairNome(raw)))
+                    .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText("Abrir painel de administração")))
+            );
+            originalComponent.appendSibling(adminButton);
+        }
+
+
         Minecraft mc = Minecraft.getMinecraft();
         String playerName = mc.thePlayer.getName();
 
@@ -56,5 +67,16 @@ public class ChatModifier {
 
         event.setCanceled(true);
         mc.ingameGUI.getChatGUI().printChatMessage(originalComponent);
+    }
+
+    private String extrairNome(String raw) {
+        int idx = raw.indexOf(":");
+        if (idx == -1) return "Desconhecido";
+        String parteAntesDoTexto = raw.substring(0, idx).trim();
+        String[] partes = parteAntesDoTexto.split(" ");
+        if (partes.length >= 1) {
+            return partes[partes.length - 1];
+        }
+        return "Desconhecido";
     }
 }
