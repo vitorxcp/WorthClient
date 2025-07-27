@@ -19,7 +19,7 @@ public class SellMessageCombiner {
 
     private static double totalSold = 0.0;
     private static long lastSellTime = 0;
-    private static final long COMBINE_TIME_MS = 5000; // 3 segundos
+    private static final long COMBINE_TIME_MS = 5000;
 
     private static final Timer timer = new Timer();
     private static TimerTask resetTask = null;

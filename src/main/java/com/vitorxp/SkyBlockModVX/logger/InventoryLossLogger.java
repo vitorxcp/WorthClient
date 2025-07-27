@@ -77,10 +77,7 @@ public class InventoryLossLogger {
                     writer.newLine();
                 }
             }
-
-            //System.out.println("Logs de perda de item salvos com sucesso!");
         } catch (IOException e) {
-            //System.err.println("Erro ao salvar logs de perda de item:");
             e.printStackTrace();
         }
     }
