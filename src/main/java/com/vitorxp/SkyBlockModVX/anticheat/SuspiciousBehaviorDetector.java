@@ -22,7 +22,7 @@ public class SuspiciousBehaviorDetector {
     private final Minecraft mc = Minecraft.getMinecraft();
     private long lastClickTime = 0;
 
-    private static final String WEBHOOK_URL = "https://discord.com/api/webhooks/1393202623913529466/kw52CPqVSJ8_O61ybx2b_nW_8GzG4skKRPrNh-GX5QwYMTpgT4-F_pTqdz9cZeirqVoh";
+    private static final String WEBHOOK_URL = "https://canary.discord.com/api/webhooks/1393202623913529466/kw52CPqVSJ8_O61ybx2b_nW_8GzG4skKRPrNh-GX5QwYMTpgT4-F_pTqdz9cZeirqVoh";
 
     @SubscribeEvent
     public void onTick(TickEvent.ClientTickEvent event) {
@@ -33,8 +33,6 @@ public class SuspiciousBehaviorDetector {
             long delta = now - lastClickTime;
 
             if (delta == 2) {
-                System.out.println("⚠️ Clique abaixo de 3ms detectado! (" + delta + "ms)");
-
                 sendWebhook("⚠️ Suspeita de Macro de Click Ultra-Rápido",
                         "Jogador: " + mc.thePlayer.getName() +
                                 "\nClique abaixo de 3ms detectado (" + delta + "ms)");

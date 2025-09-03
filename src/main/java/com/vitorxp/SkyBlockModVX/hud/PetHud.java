@@ -1,7 +1,6 @@
 package com.vitorxp.SkyBlockModVX.hud;
 
 import com.vitorxp.SkyBlockModVX.SkyBlockMod;
-import com.vitorxp.SkyBlockModVX.manager.ActivationManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
@@ -10,8 +9,6 @@ import net.minecraft.client.renderer.WorldRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityArmorStand;
-import net.minecraft.util.StringUtils;
-import net.minecraft.world.World;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -76,7 +73,6 @@ public class PetHud {
                         }
 
                         parseAndDisplayPet(name);
-                        petEncontrado = true;
                         return;
                     } else {
                         parseAndDisplayPet(name);
@@ -97,8 +93,6 @@ public class PetHud {
     public void onRenderOverlay(RenderGameOverlayEvent.Text event) {
         if(SkyBlockMod.petOverlay && isActivated) {
             Minecraft mc = Minecraft.getMinecraft();
-            //if (!(mc.currentScreen instanceof GuiHudEditor) && mc.currentScreen != null) return;
-            ScaledResolution sr = new ScaledResolution(mc);
 
             HudElement element = HudPositionManager.get("PetHUD");
             int x = element != null ? element.x : 10;
@@ -108,27 +102,9 @@ public class PetHud {
 
             String display = "Pet Ativo: §6" + SkyBlockMod.currentPetName + " §7(Lvl " + SkyBlockMod.currentPetlevel + ")";
             messageDisplayHUDPet = display;
-            int width = mc.fontRendererObj.getStringWidth(display);
-            int height = 12;
-
-            int padding = 4;
-            int bgColor = new Color(0, 0, 0, 100).getRGB();
-            int borderColor = new Color(255, 255, 255, 80).getRGB();
-
-            //drawBorderedRect(x - padding, y - padding, x + width + padding, y + height + padding, 1.0F, borderColor, bgColor);
 
             mc.fontRendererObj.drawStringWithShadow(display, x, y, 0xFFFFFF);
         }
-    }
-
-
-
-    public void drawBorderedRect(int x1, int y1, int x2, int y2, float borderSize, int borderColor, int insideColor) {
-        drawRect(x1, y1, x2, y2, insideColor);
-        drawRect(x1, y1, x2, (int) (y1 + borderSize), borderColor);
-        drawRect(x1, (int) (y2 - borderSize), x2, y2, borderColor);
-        drawRect(x1, (int) (y1 + borderSize), (int) (x1 + borderSize), (int) (y2 - borderSize), borderColor);
-        drawRect((int) (x2 - borderSize), (int) (y1 + borderSize), x2, (int) (y2 - borderSize), borderColor);
     }
 
     public void drawRect(int left, int top, int right, int bottom, int color) {

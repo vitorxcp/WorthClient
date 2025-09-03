@@ -1,0 +1,36 @@
+language.name=Português
+language.region=BR
+language.code=pt_BR
+
+options.off=§cOFF
+options.on=§aON
+
+container.inventory=§fInventário
+container.hopper=§fFunil
+container.crafting=§fMesa de Trabalho
+container.dispenser=§fEjetor
+container.dropper=§fLiberador
+container.furnace=§fFornalha
+container.enchant=§fMesa de Encantamentos
+container.repair=§fReparar & Nomear
+container.repair.expensive=Muito Caro!
+container.creative=§fSeleção de Itens
+container.brewing=§fSuporte de Poções
+container.chest=§fBaú
+container.chestDouble=§fBaú Grande
+container.minecart=§fCarrinho de Mina
+container.enderchest=§fBaú do Ender
+container.beacon=§fSinalizador
+
+itemGroup.buildingBlocks=§fBlocos de Construção
+itemGroup.decorations=§fBlocos Decorativos
+itemGroup.redstone=§fRedstone
+itemGroup.transportation=§fTransporte
+itemGroup.misc=§fDiversos
+itemGroup.search=§fBuscar Itens
+itemGroup.food=§fComidas
+itemGroup.tools=§xFerramentas
+itemGroup.combat=§fCombate
+itemGroup.brewing=§fPoções
+itemGroup.materials=§fMateriais
+itemGroup.inventory=§fInventário Sobrevivência

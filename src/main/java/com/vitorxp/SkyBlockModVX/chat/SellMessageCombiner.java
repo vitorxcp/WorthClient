@@ -19,7 +19,7 @@ public class SellMessageCombiner {
 
     private static double totalSold = 0.0;
     private static long lastSellTime = 0;
-    private static final long COMBINE_TIME_MS = 5000;
+    private static final long COMBINE_TIME_MS = 10000;
 
     private static final Timer timer = new Timer();
     private static TimerTask resetTask = null;
@@ -45,7 +45,7 @@ public class SellMessageCombiner {
             getMc().ingameGUI.getChatGUI().deleteChatLine(lastChatLineId);
 
             String msg = "§aTotal vendido/comprado: §6" + formatted + " coins";
-            ChatComponentText newMsg = new ChatComponentText("§6[SkyBlockModVX] §r" + msg);
+            ChatComponentText newMsg = new ChatComponentText("§6[WorthMod] §r" + msg);
 
             getMc().ingameGUI.getChatGUI().printChatMessageWithOptionalDeletion(newMsg, lastChatLineId);
 

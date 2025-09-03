@@ -16,9 +16,10 @@ public class AdminGui extends GuiScreen {
     public void initGui() {
         this.buttonList.clear();
 
-        this.buttonList.add(new GuiButton(1, width / 2 - 100, height / 2 - 30, "Ver Histórico"));
-        this.buttonList.add(new GuiButton(2, width / 2 - 100, height / 2, "Aplicar Aviso"));
-        this.buttonList.add(new GuiButton(3, width / 2 - 100, height / 2 + 30, "Punir Jogador"));
+        this.buttonList.add(new GuiButton(1, width / 2 - 100, height / 2 - 30, "§eVer Histórico"));
+        this.buttonList.add(new GuiButton(2, width / 2 - 100, height / 2, "§cAplicar Aviso"));
+        this.buttonList.add(new GuiButton(3, width / 2 - 100, height / 2 + 30, "§4Punir Jogador"));
+        this.buttonList.add(new GuiButton(4, width / 2 - 100, height / 2 + 60, "§3Dar TP no Jogador"));
     }
 
     @Override
@@ -33,6 +34,8 @@ public class AdminGui extends GuiScreen {
             case 3:
                 Minecraft.getMinecraft().thePlayer.sendChatMessage("/punir " + targetName);
                 break;
+            case 4:
+                Minecraft.getMinecraft().thePlayer.sendChatMessage("/ac_tp " + targetName);
         }
         this.mc.displayGuiScreen(null);
     }

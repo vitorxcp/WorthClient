@@ -17,7 +17,7 @@ public class HudPositionManager {
     }
 
     public static void load() {
-        elements.clear(); // garantir que tá limpo
+        elements.clear();
 
         if (!FILE.exists()) {
             System.out.println("Arquivo HUD não encontrado: " + FILE.getAbsolutePath());
@@ -27,7 +27,6 @@ public class HudPositionManager {
         try (BufferedReader reader = new BufferedReader(new FileReader(FILE))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                //System.out.println("Linha lida: " + line);
                 String[] parts = line.split("=");
 
                 if (parts.length < 2) {
@@ -47,8 +46,6 @@ public class HudPositionManager {
 
                 HudElement element = new HudElement(id, x, y);
                 elements.put(id, element);
-
-                System.out.println("Adicionado: " + id + " -> " + x + "," + y);
             }
         } catch (Exception e) {
             e.printStackTrace();

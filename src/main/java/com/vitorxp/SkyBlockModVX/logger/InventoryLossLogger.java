@@ -60,10 +60,6 @@ public class InventoryLossLogger {
         }
     }
 
-    public List<String> getLogs() {
-        return logs;
-    }
-
     public static void saveToFile() {
         try {
             File dir = new File("skyblockmodvx_logs");

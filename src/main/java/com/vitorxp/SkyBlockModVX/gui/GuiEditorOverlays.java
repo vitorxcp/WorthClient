@@ -44,7 +44,7 @@ public class GuiEditorOverlays extends GuiScreen {
         this.buttonList.add(btnViewKeyBoard); y += 25;
 
         btnEditorKey = new GuiButton(13, centerX - 125, y, 250, 20,
-                "§9[Keystrokes] &7Configurações");
+                "§9[Keystrokes] §7Configurações");
         this.buttonList.add(btnEditorKey); y += 25;
 
         btnArmorOverlay = new GuiButton(8, centerX - 125, y, 250, 20,
@@ -104,7 +104,7 @@ public class GuiEditorOverlays extends GuiScreen {
 
         buttonAlpha = (int)(alpha * 255);
 
-        this.drawCenteredString(this.fontRendererObj, "§6SkyBlockModVX §f– §7Editor de Overlays", this.width / 2, 20, (buttonAlpha << 24) | 0xFFFFFF);
+        this.drawCenteredString(this.fontRendererObj, "§6WorthMod §f– §7Editor de Overlays", this.width / 2, 20, (buttonAlpha << 24) | 0xFFFFFF);
 
         super.drawScreen(mouseX, mouseY, partialTicks);
     }

@@ -1,7 +1,6 @@
 package com.vitorxp.SkyBlockModVX.commands;
 
-import com.vitorxp.SkyBlockModVX.manager.ActivationManager;
-import com.vitorxp.SkyBlockModVX.util.RankUtils;
+import com.vitorxp.SkyBlockModVX.utils.RankUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;

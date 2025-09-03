@@ -45,5 +45,10 @@ public class GuiMenuEvent {
             Minecraft.getMinecraft().displayGuiScreen(new GuiEditorOverlays());
             GuiOverlay = false;
         }
+
+        if (event.phase == TickEvent.Phase.END && GuiPerspective) {
+            Minecraft.getMinecraft().displayGuiScreen(new GuiPerspectiveMod());
+            GuiPerspective = false;
+        }
     }
 }

@@ -8,7 +8,7 @@ import net.minecraft.client.gui.GuiScreen;
 
 public class GuiModMenu extends GuiScreen {
 
-    private GuiButton btnPet, btnMutante, btnOvewrlays, btnChatC;
+    private GuiButton btnPet, btnMutante, btnOvewrlays, btnChatC, btnPerspective;
     private float alpha = 0f;
     private boolean fadeIn = true;
     int buttonAlpha = 0;
@@ -32,7 +32,13 @@ public class GuiModMenu extends GuiScreen {
 
         btnOvewrlays = new GuiButton(13, centerX - 125, y, 250, 20,
                 "§9[Config] §7Configurações de Overlays");
+
         this.buttonList.add(btnOvewrlays); y += 25;
+
+        btnPerspective = new GuiButton(14, centerX - 125, y, 250, 20,
+                "§9[Config] §7Configurações do Perspective Mod");
+
+        this.buttonList.add(btnPerspective); y += 25;
 
         btnMutante = new GuiButton(4, centerX - 125, y, 250, 20,
                 "§6[Alerta] §7Mutante: " + getStatus(SkyBlockMod.announceZealot));
@@ -57,7 +63,11 @@ public class GuiModMenu extends GuiScreen {
         } else if (button.id == 13) {
             mc.displayGuiScreen(null);
             SkyBlockMod.GuiOverlay = true;
+        } else if (button.id == 14) {
+            mc.displayGuiScreen(null);
+            SkyBlockMod.GuiPerspective = true;
         }
+
 
         ConfigManager.save();
     }
@@ -82,7 +92,7 @@ public class GuiModMenu extends GuiScreen {
 
         buttonAlpha = (int)(alpha * 255);
 
-        this.drawCenteredString(this.fontRendererObj, "§6SkyBlockModVX §f– §7Configurações", this.width / 2, 20, (buttonAlpha << 24) | 0xFFFFFF);
+        this.drawCenteredString(this.fontRendererObj, "§6WorthMod §f– §7Configurações", this.width / 2, 20, (buttonAlpha << 24) | 0xFFFFFF);
 
         super.drawScreen(mouseX, mouseY, partialTicks);
     }

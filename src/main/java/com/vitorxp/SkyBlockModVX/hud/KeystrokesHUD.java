@@ -3,7 +3,6 @@ package com.vitorxp.SkyBlockModVX.hud;
 import com.vitorxp.SkyBlockModVX.SkyBlockMod;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.WorldRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
@@ -14,7 +13,6 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -22,7 +20,6 @@ import java.util.List;
 public class KeystrokesHUD {
     private static final List<Long> leftClickTimestamps = new ArrayList<>();
     private static final List<Long> rightClickTimestamps = new ArrayList<>();
-    private static final Minecraft mc = Minecraft.getMinecraft();
 
     @SubscribeEvent
     public void onRender(RenderGameOverlayEvent.Text event) {

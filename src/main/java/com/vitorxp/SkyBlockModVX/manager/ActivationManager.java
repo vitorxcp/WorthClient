@@ -78,6 +78,7 @@ public class ActivationManager {
                 }
             } catch (Exception e) {
                 send("§cOcorreu um erro ao entrar em contato com a API!");
+                isActivated = false;
                 e.printStackTrace();
             }
         }).start();
@@ -100,6 +101,7 @@ public class ActivationManager {
                 }
             } catch (Exception e) {
                 send("§cOcorreu um erro ao entrar em contato com a API, tentando novamente em 3 minutos!");
+                isActivated = false;
             }
         }).start();
     }

@@ -29,6 +29,7 @@ public class ConfigManager {
         obj.addProperty("showTime", SkyBlockMod.showTime);
         obj.addProperty("enableCopy", SkyBlockMod.enableCopy);
         obj.addProperty("keystrokesOverlay", SkyBlockMod.keystrokesOverlay);
+        obj.addProperty("PerspectiveModToggle", SkyBlockMod.PerspectiveModToggle);
 
         try (FileWriter writer = new FileWriter(FILE)) {
             new Gson().toJson(obj, writer);
@@ -59,6 +60,7 @@ public class ConfigManager {
             if (obj.has("showTime")) SkyBlockMod.showTime = obj.get("showTime").getAsBoolean();
             if (obj.has("enableCopy")) SkyBlockMod.enableCopy = obj.get("enableCopy").getAsBoolean();
             if (obj.has("keystrokesOverlay")) SkyBlockMod.keystrokesOverlay = obj.get("keystrokesOverlay").getAsBoolean();
+            if (obj.has("PerspectiveModToggle")) SkyBlockMod.PerspectiveModToggle = obj.get("PerspectiveModToggle").getAsBoolean();
         } catch (Exception e) {
             e.printStackTrace();
         }

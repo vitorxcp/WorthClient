@@ -1,0 +1,36 @@
+language.name=English
+language.region=US
+language.code=en_US
+
+options.off=§cOFF
+options.on=§aON
+
+container.inventory=
+container.hopper=§fItem Hopper
+container.crafting=§fCrafting
+container.dispenser=§fDispenser
+container.dropper=§fDropper
+container.furnace=§fFurnace
+container.enchant=§fEnchant
+container.repair=§fRepair & Name
+container.repair.expensive=Too Expensive!
+container.creative=§fItem Selection
+container.brewing=§fBrewing Stand
+container.chest=§fChest
+container.chestDouble=§fLarge Chest
+container.minecart=§fMinecart
+container.enderchest=§fEnder Chest
+container.beacon=§fBeacon
+
+itemGroup.buildingBlocks=§fBuilding Blocks
+itemGroup.decorations=§fDecoration Blocks
+itemGroup.redstone=§fRedstone
+itemGroup.transportation=§fTransportation
+itemGroup.misc=§fMiscellaneous
+itemGroup.search=§fSearch Items
+itemGroup.food=§fFoodstuffs
+itemGroup.tools=§fTools
+itemGroup.combat=§fCombat
+itemGroup.brewing=§fBrewing
+itemGroup.materials=§fMaterials
+itemGroup.inventory=§fSurvival Inventory

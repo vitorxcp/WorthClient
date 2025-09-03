@@ -48,12 +48,15 @@ public class GuiHudEditor extends GuiScreen {
                 mc.fontRendererObj.drawStringWithShadow(display, x, y, 0xFFFFFF);
             }
 
-            int boxWidth = 80;
-            int boxHeight = 15;
-            boolean hovered = isMouseOverElement(mouseX, mouseY, element.x, element.y, boxWidth, boxHeight);
+            int width = display != null ? fontRendererObj.getStringWidth(display) : 100; // 100 como fallback
+            int height = display != null ? fontRendererObj.FONT_HEIGHT : 15;
+
+            int boxWidth = width + PADDING * 2;
+            int boxHeight = height + PADDING * 2;
+            boolean hovered = isMouseOverElement(mouseX, mouseY, element.x - PADDING, element.y - PADDING, boxWidth, boxHeight);
 
             if (hovered) {
-                drawIcon(element.x + boxWidth - 25, element.y, ICON_DELETE);
+                drawIcon(element.x + boxWidth - 16, element.y - 2, ICON_DELETE);
             }
         }
 
@@ -84,11 +87,9 @@ public class GuiHudEditor extends GuiScreen {
 
     private void drawIcon(int x, int y, ResourceLocation icon) {
         mc.getTextureManager().bindTexture(icon);
-
-        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F); // Reset cor
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         GlStateManager.enableBlend();
         GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
-
         drawTexturedModalRect(x, y, 0, 0, 16, 16);
     }
 

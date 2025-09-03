@@ -8,6 +8,7 @@ import net.minecraft.util.ScreenShotHelper;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.input.Keyboard;
 
 import java.awt.*;
@@ -23,14 +24,25 @@ public class Keybinds {
     public static KeyBinding openConfig;
     public static KeyBinding openConfigHud;
     public static KeyBinding screenshotKey;
+    public static KeyBinding perspectiveM;
+    public static KeyBinding zoomKey;
 
     public static void init() {
         openConfig = new KeyBinding("Abrir menu de Configurações", Keyboard.KEY_K, "SkyBlockModVX");
         ClientRegistry.registerKeyBinding(openConfig);
+
         openConfigHud = new KeyBinding("Abrir menu de Overlays", Keyboard.KEY_RSHIFT, "SkyBlockModVX");
         ClientRegistry.registerKeyBinding(openConfigHud);
+
         screenshotKey = new KeyBinding("Tirar Screenshot", Keyboard.KEY_P, "SkyBlockModVX");
         //ClientRegistry.registerKeyBinding(screenshotKey);
+
+        perspectiveM = new KeyBinding("Perspective Mod", Keyboard.KEY_LMENU, "SkyBlockModVX");
+        ClientRegistry.registerKeyBinding(perspectiveM);
+
+        zoomKey = new KeyBinding("Botão de Zoom", Keyboard.KEY_C, "SkyBlockModVX");
+        ClientRegistry.registerKeyBinding(zoomKey);
+
     }
 
     @SubscribeEvent
@@ -44,6 +56,23 @@ public class Keybinds {
         if (screenshotKey.isPressed()) {
             takeScreenshotAndUpload();
         }
+    }
+
+    private boolean wasPressed = false;
+
+    @SubscribeEvent
+    public void onClientTick(TickEvent.ClientTickEvent event) {
+        boolean isPressed = perspectiveM.isKeyDown();
+
+        if (isPressed && !wasPressed) {
+            SkyBlockMod.perspective = true;
+        }
+
+        if (!isPressed && wasPressed) {
+            SkyBlockMod.perspective = false;
+        }
+
+        wasPressed = isPressed;
     }
 
     public void takeScreenshotAndUpload() {

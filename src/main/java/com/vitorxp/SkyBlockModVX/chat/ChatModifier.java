@@ -1,9 +1,9 @@
 package com.vitorxp.SkyBlockModVX.chat;
 
 import com.vitorxp.SkyBlockModVX.SkyBlockMod;
-import com.vitorxp.SkyBlockModVX.util.RankUtils;
+import com.vitorxp.SkyBlockModVX.utils.RankUtils;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.network.NetworkPlayerInfo;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
 import net.minecraft.util.*;
@@ -20,11 +20,11 @@ public class ChatModifier {
         String formatted = event.message.getFormattedText();
         String raw = event.message.getUnformattedText();
 
-        if ((formatted.contains("❤") && formatted.contains("Defesa") && formatted.contains("Mana")) ||
-                formatted.matches(".*[❤⚜✎❁✯⸕➣➤➥➫➳➵➸⏣⚔⛏].*") ||
-                !formatted.contains(":") ||
-                formatted.length() < 10 ||
-                event.message.getChatStyle() == null) {
+        if (formatted.contains("Você está invisível para os outros jogadores!") || formatted.length() < 10 || event.message.getChatStyle() == null) {
+            return;
+        }
+
+        if (formatted.matches(".*[❤⚜✎❁✯⸕➣➤➥➫➳➵➸⏣⚔⛏].*")) {
             return;
         }
 
@@ -48,13 +48,17 @@ public class ChatModifier {
 
         if (SkyBlockMod.enableCopy) originalComponent.appendSibling(copyButton);
 
+        String remetente = extrairNome(raw);
+
         if (RankUtils.isStaff(Minecraft.getMinecraft().thePlayer)) {
-            IChatComponent adminButton = new ChatComponentText(" " + EnumChatFormatting.RED + "[❈]");
-            adminButton.setChatStyle(new ChatStyle()
-                    .setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/abrir_admin_gui " + extrairNome(raw)))
-                    .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText("Abrir painel de administração")))
-            );
-            originalComponent.appendSibling(adminButton);
+            if (!remetente.equalsIgnoreCase("Desconhecido")) {
+                IChatComponent adminButton = new ChatComponentText(" " + EnumChatFormatting.RED + "[❈]");
+                adminButton.setChatStyle(new ChatStyle()
+                        .setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/abrir_admin_gui " + remetente))
+                        .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText("Abrir painel de administração")))
+                );
+                originalComponent.appendSibling(adminButton);
+            }
         }
 
 
@@ -72,11 +76,22 @@ public class ChatModifier {
     private String extrairNome(String raw) {
         int idx = raw.indexOf(":");
         if (idx == -1) return "Desconhecido";
+
         String parteAntesDoTexto = raw.substring(0, idx).trim();
         String[] partes = parteAntesDoTexto.split(" ");
-        if (partes.length >= 1) {
-            return partes[partes.length - 1];
+        if (partes.length < 1) return "Desconhecido";
+
+        String nomePossivel = partes[partes.length - 1];
+
+        Minecraft mc = Minecraft.getMinecraft();
+        if (mc.getNetHandler() != null) {
+            for (NetworkPlayerInfo info : mc.getNetHandler().getPlayerInfoMap()) {
+                if (info.getGameProfile().getName().equalsIgnoreCase(nomePossivel)) {
+                    return nomePossivel;
+                }
+            }
         }
+
         return "Desconhecido";
     }
 }
