@@ -20,7 +20,7 @@ public class ChatModifier {
         String formatted = event.message.getFormattedText();
         String raw = event.message.getUnformattedText();
 
-        if (formatted.contains("Você está invisível para os outros jogadores!") || formatted.length() < 10 || event.message.getChatStyle() == null) {
+        if (formatted.contains("Você está invisível para os outros jogadores!") || formatted.contains("Você está na Fila para entrar no servidor") || formatted.length() < 10 || event.message.getChatStyle() == null) {
             return;
         }
 
@@ -54,8 +54,8 @@ public class ChatModifier {
             if (!remetente.equalsIgnoreCase("Desconhecido")) {
                 IChatComponent adminButton = new ChatComponentText(" " + EnumChatFormatting.RED + "[❈]");
                 adminButton.setChatStyle(new ChatStyle()
-                        .setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/abrir_admin_gui " + remetente))
-                        .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText("Abrir painel de administração")))
+                        .setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/adminv " + remetente))
+                        .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText("Abrir painel de administração do player")))
                 );
                 originalComponent.appendSibling(adminButton);
             }

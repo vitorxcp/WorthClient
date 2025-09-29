@@ -1,5 +1,6 @@
 package com.vitorxp.SkyBlockModVX.keybinds;
 
+import com.vitorxp.SkyBlockModVX.RadarManager;
 import com.vitorxp.SkyBlockModVX.SkyBlockMod;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
@@ -20,12 +21,15 @@ import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import static com.vitorxp.SkyBlockModVX.utils.RankUtils.isStaff;
+
 public class Keybinds {
     public static KeyBinding openConfig;
     public static KeyBinding openConfigHud;
     public static KeyBinding screenshotKey;
     public static KeyBinding perspectiveM;
     public static KeyBinding zoomKey;
+    public static KeyBinding toggleRadarKey;
 
     public static void init() {
         openConfig = new KeyBinding("Abrir menu de Configurações", Keyboard.KEY_K, "SkyBlockModVX");

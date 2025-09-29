@@ -88,7 +88,7 @@ public class AntiCheatCombiner {
 
         ChatComponentText clickable = new ChatComponentText(sb.toString());
         ChatStyle style = new ChatStyle();
-        style.setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ac_tp " + player));
+        style.setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/vtp " + player));
         style.setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
                 new ChatComponentText("§eClique para teleportar em " + player)));
         clickable.setChatStyle(style);

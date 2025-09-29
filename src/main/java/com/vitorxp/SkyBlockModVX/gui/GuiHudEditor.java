@@ -1,15 +1,13 @@
 package com.vitorxp.SkyBlockModVX.gui;
 
 import com.vitorxp.SkyBlockModVX.SkyBlockMod;
-import com.vitorxp.SkyBlockModVX.hud.ArmorStatusHUD;
-import com.vitorxp.SkyBlockModVX.hud.HudElement;
-import com.vitorxp.SkyBlockModVX.hud.HudPositionManager;
-import com.vitorxp.SkyBlockModVX.hud.KeystrokesHUD;
+import com.vitorxp.SkyBlockModVX.hud.*;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.ResourceLocation;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -78,6 +76,7 @@ public class GuiHudEditor extends GuiScreen {
 
         ArmorStatusHUD.renderAllItemsHUD();
         KeystrokesHUD.renderAllItemsHUD();
+        RadarHUD.renderAllPlayersHUD();
         super.drawScreen(mouseX, mouseY, partialTicks);
     }
 

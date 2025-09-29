@@ -2,8 +2,12 @@ package com.vitorxp.SkyBlockModVX.events;
 
 import com.vitorxp.SkyBlockModVX.gui.*;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiMainMenu;
+import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
 import static com.vitorxp.SkyBlockModVX.SkyBlockMod.*;
 
@@ -49,6 +53,24 @@ public class GuiMenuEvent {
         if (event.phase == TickEvent.Phase.END && GuiPerspective) {
             Minecraft.getMinecraft().displayGuiScreen(new GuiPerspectiveMod());
             GuiPerspective = false;
+        }
+
+        if (event.phase == TickEvent.Phase.END && GuiAdminPainel) {
+            Minecraft.getMinecraft().displayGuiScreen(new PainelAdminGui());
+            GuiAdminPainel = false;
+        }
+
+        if (event.phase == TickEvent.Phase.END && guiEditorAdmin) {
+            Minecraft.getMinecraft().displayGuiScreen(new GuiEditorAdmin());
+            guiEditorAdmin = false;
+        }
+    }
+
+    @SideOnly(Side.CLIENT)
+    @SubscribeEvent
+    public void onGuiOpen(GuiOpenEvent event) {
+        if (event.gui instanceof GuiMainMenu) {
+            event.gui = new GuiCosmicSplashScreen();
         }
     }
 }

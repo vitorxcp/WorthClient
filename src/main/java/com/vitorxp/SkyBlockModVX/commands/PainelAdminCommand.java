@@ -1,6 +1,6 @@
 package com.vitorxp.SkyBlockModVX.commands;
 
-import com.vitorxp.SkyBlockModVX.gui.AdminGui;
+import com.vitorxp.SkyBlockModVX.gui.PainelAdminGui;
 import net.minecraft.client.Minecraft;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommand;
@@ -11,17 +11,18 @@ import net.minecraft.util.ChatComponentText;
 import java.util.Collections;
 import java.util.List;
 
+import static com.vitorxp.SkyBlockModVX.SkyBlockMod.GuiAdminPainel;
 import static com.vitorxp.SkyBlockModVX.utils.RankUtils.isStaff;
 
-public class AdminCommandStaff extends CommandBase {
+public class PainelAdminCommand extends CommandBase {
     @Override
     public String getCommandName() {
-        return "adminv";
+        return "paineladmin";
     }
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/adminv <player>";
+        return "/paineladmin";
     }
 
     @Override
@@ -30,19 +31,15 @@ public class AdminCommandStaff extends CommandBase {
             Minecraft.getMinecraft().thePlayer.addChatMessage(new ChatComponentText("§cVocê não faz parte da Staff para executar esse comando!"));
             return;
         }
-        if (args.length >= 1) {
-            Minecraft.getMinecraft().displayGuiScreen(null);
-            Minecraft.getMinecraft().displayGuiScreen(new AdminGui(args[0]));
-            Minecraft.getMinecraft().thePlayer.addChatMessage(new ChatComponentText("§aPainel Administrativo aberto!"));
-        }
+       GuiAdminPainel = true;
+        Minecraft.getMinecraft().thePlayer.addChatMessage(new ChatComponentText("§aPainel Administrativo de Players aberto!"));
     }
 
+    // --- Métodos padrão ---
     @Override public int compareTo(ICommand o) { return getCommandName().compareTo(o.getCommandName()); }
     @Override public List<String> getCommandAliases() { return Collections.emptyList(); }
     @Override public boolean canCommandSenderUseCommand(ICommandSender sender) { return true; }
     @Override public List<String> addTabCompletionOptions(ICommandSender sender, String[] args, BlockPos pos) { return Collections.emptyList(); }
     @Override public boolean isUsernameIndex(String[] args, int index) { return false; }
-    @Override public int getRequiredPermissionLevel() {
-        return 0;
-    }
+    @Override public int getRequiredPermissionLevel() { return 0; }
 }

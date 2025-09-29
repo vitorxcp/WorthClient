@@ -14,11 +14,11 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.vitorxp.SkyBlockModVX.SkyBlockMod.pendingPlayersTP;
+
 public class ECTPCOmmand extends CommandBase {
 
     private static final Minecraft mc = Minecraft.getMinecraft();
-
-    private static final Map<String, String> pending = new ConcurrentHashMap<>();
 
     public ECTPCOmmand() {
         MinecraftForge.EVENT_BUS.register(this);
@@ -26,18 +26,18 @@ public class ECTPCOmmand extends CommandBase {
 
     @Override
     public String getCommandName() {
-        return "ac_tp";
+        return "vtp";
     }
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return "/ac_tp <nick>";
+        return "/vtp <nick>";
     }
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
         if (args.length < 1) {
-            sender.addChatMessage(new ChatComponentText("§cUso correto: /ac_tp <nick>"));
+            sender.addChatMessage(new ChatComponentText("§cUso correto: /vtp <nick>"));
             return;
         }
 
@@ -50,7 +50,7 @@ public class ECTPCOmmand extends CommandBase {
             return;
         }
 
-        pending.put(key, target);
+        pendingPlayersTP.put(key, target);
 
         mc.addScheduledTask(() -> {
             player.sendChatMessage("/v");
@@ -65,16 +65,16 @@ public class ECTPCOmmand extends CommandBase {
         if (clean.isEmpty()) return;
 
         if (clean.contains("you do not have permission") || clean.contains("sem permissão") || clean.contains("não tem permissão")) {
-            pending.forEach((k, v) -> {
+            pendingPlayersTP.forEach((k, v) -> {
                 mc.addScheduledTask(() ->
-                        mc.thePlayer.addChatMessage(new ChatComponentText("§c/ac_tp: servidor negou permissão para comando ao tentar teleportar " + v))
+                        mc.thePlayer.addChatMessage(new ChatComponentText("§cServidor negou permissão para comando ao tentar teleportar " + v))
                 );
             });
-            pending.clear();
+            pendingPlayersTP.clear();
             return;
         }
 
-        for (Map.Entry<String, String> entry : pending.entrySet().toArray(new Map.Entry[0])) {
+        for (Map.Entry<String, String> entry : pendingPlayersTP.entrySet().toArray(new Map.Entry[0])) {
             String key = entry.getKey();
             String nick = entry.getValue();
 
@@ -108,7 +108,7 @@ public class ECTPCOmmand extends CommandBase {
                     }
                 });
 
-                pending.remove(key);
+                pendingPlayersTP.remove(key);
             }
         }
     }
@@ -118,10 +118,11 @@ public class ECTPCOmmand extends CommandBase {
         if (args.length == 1) {
             return mc.getNetHandler().getPlayerInfoMap().stream()
                     .map(info -> info.getGameProfile().getName())
+                    .filter(name -> name != null && !name.trim().isEmpty())
                     .filter(name -> name.toLowerCase().startsWith(args[0].toLowerCase()))
                     .collect(java.util.stream.Collectors.toList());
         }
-        return Collections.emptyList();
+        return java.util.Collections.emptyList();
     }
 
     @Override

@@ -30,6 +30,7 @@ public class ConfigManager {
         obj.addProperty("enableCopy", SkyBlockMod.enableCopy);
         obj.addProperty("keystrokesOverlay", SkyBlockMod.keystrokesOverlay);
         obj.addProperty("PerspectiveModToggle", SkyBlockMod.PerspectiveModToggle);
+        obj.addProperty("RadarOverlay", SkyBlockMod.RadarOverlay);
 
         try (FileWriter writer = new FileWriter(FILE)) {
             new Gson().toJson(obj, writer);
@@ -61,6 +62,7 @@ public class ConfigManager {
             if (obj.has("enableCopy")) SkyBlockMod.enableCopy = obj.get("enableCopy").getAsBoolean();
             if (obj.has("keystrokesOverlay")) SkyBlockMod.keystrokesOverlay = obj.get("keystrokesOverlay").getAsBoolean();
             if (obj.has("PerspectiveModToggle")) SkyBlockMod.PerspectiveModToggle = obj.get("PerspectiveModToggle").getAsBoolean();
+            if (obj.has("RadarOverlay")) SkyBlockMod.RadarOverlay = obj.get("RadarOverlay").getAsBoolean();
         } catch (Exception e) {
             e.printStackTrace();
         }

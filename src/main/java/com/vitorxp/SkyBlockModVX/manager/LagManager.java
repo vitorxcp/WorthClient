@@ -119,7 +119,7 @@ public class LagManager {
 
     private static void send(String msg) {
         if (mc.thePlayer != null) {
-            mc.thePlayer.addChatMessage(new ChatComponentText("§6[SkyBlockModVX] §r" + msg));
+            mc.thePlayer.addChatMessage(new ChatComponentText("§6[WorthMod] §r" + msg));
         }
     }
 

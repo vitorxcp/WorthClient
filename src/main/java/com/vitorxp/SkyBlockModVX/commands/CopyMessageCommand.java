@@ -33,6 +33,6 @@ public class CopyMessageCommand extends CommandBase {
 
     @Override
     public int getRequiredPermissionLevel() {
-        return 0; // qualquer jogador pode usar
+        return 0;
     }
 }

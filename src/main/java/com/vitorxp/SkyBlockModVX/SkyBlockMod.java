@@ -7,7 +7,9 @@ import com.vitorxp.SkyBlockModVX.config.KeystrokesColors;
 import com.vitorxp.SkyBlockModVX.config.PerfConfig;
 import com.vitorxp.SkyBlockModVX.events.AnnounceMutanteEvent;
 import com.vitorxp.SkyBlockModVX.events.GuiMenuEvent;
-import com.vitorxp.SkyBlockModVX.gui.GuiMainMenuCustom;
+import com.vitorxp.SkyBlockModVX.gui.AdminGui;
+import com.vitorxp.SkyBlockModVX.handlers.PlayerInspectorHandler;
+import com.vitorxp.SkyBlockModVX.handlers.RadarInteractionHandler;
 import com.vitorxp.SkyBlockModVX.hud.*;
 import com.vitorxp.SkyBlockModVX.keybinds.Keybinds;
 import com.vitorxp.SkyBlockModVX.logger.InventoryLossLogger;
@@ -40,6 +42,8 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Mod(modid = "skyblockmodvx", name = "SkyBlockModVX", version = "1.0.1-alpha", dependencies = "after:optifine",clientSideOnly = true)
 public class SkyBlockMod {
@@ -52,6 +56,7 @@ public class SkyBlockMod {
     public static int zealotMessageTicksLeft = 0;
     public static boolean pingOverlay = true;
     public static boolean fpsOverlay = true;
+    public static boolean RadarOverlay = false;
 
     public static boolean mainHandHUDOverlay = true;
     public static boolean helmetHUDOverlay = true;
@@ -72,6 +77,8 @@ public class SkyBlockMod {
     public static boolean GuiKeyEditor = false;
     public static boolean GuiOverlay = false;
     public static boolean GuiPerspective = false;
+    public static boolean GuiAdminPainel = false;
+    public static boolean GuiPainelAdminP = false;
 
     public static boolean pendingOpenMenu = false;
     public static boolean pendingOpenMenuHud = false;
@@ -82,11 +89,14 @@ public class SkyBlockMod {
     public static String currentPetlevel = "0";
 
     public static PerspectiveMod perspectiveMod = new PerspectiveMod();
+    public static boolean guiEditorAdmin = false;
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent e) {
         PerfConfig.load(e.getSuggestedConfigurationFile());
     }
+
+    public static final Map<String, String> pendingPlayersTP = new ConcurrentHashMap<>();
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
@@ -115,6 +125,8 @@ public class SkyBlockMod {
         MinecraftForge.EVENT_BUS.register(new ArmorStatusHUD());
         MinecraftForge.EVENT_BUS.register(new PetHud());
         MinecraftForge.EVENT_BUS.register(new KeystrokesHUD());
+        MinecraftForge.EVENT_BUS.register(new RadarHUD());
+        MinecraftForge.EVENT_BUS.register(new TracerLineRenderer());
 
         MinecraftForge.EVENT_BUS.register(new AnnounceMutante());
         MinecraftForge.EVENT_BUS.register(new AnnounceMutanteEvent());
@@ -122,14 +134,18 @@ public class SkyBlockMod {
         MinecraftForge.EVENT_BUS.register(new InventoryFullBlock());
         MinecraftForge.EVENT_BUS.register(new AntiCheatCombiner());
         MinecraftForge.EVENT_BUS.register(new ECTPCOmmand());
+        MinecraftForge.EVENT_BUS.register(new AdminGui("vitorxp"));
         MinecraftForge.EVENT_BUS.register(new PetMaxBlockChat());
         MinecraftForge.EVENT_BUS.register(new GuiMenuEvent());
         MinecraftForge.EVENT_BUS.register(new InventoryFullNotifier());
         MinecraftForge.EVENT_BUS.register(new InventoryLossLogger());
         MinecraftForge.EVENT_BUS.register(new ChatCommandTracker());
         MinecraftForge.EVENT_BUS.register(new SuspiciousBehaviorDetector());
+        MinecraftForge.EVENT_BUS.register(new SellMessageCombiner());
         MinecraftForge.EVENT_BUS.register(new ChatModifier());
         MinecraftForge.EVENT_BUS.register(new Keybinds());
+        MinecraftForge.EVENT_BUS.register(new RadarInteractionHandler());
+        MinecraftForge.EVENT_BUS.register(new PlayerInspectorHandler());
 
         ClientCommandHandler.instance.registerCommand(new CommandPetMaxBlock());
         ClientCommandHandler.instance.registerCommand(new CommandInventoryBlock());
@@ -141,6 +157,7 @@ public class SkyBlockMod {
         ClientCommandHandler.instance.registerCommand(new CopyMessageCommand());
         ClientCommandHandler.instance.registerCommand(new AdminCommandStaff());
         ClientCommandHandler.instance.registerCommand(new ECTPCOmmand());
+        ClientCommandHandler.instance.registerCommand(new PainelAdminCommand());
 
         GameSettings settings = Minecraft.getMinecraft().gameSettings;
         settings.fboEnable = true;
@@ -157,26 +174,10 @@ public class SkyBlockMod {
         System.out.println("SkyBlockModVX carregado e otimizações aplicadas!");
     }
 
-    private boolean menuReplaced = false;
-
-    @SubscribeEvent
-    public void onClientTick(TickEvent.ClientTickEvent event) {
-        LagManager.onTick(event);
-
-        Minecraft mc = Minecraft.getMinecraft();
-
-        if (!menuReplaced && mc.currentScreen != null
-                && mc.currentScreen.getClass().equals(GuiMainMenu.class)) {
-            mc.displayGuiScreen(new GuiMainMenuCustom());
-            menuReplaced = true;
-        }
-    }
-
 
     @Mod.EventHandler
     public void postInit(FMLPostInitializationEvent e) {
-        // Pode ativar swap de EffectRenderer, se necessário
-        // ParticleLimiter.trySwapEffectRenderer();
+
     }
 
     @Mod.EventHandler
@@ -184,74 +185,5 @@ public class SkyBlockMod {
         InventoryLossLogger.saveToFile();
         HudPositionManager.save();
         ConfigManager.save();
-    }
-
-    public static boolean alreadyAdded = false;
-
-    @SubscribeEvent
-    public void onGuiInit(GuiScreenEvent.InitGuiEvent.Post event) {
-
-        if (!(event.gui instanceof GuiMultiplayer)) return;
-
-            GuiMultiplayer gui = (GuiMultiplayer) event.gui;
-
-            try {
-                Field buttonsField = GuiScreen.class.getDeclaredField("buttonList");
-                buttonsField.setAccessible(true);
-                @SuppressWarnings("unchecked")
-                List<GuiButton> buttons = (List<GuiButton>) buttonsField.get(gui);
-
-                for (GuiButton btn : buttons) {
-                    if (btn.id >= 7 && btn.id <= 9) {
-                        btn.enabled = false;
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-        if (alreadyAdded) return;
-        alreadyAdded = true;
-
-        Minecraft mc = Minecraft.getMinecraft();
-        ServerList serverList = new ServerList(mc);
-
-        try {
-            serverList.loadServerList();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return;
-        }
-
-        boolean found = false;
-        int count = serverList.countServers();
-
-        for (int i = 0; i < serverList.countServers(); i++) {
-            ServerData sd = serverList.getServerData(i);
-            if (sd.serverIP != null && sd.serverIP.equalsIgnoreCase("redeworth.com") || sd.serverIP != null && sd.serverIP.equalsIgnoreCase("redesky.net")) {
-                found = true;
-                if (i != 0) {
-                    serverList.swapServers(i, 0);
-                }
-                if (!sd.serverName.startsWith("\u00A7a")) {
-                    sd.serverName = "\u00A7a\u2714 \u00A7r" + sd.serverName;
-                }
-                break;
-            }
-        }
-
-        if (!found) {
-            ServerData newServer = new ServerData("\u00A7a\u2714 \u00A7rRedeWorth", "redeworth.com", false);
-            serverList.addServerData(newServer);
-            if (serverList.countServers() > 1) {
-                serverList.swapServers(serverList.countServers() - 1, 0);
-            }
-        }
-
-        try {
-            serverList.saveServerList();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 }

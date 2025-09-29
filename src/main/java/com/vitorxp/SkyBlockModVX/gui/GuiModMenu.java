@@ -6,9 +6,11 @@ import com.vitorxp.SkyBlockModVX.manager.ConfigManager;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 
+import static com.vitorxp.SkyBlockModVX.utils.RankUtils.isStaff;
+
 public class GuiModMenu extends GuiScreen {
 
-    private GuiButton btnPet, btnMutante, btnOvewrlays, btnChatC, btnPerspective;
+    private GuiButton btnPet, btnMutante, btnOvewrlays, btnChatC, btnPerspective, btnStaff;
     private float alpha = 0f;
     private boolean fadeIn = true;
     int buttonAlpha = 0;
@@ -37,8 +39,14 @@ public class GuiModMenu extends GuiScreen {
 
         btnPerspective = new GuiButton(14, centerX - 125, y, 250, 20,
                 "§9[Config] §7Configurações do Perspective Mod");
-
         this.buttonList.add(btnPerspective); y += 25;
+        if (isStaff(mc.thePlayer)) {
+            btnStaff = new GuiButton(15, centerX - 125, y, 250, 20,
+                    "§9[Config] §7Configurações da Staff");
+
+            this.buttonList.add(btnStaff); y += 25;
+        }
+
 
         btnMutante = new GuiButton(4, centerX - 125, y, 250, 20,
                 "§6[Alerta] §7Mutante: " + getStatus(SkyBlockMod.announceZealot));
@@ -66,6 +74,9 @@ public class GuiModMenu extends GuiScreen {
         } else if (button.id == 14) {
             mc.displayGuiScreen(null);
             SkyBlockMod.GuiPerspective = true;
+        } else if (button.id == 15) {
+            mc.displayGuiScreen(null);
+            SkyBlockMod.guiEditorAdmin = true;
         }
 
 
