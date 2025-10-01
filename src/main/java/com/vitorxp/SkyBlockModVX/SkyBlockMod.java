@@ -19,6 +19,7 @@ import com.vitorxp.SkyBlockModVX.manager.InventoryFullNotifier;
 import com.vitorxp.SkyBlockModVX.manager.LagManager;
 import com.vitorxp.SkyBlockModVX.optimization.*;
 
+import com.vitorxp.SkyBlockModVX.rpc.DiscordRPC;
 import com.vitorxp.SkyBlockModVX.utils.PerspectiveMod;
 import com.vitorxp.SkyBlockModVX.utils.ZoomHandler;
 import net.minecraft.client.Minecraft;
@@ -45,7 +46,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Mod(modid = "skyblockmodvx", name = "SkyBlockModVX", version = "1.0.1-alpha", dependencies = "after:optifine",clientSideOnly = true)
+@Mod(modid = "skyblockmodvx", name = "SkyBlockModVX", version = "1.0.1-alpha", dependencies = "after:optifine", clientSideOnly = true)
 public class SkyBlockMod {
 
     public static boolean blockPetMessages = true;
@@ -88,6 +89,9 @@ public class SkyBlockMod {
     public static String currentPetName = "Desconhecido";
     public static String currentPetlevel = "0";
 
+    public static HudManager hudManager;
+    public static KeystrokesManager keystrokesManager;
+
     public static PerspectiveMod perspectiveMod = new PerspectiveMod();
     public static boolean guiEditorAdmin = false;
 
@@ -101,6 +105,9 @@ public class SkyBlockMod {
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
         System.out.println("SkyBlockModVX ativando...");
+
+        String clientId = "1325483160011804754";
+        DiscordRPC.start(clientId);
 
         ActivationManager.init();
         ConfigManager.load();
@@ -120,13 +127,25 @@ public class SkyBlockMod {
         MinecraftForge.EVENT_BUS.register(new ZoomHandler());
         MinecraftForge.EVENT_BUS.register(new PerspectiveMod());
 
-        MinecraftForge.EVENT_BUS.register(new PingHUD());
-        MinecraftForge.EVENT_BUS.register(new FPSHUD());
-        MinecraftForge.EVENT_BUS.register(new ArmorStatusHUD());
-        MinecraftForge.EVENT_BUS.register(new PetHud());
-        MinecraftForge.EVENT_BUS.register(new KeystrokesHUD());
-        MinecraftForge.EVENT_BUS.register(new RadarHUD());
+        HudPositionManager.load();
+        hudManager = new HudManager();
+
+        hudManager.register(
+                new FPSHUD(),
+                new PingHUD(),
+                new PetHud(),
+                new RadarHUD(),
+                new KeystrokesWasdHud(),
+                new KeystrokesLmbHud(),
+                new KeystrokesRmbHud(),
+                new ArmorStatusHUD()
+        );
+
+        MinecraftForge.EVENT_BUS.register(hudManager);
         MinecraftForge.EVENT_BUS.register(new TracerLineRenderer());
+
+        keystrokesManager = new KeystrokesManager();
+        MinecraftForge.EVENT_BUS.register(keystrokesManager);
 
         MinecraftForge.EVENT_BUS.register(new AnnounceMutante());
         MinecraftForge.EVENT_BUS.register(new AnnounceMutanteEvent());
@@ -180,8 +199,18 @@ public class SkyBlockMod {
 
     }
 
+//    @SubscribeEvent
+//    public void onClientTick(TickEvent.ClientTickEvent event) {
+//        if (event.phase == TickEvent.Phase.END) {
+//            String state = Minecraft.getMinecraft().theWorld != null ? Minecraft.getMinecraft().theWorld.getWorldInfo().getWorldName() : "No world";
+//            String details = "Jogando Minecraft 1.8.9";
+//            DiscordRPC.sendActivity(state, details);
+//        }
+//    }
+
     @Mod.EventHandler
     public void onShutdown(FMLServerStoppedEvent event) {
+        DiscordRPC.stop();
         InventoryLossLogger.saveToFile();
         HudPositionManager.save();
         ConfigManager.save();

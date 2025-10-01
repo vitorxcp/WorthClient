@@ -73,15 +73,17 @@ public class SuspiciousBehaviorDetector {
                 String safeTitle = escapeJson(title);
                 String safeContent = escapeJson(fullContent);
 
-                String json = "{"
-                        + "\"username\": \"SkyBlockModVX - AntiCheat\","
-                        + "\"content\": \"\","
-                        + "\"embeds\": [{"
-                        + "  \"title\": \"" + safeTitle + "\","
-                        + "  \"description\": \"" + safeContent + "\n**Ping**\n " + ping + "\","
-                        + "  \"color\": 16711680"
-                        + "}]"
-                        + "}";
+                String json = String.format(
+                        "{"
+                                + "\"username\": \"SkyBlockModVX - AntiCheat\","
+                                + "\"embeds\": [{"
+                                + "  \"title\": \"%s\","
+                                + "  \"description\": \"%s\\n**Ping**: %d\","
+                                + "  \"color\": 16711680"
+                                + "}]"
+                                + "}",
+                        safeTitle, safeContent, ping
+                );
 
                 try (OutputStream os = connection.getOutputStream()) {
                     os.write(json.getBytes("UTF-8"));

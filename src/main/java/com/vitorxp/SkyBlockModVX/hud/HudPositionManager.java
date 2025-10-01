@@ -1,51 +1,40 @@
 package com.vitorxp.SkyBlockModVX.hud;
 
+import java.awt.Point;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 
 public class HudPositionManager {
     private static final File FILE = new File("config/SkyBlockModVX/hud_positions.json");
-    public static Map<String, HudElement> elements = new HashMap<>();
+    private static final Map<String, Point> positions = new HashMap<>();
 
-    public static void registerElement(HudElement element) {
-        elements.put(element.id, element);
+    public static Point getPosition(String id) {
+        return positions.get(id);
     }
 
-    public static HudElement get(String id) {
-        return elements.get(id);
+    public static void savePosition(HudElement element) {
+        positions.put(element.id, new Point(element.x, element.y));
+        save();
     }
 
     public static void load() {
-        elements.clear();
-
-        if (!FILE.exists()) {
-            System.out.println("Arquivo HUD não encontrado: " + FILE.getAbsolutePath());
-            return;
-        }
+        positions.clear();
+        if (!FILE.exists()) return;
 
         try (BufferedReader reader = new BufferedReader(new FileReader(FILE))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                String[] parts = line.split("=");
-
-                if (parts.length < 2) {
-                    System.out.println("Ignorando linha inválida: " + line);
-                    continue;
-                }
+                String[] parts = line.split(":");
+                if (parts.length < 2) continue;
 
                 String[] coords = parts[1].split(",");
-                if (coords.length < 2) {
-                    System.out.println("Coordenadas inválidas: " + parts[1]);
-                    continue;
-                }
+                if (coords.length < 2) continue;
 
                 String id = parts[0];
                 int x = Integer.parseInt(coords[0]);
                 int y = Integer.parseInt(coords[1]);
-
-                HudElement element = new HudElement(id, x, y);
-                elements.put(id, element);
+                positions.put(id, new Point(x, y));
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -54,14 +43,12 @@ public class HudPositionManager {
 
     public static void save() {
         try {
-            if (!FILE.getParentFile().exists()) FILE.getParentFile().mkdirs();
-            PrintWriter writer = new PrintWriter(FILE);
-
-            for (HudElement el : elements.values()) {
-                writer.println(el.id + "=" + el.x + "," + el.y);
+            FILE.getParentFile().mkdirs();
+            try (PrintWriter writer = new PrintWriter(FILE)) {
+                for (Map.Entry<String, Point> entry : positions.entrySet()) {
+                    writer.println(entry.getKey() + ":" + entry.getValue().x + "," + entry.getValue().y);
+                }
             }
-
-            writer.close();
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -1,63 +1,39 @@
 package com.vitorxp.SkyBlockModVX.hud;
 
-import com.vitorxp.SkyBlockModVX.RadarManager;
 import com.vitorxp.SkyBlockModVX.SkyBlockMod;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.network.NetHandlerPlayClient;
+import com.vitorxp.SkyBlockModVX.utils.RankUtils;
+import net.minecraft.client.network.NetworkPlayerInfo;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-
-import java.awt.Rectangle;
-import java.util.Comparator;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 import java.util.stream.Collectors;
 
-import static com.vitorxp.SkyBlockModVX.utils.RankUtils.isStaff;
+public class RadarHUD extends HudElement {
 
-public class RadarHUD {
+    private final List<String> cachedPlayers = new ArrayList<>();
+    private int width = 0;
+    private int height = 0;
 
-    private static final Minecraft mc = Minecraft.getMinecraft();
-
-    @SubscribeEvent
-    public void onRender(RenderGameOverlayEvent.Text event) {
-        renderAllPlayersHUD();
+    public RadarHUD() {
+        super("RadarHUD", 5, 5);
     }
 
-    public static void renderAllPlayersHUD() {
-        if (!SkyBlockMod.RadarOverlay || !isStaff(mc.thePlayer)) {
+    @Override
+    public void update(TickEvent.ClientTickEvent event) {
+        if (mc.thePlayer == null || mc.theWorld == null) {
             return;
         }
 
-        HudElement element = HudPositionManager.get("RadarHUD");
-
-        if (element == null) {
-            element = new HudElement("RadarHUD", 5, 5);
-            HudPositionManager.registerElement(element);
+        cachedPlayers.clear();
+        if (!SkyBlockMod.RadarOverlay || !RankUtils.isStaff(mc.thePlayer)) {
+            return;
         }
 
-        int x = element.x;
-        int y = element.y;
-
-        FontRenderer fr = mc.fontRendererObj;
-        int lineHeight = fr.FONT_HEIGHT + 2;
-
-        RadarManager.playerClickAreas.clear();
-
-        fr.drawStringWithShadow("§b-- Radar de Jogadores --", x, y, 0xFFFFFF);
-
-        int titleWidth = fr.getStringWidth("§b-- Radar de Jogadores --");
-        RadarManager.playerClickAreas.put("RadarTitle", new Rectangle(x, y, titleWidth, fr.FONT_HEIGHT));
-
-        y += lineHeight;
-
-        NetHandlerPlayClient netHandler = mc.getNetHandler();
-        if (netHandler == null) return;
-
-        final java.util.Map<String, net.minecraft.client.network.NetworkPlayerInfo> playerInfoMap =
-                netHandler.getPlayerInfoMap().stream()
+        final Map<String, NetworkPlayerInfo> playerInfoMap =
+                mc.getNetHandler().getPlayerInfoMap().stream()
                         .collect(Collectors.toMap(
                                 info -> info.getGameProfile().getName(),
                                 info -> info,
@@ -65,37 +41,45 @@ public class RadarHUD {
                         ));
 
         List<EntityPlayer> nearbyPlayers = mc.theWorld.playerEntities.stream()
-                .filter(player -> {
-                    if (player == mc.thePlayer) {
-                        return false;
-                    }
-
-                    net.minecraft.client.network.NetworkPlayerInfo info = playerInfoMap.get(player.getName());
-                    if (info == null) {
-                        return false;
-                    }
-
-                    return info.getResponseTime() > 0;
-                })
-                .sorted(Comparator.comparingDouble(player -> mc.thePlayer.getDistanceToEntity(player)))
+                .filter(player -> player != mc.thePlayer)
+                .filter(player -> playerInfoMap.get(player.getName()) != null &&
+                        playerInfoMap.get(player.getName()).getResponseTime() > 0)
                 .collect(Collectors.toList());
 
+        cachedPlayers.add("§b-- Radar de Jogadores --");
         if (nearbyPlayers.isEmpty()) {
-            fr.drawStringWithShadow("§7Nenhum jogador por perto.", x, y, 0xFFFFFF);
+            cachedPlayers.add("§7Nenhum jogador por perto.");
         } else {
             for (EntityPlayer player : nearbyPlayers) {
                 int distance = (int) mc.thePlayer.getDistanceToEntity(player);
-                String playerName = player.getName();
-                String text = String.format("§a%s §f- §e%d m", playerName, distance);
-
-                fr.drawStringWithShadow(text, x, y, 0xFFFFFF);
-
-                int textWidth = fr.getStringWidth(text);
-                Rectangle clickArea = new Rectangle(x, y, textWidth, fr.FONT_HEIGHT);
-                RadarManager.playerClickAreas.put(playerName, clickArea);
-
-                y += lineHeight;
+                cachedPlayers.add(String.format("§a%s §f- §e%d m", player.getName(), distance));
             }
         }
+
+        this.width = cachedPlayers.stream().mapToInt(fontRenderer::getStringWidth).max().orElse(0);
+        this.height = cachedPlayers.size() * (fontRenderer.FONT_HEIGHT + 2);
+    }
+
+    @Override
+    public void render(RenderGameOverlayEvent event) {
+        if (!SkyBlockMod.RadarOverlay || !RankUtils.isStaff(mc.thePlayer)) {
+            return;
+        }
+
+        int currentY = this.y;
+        for (String line : cachedPlayers) {
+            fontRenderer.drawStringWithShadow(line, this.x, currentY, 0xFFFFFF);
+            currentY += fontRenderer.FONT_HEIGHT + 2;
+        }
+    }
+
+    @Override
+    public int getWidth() {
+        return this.width;
+    }
+
+    @Override
+    public int getHeight() {
+        return this.height;
     }
 }

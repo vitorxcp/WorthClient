@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static com.vitorxp.SkyBlockModVX.utils.RankUtils.isStaff;
+import static com.vitorxp.SkyBlockModVX.utils.RankUtils.isStaffM;
 
 public class TracerLineRenderer {
 
@@ -26,7 +26,7 @@ public class TracerLineRenderer {
 
     @SubscribeEvent
     public void onRenderWorldLast(RenderWorldLastEvent event) {
-        if (!SkyBlockMod.RadarOverlay || mc.theWorld == null || mc.getRenderManager() == null || !isStaff(mc.thePlayer)) {
+        if (!SkyBlockMod.RadarOverlay || mc.theWorld == null || mc.getRenderManager() == null || !isStaffM(mc.thePlayer)) {
             return;
         }
 
@@ -41,12 +41,9 @@ public class TracerLineRenderer {
                         ));
 
         List<EntityPlayer> nearbyPlayers = mc.theWorld.playerEntities.stream()
-                .filter(player -> {
-                    if (player == mc.thePlayer) return false;
-                    net.minecraft.client.network.NetworkPlayerInfo info = playerInfoMap.get(player.getName());
-                    if (info == null) return false;
-                    return info.getResponseTime() > 0;
-                })
+                .filter(player -> player != mc.thePlayer)
+                .filter(player -> playerInfoMap.get(player.getName()) != null &&
+                        playerInfoMap.get(player.getName()).getResponseTime() > 0)
                 .collect(Collectors.toList());
 
         for (EntityPlayer player : nearbyPlayers) {
@@ -77,36 +74,33 @@ public class TracerLineRenderer {
                 y - mc.getRenderManager().viewerPosY + player.height + 0.5F,
                 z - mc.getRenderManager().viewerPosZ
         );
-        GL11.glNormal3f(0.0F, 1.0F, 0.0F);
         GlStateManager.rotate(-mc.getRenderManager().playerViewY, 0.0F, 1.0F, 0.0F);
         GlStateManager.rotate(mc.getRenderManager().playerViewX, 1.0F, 0.0F, 0.0F);
         GlStateManager.scale(-scale, -scale, scale);
-        GlStateManager.disableLighting();
-        GlStateManager.disableDepth();
-        GlStateManager.enableBlend();
-        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
 
+        // Desabilitar depth para sobrepor
+        GlStateManager.disableDepth();
+
+        // Fundo do texto
+        GlStateManager.disableTexture2D();
+        GlStateManager.enableBlend();
+        GlStateManager.tryBlendFuncSeparate(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
         int textWidth = fontRenderer.getStringWidth(text);
         Tessellator tessellator = Tessellator.getInstance();
         WorldRenderer worldrenderer = tessellator.getWorldRenderer();
-
-        GlStateManager.disableTexture2D();
-
-        worldrenderer.begin(7, DefaultVertexFormats.POSITION_COLOR);
-        worldrenderer.pos(-textWidth / 2.0F - 2, -2, 0.0D).color(0.0F, 0.0F, 0.0F, 0.4F).endVertex();
-        worldrenderer.pos(-textWidth / 2.0F - 2, 9, 0.0D).color(0.0F, 0.0F, 0.0F, 0.4F).endVertex();
-        worldrenderer.pos(textWidth / 2.0F + 2, 9, 0.0D).color(0.0F, 0.0F, 0.0F, 0.4F).endVertex();
-        worldrenderer.pos(textWidth / 2.0F + 2, -2, 0.0D).color(0.0F, 0.0F, 0.0F, 0.4F).endVertex();
+        worldrenderer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR);
+        worldrenderer.pos(-textWidth / 2f - 2, -2, 0).color(0, 0, 0, 150).endVertex();
+        worldrenderer.pos(-textWidth / 2f - 2, 9, 0).color(0, 0, 0, 150).endVertex();
+        worldrenderer.pos(textWidth / 2f + 2, 9, 0).color(0, 0, 0, 150).endVertex();
+        worldrenderer.pos(textWidth / 2f + 2, -2, 0).color(0, 0, 0, 150).endVertex();
         tessellator.draw();
 
         GlStateManager.enableTexture2D();
 
-        fontRenderer.drawStringWithShadow(text, -textWidth / 2.0F, 0, 0xFFFFFF);
+        fontRenderer.drawStringWithShadow(text, -textWidth / 2f, 0, 0xFFFFFF);
 
         GlStateManager.enableDepth();
-        GlStateManager.enableLighting();
         GlStateManager.disableBlend();
-        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         GlStateManager.popMatrix();
     }
 
@@ -114,35 +108,39 @@ public class TracerLineRenderer {
         double viewerX = mc.getRenderManager().viewerPosX;
         double viewerY = mc.getRenderManager().viewerPosY;
         double viewerZ = mc.getRenderManager().viewerPosZ;
+
         double targetX = player.lastTickPosX + (player.posX - player.lastTickPosX) * partialTicks;
         double targetY = player.lastTickPosY + (player.posY - player.lastTickPosY) * partialTicks;
         double targetZ = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * partialTicks;
+
         GlStateManager.pushMatrix();
         GlStateManager.enableBlend();
-        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+        GlStateManager.tryBlendFuncSeparate(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
         GlStateManager.disableTexture2D();
-        GlStateManager.disableDepth();
-        GlStateManager.depthMask(false);
         GL11.glLineWidth(2.5F);
+
         float distance = mc.thePlayer.getDistanceToEntity(player);
         Color color = getColorFromDistance(distance);
+
         Tessellator tessellator = Tessellator.getInstance();
         WorldRenderer worldRenderer = tessellator.getWorldRenderer();
         worldRenderer.begin(GL11.GL_LINES, DefaultVertexFormats.POSITION_COLOR);
+
         Vec3 startPoint = new Vec3(0, mc.thePlayer.getEyeHeight(), 0);
         double headY = targetY + player.getEyeHeight();
         double endX = targetX - viewerX;
         double endY = headY - viewerY;
         double endZ = targetZ - viewerZ;
+
         worldRenderer.pos(startPoint.xCoord, startPoint.yCoord, startPoint.zCoord)
                 .color(color.getRed(), color.getGreen(), color.getBlue(), 180)
                 .endVertex();
         worldRenderer.pos(endX, endY, endZ)
                 .color(color.getRed(), color.getGreen(), color.getBlue(), 180)
                 .endVertex();
+
         tessellator.draw();
-        GlStateManager.depthMask(true);
-        GlStateManager.enableDepth();
+
         GlStateManager.enableTexture2D();
         GlStateManager.disableBlend();
         GlStateManager.popMatrix();

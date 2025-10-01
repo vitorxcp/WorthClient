@@ -1,180 +1,124 @@
 package com.vitorxp.SkyBlockModVX.gui;
 
 import com.vitorxp.SkyBlockModVX.SkyBlockMod;
-import com.vitorxp.SkyBlockModVX.hud.*;
+import com.vitorxp.SkyBlockModVX.hud.HudElement;
+import com.vitorxp.SkyBlockModVX.hud.HudPositionManager;
+import com.vitorxp.SkyBlockModVX.utils.RenderUtil; // Usaremos nosso RenderUtil
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.ResourceLocation;
+import org.lwjgl.opengl.GL11;
 
+import java.awt.Color;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-
-import static com.vitorxp.SkyBlockModVX.hud.FPSHUD.messageDisplayHUDFPS;
-import static com.vitorxp.SkyBlockModVX.hud.PetHud.messageDisplayHUDPet;
-import static com.vitorxp.SkyBlockModVX.hud.PingHUD.messageDisplayHUDPing;
 
 public class GuiHudEditor extends GuiScreen {
 
-    private static final ResourceLocation ICON_DELETE = new ResourceLocation("skyblockmodvx", "textures/gui/icon_delete.png");
-
-    private static final int PADDING = 4;
-    private static final int HEIGHT = 12;
-
-    private final Map<String, String> messageMap = new HashMap<String, String>() {{
-        put("PingHUD", messageDisplayHUDPing);
-        put("PetHUD", messageDisplayHUDPet);
-        put("FPSHUD", messageDisplayHUDFPS);
-    }};
+    private static final ResourceLocation ICON_DELETE = new ResourceLocation("skyblockmodvx", "icons/delete-icon.png");
+    private static final int PADDING = 0;
 
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         this.drawDefaultBackground();
         this.drawCenteredString(this.fontRendererObj, "§6SkyBlockModVX §f- §7Editor de HUD", this.width / 2, 10, 0xFFFFFF);
 
-        for (HudElement element : HudPositionManager.elements.values()) {
-            String display = messageMap.get(element.id);
-            if (display != null) {
-                int x = element.x;
-                int y = element.y;
-                int width = fontRendererObj.getStringWidth(display);
-                int bgColor = 0x64000000;
-                int borderColor = 0x50FFFFFF;
+        for (HudElement element : SkyBlockMod.hudManager.getElements()) {
+            clampPositionToScreen(element);
 
-                drawBorderedRect(x - PADDING, y - PADDING, x + width + PADDING, y + HEIGHT + PADDING, 1.0F, borderColor, bgColor);
-                mc.fontRendererObj.drawStringWithShadow(display, x, y, 0xFFFFFF);
-            }
+            int elementWidth = element.getWidth();
+            int elementHeight = element.getHeight();
 
-            int width = display != null ? fontRendererObj.getStringWidth(display) : 100; // 100 como fallback
-            int height = display != null ? fontRendererObj.FONT_HEIGHT : 15;
+            int boxX = element.x - PADDING;
+            int boxY = element.y - PADDING;
+            int boxWidth = elementWidth + PADDING * 2;
+            int boxHeight = elementHeight + PADDING * 2;
 
-            int boxWidth = width + PADDING * 2;
-            int boxHeight = height + PADDING * 2;
-            boolean hovered = isMouseOverElement(mouseX, mouseY, element.x - PADDING, element.y - PADDING, boxWidth, boxHeight);
+            int bgColor = 0x64000000;
+            int borderColor = 0x50FFFFFF;
+            RenderUtil.drawRect(boxX, boxY, boxX + boxWidth, boxY + boxHeight, bgColor);
 
+            element.render(null);
+            element.renderPost(null);
+
+            boolean hovered = isMouseOver(mouseX, mouseY, boxX, boxY, boxWidth, boxHeight);
             if (hovered) {
-                drawIcon(element.x + boxWidth - 16, element.y - 2, ICON_DELETE);
+                drawIcon(boxX + boxWidth - 10, boxY - 6, ICON_DELETE);
             }
         }
 
-        int buttonWidth = 140;
-        int buttonHeight = 40;
-        int centerX = this.width / 2 - buttonWidth / 2;
-        int centerY = this.height / 2 - buttonHeight / 2;
-
-        drawRect(centerX + 2, centerY, centerX + buttonWidth - 2, centerY + buttonHeight, 0xAA000000);
-        drawRect(centerX, centerY + 2, centerX + 2, centerY + buttonHeight - 2, 0xAA000000);
-        drawRect(centerX + buttonWidth - 2, centerY + 2, centerX + buttonWidth, centerY + buttonHeight - 2, 0xAA000000);
-        drawRect(centerX + 1, centerY + 1, centerX + buttonWidth - 1, centerY + 2, 0xAA000000);
-        drawRect(centerX + 1, centerY + buttonHeight - 2, centerX + buttonWidth - 1, centerY + buttonHeight - 1, 0xAA000000);
-
-        int textY = centerY + (buttonHeight - this.fontRendererObj.FONT_HEIGHT) / 2;
-        drawCenteredString(this.fontRendererObj, "Menu de Configuração", this.width / 2, textY, 0xFFFFFF);
-
-        HudPositionManager.save();
-
-        ArmorStatusHUD.renderAllItemsHUD();
-        KeystrokesHUD.renderAllItemsHUD();
-        RadarHUD.renderAllPlayersHUD();
+        this.drawCenteredString(fontRendererObj, "Arraste os elementos para reposicionar", this.width / 2, this.height - 20, 0xAAAAAA);
         super.drawScreen(mouseX, mouseY, partialTicks);
     }
 
-    private boolean isMouseOverElement(int mouseX, int mouseY, int x, int y, int w, int h) {
+    @Override
+    protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
+        for (HudElement element : SkyBlockMod.hudManager.getElements()) {
+            int boxWidth = element.getWidth() + PADDING * 2;
+            int boxHeight = element.getHeight() + PADDING * 2;
+
+            if (isMouseOver(mouseX, mouseY, element.x - PADDING, element.y - PADDING, boxWidth, boxHeight)) {
+                element.dragging = true;
+                element.dragOffsetX = mouseX - element.x;
+                element.dragOffsetY = mouseY - element.y;
+                return;
+            }
+        }
+        super.mouseClicked(mouseX, mouseY, mouseButton);
+    }
+
+    @Override
+    protected void mouseClickMove(int mouseX, int mouseY, int clickedMouseButton, long timeSinceLastClick) {
+        for (HudElement element : SkyBlockMod.hudManager.getElements()) {
+            if (element.dragging) {
+                element.x = mouseX - element.dragOffsetX;
+                element.y = mouseY - element.dragOffsetY;
+            }
+        }
+        super.mouseClickMove(mouseX, mouseY, clickedMouseButton, timeSinceLastClick);
+    }
+
+    @Override
+    protected void mouseReleased(int mouseX, int mouseY, int state) {
+        for (HudElement element : SkyBlockMod.hudManager.getElements()) {
+            if (element.dragging) {
+                element.dragging = false;
+                HudPositionManager.savePosition(element);
+            }
+        }
+        super.mouseReleased(mouseX, mouseY, state);
+    }
+
+    private void clampPositionToScreen(HudElement element) {
+        int elementWidth = element.getWidth();
+        int elementHeight = element.getHeight();
+
+        int boxWidth = elementWidth + PADDING * 2;
+        int boxHeight = elementHeight + PADDING * 2;
+
+        element.x = Math.max(PADDING, Math.min(this.width - boxWidth + PADDING, element.x));
+        element.y = Math.max(PADDING, Math.min(this.height - boxHeight + PADDING, element.y));
+    }
+
+    private boolean isMouseOver(int mouseX, int mouseY, int x, int y, int w, int h) {
         return mouseX >= x && mouseX <= x + w && mouseY >= y && mouseY <= y + h;
     }
 
     private void drawIcon(int x, int y, ResourceLocation icon) {
-        mc.getTextureManager().bindTexture(icon);
+        GlStateManager.pushMatrix();
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         GlStateManager.enableBlend();
-        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
-        drawTexturedModalRect(x, y, 0, 0, 16, 16);
-    }
+        GlStateManager.tryBlendFuncSeparate(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
 
-    @Override
-    protected void mouseClicked(int x, int y, int button) throws IOException {
-        int buttonWidth = 120;
-        int buttonHeight = 20;
-        int centerX = this.width / 2 - buttonWidth / 2;
-        int centerY = this.height / 2 - buttonHeight / 2;
+        mc.getTextureManager().bindTexture(icon);
+        int iconSize = 8;
+        drawModalRectWithCustomSizedTexture(x, y, 0, 0, iconSize, iconSize, iconSize, iconSize);
 
-        if (isMouseOverElement(x, y, centerX, centerY, buttonWidth, buttonHeight)) {
-            mc.displayGuiScreen(null);
-            SkyBlockMod.pendingOpenMenu = true;
-            return;
-        }
-
-        for (HudElement element : HudPositionManager.elements.values()) {
-            int boxWidth = 80;
-            int boxHeight = 15;
-
-            boolean hovered = isMouseOverElement(x, y, element.x, element.y, boxWidth, boxHeight);
-
-            if (hovered) {
-                if (x >= element.x + boxWidth - 15 && x <= element.x + boxWidth - 7) {
-                    return;
-                }
-                if (x >= element.x + boxWidth - 28 && x <= element.x + boxWidth - 20) {
-                    HudPositionManager.elements.remove(element.id);
-                    if ("PingHUD".equals(element.id)) SkyBlockMod.pingOverlay = false;
-                    if ("PetHUD".equals(element.id)) SkyBlockMod.petOverlay = false;
-                    if ("FPSHUD".equals(element.id)) SkyBlockMod.fpsOverlay = false;
-                    if ("MainHandHUD".equals(element.id)) SkyBlockMod.mainHandHUDOverlay = false;
-                    if ("HelmetHUD".equals(element.id)) SkyBlockMod.helmetHUDOverlay = false;
-                    if ("ChestplateHUD".equals(element.id)) SkyBlockMod.chestplateHUDOverlay = false;
-                    if ("LeggingsHUD".equals(element.id)) SkyBlockMod.leggingsHUDOverlay = false;
-                    if ("KeystrokesHUD".equals(element.id)) SkyBlockMod.keystrokesOverlay = false;
-                    if ("KeystrokesLMB".equals(element.id)) SkyBlockMod.keystrokesOverlay = false;
-                    if ("KeystrokesRMB".equals(element.id)) SkyBlockMod.keystrokesOverlay = false;
-                    return;
-                }
-                element.dragging = true;
-                element.dragOffsetX = x - element.x;
-                element.dragOffsetY = y - element.y;
-            }
-        }
-        HudPositionManager.save();
-        super.mouseClicked(x, y, button);
-    }
-
-    @Override
-    protected void mouseReleased(int x, int y, int state) {
-        for (HudElement element : HudPositionManager.elements.values()) {
-            element.dragging = false;
-            //clampPositionToScreen(element);
-        }
-        HudPositionManager.save();
-        super.mouseReleased(x, y, state);
-    }
-
-    @Override
-    protected void mouseClickMove(int x, int y, int button, long timeSinceLastClick) {
-        for (HudElement element : HudPositionManager.elements.values()) {
-            if (element.dragging) {
-                element.x = x - element.dragOffsetX;
-                element.y = y - element.dragOffsetY;
-            }
-        }
-        HudPositionManager.save();
-        super.mouseClickMove(x, y, button, timeSinceLastClick);
-    }
-
-    private void clampPositionToScreen(HudElement element) {
-        element.x = Math.max(0, Math.min(this.width - 80, element.x));
-        element.y = Math.max(0, Math.min(this.height - 15, element.y));
+        GlStateManager.disableBlend();
+        GlStateManager.popMatrix();
     }
 
     @Override
     public boolean doesGuiPauseGame() {
         return true;
-    }
-
-    public void drawBorderedRect(int left, int top, int right, int bottom, float borderWidth, int borderColor, int backgroundColor) {
-        drawRect(left, top, right, bottom, backgroundColor);
-        drawHorizontalLine(left, right, top, borderColor);
-        drawHorizontalLine(left, right, bottom, borderColor);
-        drawVerticalLine(left, top, bottom, borderColor);
-        drawVerticalLine(right, top, bottom, borderColor);
     }
 }
