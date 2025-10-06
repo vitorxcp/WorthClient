@@ -1,7 +1,7 @@
 [
   {
-    "modid": "SkyBlockModVX",
-    "name": "SkyBlockModVX",
+    "modid": "WorthClient",
+    "name": "WorthClient",
     "description": "Um mod completo para o SkyBlock da Rede Worth!",
     "version": "1.0.1-alpha",
     "mcversion": "1.8.9",

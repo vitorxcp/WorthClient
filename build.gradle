@@ -4,13 +4,19 @@ buildscript {
             name = "forge"
             url = "https://files.minecraftforge.net/maven"
         }
+        maven {
+            name = "sponge"
+            url = "https://repo.spongepowered.org/maven"
+        }
     }
     dependencies {
         classpath 'net.minecraftforge.gradle:ForgeGradle:2.1-SNAPSHOT'
+        classpath 'org.spongepowered:mixingradle:0.6-SNAPSHOT'
     }
 }
 
 apply plugin: 'net.minecraftforge.gradle.forge'
+apply plugin: 'org.spongepowered.mixin'
 
 sourceSets {
     main {
@@ -21,8 +27,8 @@ sourceSets {
 }
 
 version = "1.0.1-alpha"
-group = "com.vitorxp.SkyBlockModVX"
-archivesBaseName = "SkyBlockModVX"
+group = "com.vitorxp.WorthClient"
+archivesBaseName = "WorthClient"
 
 sourceCompatibility = targetCompatibility = 1.8
 compileJava.options.encoding = 'UTF-8'
@@ -39,10 +45,19 @@ repositories {
         name = "forge"
         url = "https://files.minecraftforge.net/maven"
     }
+    maven {
+        name = "sponge"
+        url = "https://repo.spongepowered.org/maven"
+    }
 }
 
+mixin {
+    add sourceSets.main, "mixins.refmap.json"
+}
+
+
 dependencies {
-    // Adicione suas dependências aqui
+    compile 'org.spongepowered:mixin:0.7.11-SNAPSHOT'
 }
 
 processResources {
