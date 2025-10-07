@@ -3,8 +3,6 @@ package com.vitorxp.WorthClient;
 import com.vitorxp.WorthClient.account.AccountManager;
 import com.vitorxp.WorthClient.anticheat.SuspiciousBehaviorDetector;
 import com.vitorxp.WorthClient.chat.*;
-import com.vitorxp.WorthClient.chat.config.ChatConfig;
-import com.vitorxp.WorthClient.chat.gui.GuiChatSettings;
 import com.vitorxp.WorthClient.commands.*;
 import com.vitorxp.WorthClient.config.KeystrokesColors;
 import com.vitorxp.WorthClient.config.PerfConfig;
