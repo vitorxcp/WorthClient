@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class WindowUtils {
 
@@ -41,7 +42,7 @@ public class WindowUtils {
     }
 
     private static ByteBuffer loadIcon(String path) throws IOException {
-        BufferedImage image = ImageIO.read(WindowUtils.class.getResourceAsStream(path));
+        BufferedImage image = ImageIO.read(Objects.requireNonNull(WindowUtils.class.getResourceAsStream(path)));
         int[] pixels = new int[image.getWidth() * image.getHeight()];
         image.getRGB(0, 0, image.getWidth(), image.getHeight(), pixels, 0, image.getWidth());
 

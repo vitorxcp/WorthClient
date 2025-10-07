@@ -35,7 +35,6 @@ import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
@@ -51,7 +50,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Mod(modid = "worthclient", name = "WorthClient", version = "1.0.1-alpha", dependencies = "after:optifine", clientSideOnly = true)
 public class WorthClient {
     public static boolean openGuiChat = false;
-    private SessionManager sessionManager = new SessionManager();
+    private final SessionManager sessionManager = new SessionManager();
     private static ServerData lastServerAttempted;
 
     public static boolean blockPetMessages = true;
@@ -91,16 +90,11 @@ public class WorthClient {
 
     public static boolean perspective = false;
 
-    public static String currentPetName = "Desconhecido";
-    public static String currentPetlevel = "0";
-
     public static boolean modoOfflineAtivo = false;
-    private GuiButton botaoModoOffline;
 
     public static HudManager hudManager;
     public static KeystrokesManager keystrokesManager;
 
-    public static PerspectiveMod perspectiveMod = new PerspectiveMod();
     public static boolean guiEditorAdmin = false;
     public static boolean GuiAdminazw = false;
     public static String nameArsAdmin;
@@ -123,8 +117,6 @@ public class WorthClient {
         String clientId = "1325483160011804754";
         DiscordRPC.start(clientId);
 
-        MinecraftForge.EVENT_BUS.register(new ChatModifier());
-
         ActivationManager.init();
         ConfigManager.load();
         HudPositionManager.load();
@@ -132,7 +124,6 @@ public class WorthClient {
         KeystrokesColors.loadColors();
 
         MinecraftForge.EVENT_BUS.register(this);
-        FMLCommonHandler.instance().bus().register(this);
 
         MinecraftForge.EVENT_BUS.register(new com.vitorxp.WorthClient.WindowUtils());
         MinecraftForge.EVENT_BUS.register(new ParticleLimiter());

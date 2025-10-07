@@ -2,7 +2,6 @@ package com.vitorxp.WorthClient.utils;
 
 import com.vitorxp.WorthClient.keybinds.Keybinds;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.settings.GameSettings;
 import net.minecraftforge.client.event.MouseEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;

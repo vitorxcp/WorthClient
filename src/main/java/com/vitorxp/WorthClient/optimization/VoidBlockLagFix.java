@@ -9,7 +9,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 public class VoidBlockLagFix {
 
     private final Minecraft mc = Minecraft.getMinecraft();
-    private static final int VOID_HEIGHT = 130;
+    private static final int VOID_HEIGHT = 100;
     private static final double MAX_RENDER_DISTANCE_SQ = 50 * 50;
 
     @SubscribeEvent

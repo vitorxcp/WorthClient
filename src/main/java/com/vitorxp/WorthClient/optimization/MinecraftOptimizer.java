@@ -9,7 +9,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 public class MinecraftOptimizer {
 
     private final Minecraft mc = Minecraft.getMinecraft();
-    private static final int VOID_Y_THRESHOLD = 130;
+    private static final int VOID_Y_THRESHOLD = 100;
 
     @SubscribeEvent
     public void onBlockUpdate(BlockEvent.NeighborNotifyEvent event) {

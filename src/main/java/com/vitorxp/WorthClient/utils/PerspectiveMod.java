@@ -36,6 +36,7 @@ public class PerspectiveMod {
         }
 
         if (mc.renderGlobal != null) {
+            assert mc.thePlayer != null;
             mc.renderGlobal.markBlockRangeForRenderUpdate(
                     (int) mc.thePlayer.posX - 512, 0, (int) mc.thePlayer.posZ - 512,
                     (int) mc.thePlayer.posX + 512, 256, (int) mc.thePlayer.posZ + 512

@@ -25,7 +25,6 @@ public class GuiAddAccount extends GuiScreen {
         int centerX = this.width / 2;
         int centerY = this.height / 2;
 
-        // Botão principal para o método moderno e seguro
         this.buttonList.add(new GuiModernButton(0, centerX - 100, centerY - 60, 200, 20, "§bEntrar com Microsoft (Recomendado)", 0L));
 
         this.usernameField = new GuiTextField(1, this.fontRendererObj, centerX - 100, centerY - 10, 200, 20);

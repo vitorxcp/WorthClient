@@ -29,7 +29,7 @@ public class LightOptimizer {
             BlockPos pos = lightQueue.poll();
             if (pos == null) continue;
 
-            if (PerfConfig.skipVoidLight && pos.getY() < 130) continue;
+            if (PerfConfig.skipVoidLight && pos.getY() < 100) continue;
 
             world.checkLightFor(EnumSkyBlock.BLOCK, pos);
             world.checkLightFor(EnumSkyBlock.SKY, pos);
