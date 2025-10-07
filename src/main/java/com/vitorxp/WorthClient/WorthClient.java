@@ -3,6 +3,8 @@ package com.vitorxp.WorthClient;
 import com.vitorxp.WorthClient.account.AccountManager;
 import com.vitorxp.WorthClient.anticheat.SuspiciousBehaviorDetector;
 import com.vitorxp.WorthClient.chat.*;
+import com.vitorxp.WorthClient.chat.config.ChatConfig;
+import com.vitorxp.WorthClient.chat.gui.GuiChatSettings;
 import com.vitorxp.WorthClient.commands.*;
 import com.vitorxp.WorthClient.config.KeystrokesColors;
 import com.vitorxp.WorthClient.config.PerfConfig;
@@ -27,6 +29,8 @@ import net.minecraft.client.gui.*;
 import net.minecraft.client.multiplayer.GuiConnecting;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.client.settings.GameSettings;
+import net.minecraft.command.CommandBase;
+import net.minecraft.command.ICommandSender;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.Session;
 import net.minecraftforge.client.ClientCommandHandler;
@@ -48,6 +52,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Mod(modid = "worthclient", name = "WorthClient", version = "1.0.1-alpha", dependencies = "after:optifine", clientSideOnly = true)
 public class WorthClient {
+    public static boolean openGuiChat = false;
     private SessionManager sessionManager = new SessionManager();
     private static ServerData lastServerAttempted;
 
@@ -117,20 +122,10 @@ public class WorthClient {
 
         AccountManager.loadAccounts();
 
-        try {
-            Field ingameGUIField = Minecraft.class.getDeclaredField("ingameGUI"); // Nome pode variar: "field_71456_v"
-            ingameGUIField.setAccessible(true);
-            net.minecraft.client.gui.GuiIngame guiIngame = (net.minecraft.client.gui.GuiIngame) ingameGUIField.get(Minecraft.getMinecraft());
-
-            guiIngame.persistantChatGUI = new CustomGuiNewChat(Minecraft.getMinecraft());
-            System.out.println("CustomGuiNewChat injetado com sucesso!");
-        } catch (Exception e) {
-            System.err.println("Falha ao injetar o CustomGuiNewChat!");
-            e.printStackTrace();
-        }
-
         String clientId = "1325483160011804754";
         DiscordRPC.start(clientId);
+
+        MinecraftForge.EVENT_BUS.register(new ChatModifier());
 
         ActivationManager.init();
         ConfigManager.load();
@@ -164,6 +159,15 @@ public class WorthClient {
                 new KeystrokesRmbHud(),
                 new ArmorStatusHUD()
         );
+
+        ClientCommandHandler.instance.registerCommand(new CommandBase() {
+            public String getCommandName() { return "chatsettings"; }
+            public String getCommandUsage(ICommandSender sender) { return "/chatsettings"; }
+            public int getRequiredPermissionLevel() { return 0; }
+            public void processCommand(ICommandSender sender, String[] args) {
+                WorthClient.openGuiChat = true;
+            }
+        });
 
         MinecraftForge.EVENT_BUS.register(hudManager);
         MinecraftForge.EVENT_BUS.register(new TracerLineRenderer());

@@ -52,7 +52,7 @@ repositories {
 }
 
 mixin {
-    add sourceSets.main, "mixins.refmap.json"
+    add sourceSets.main, "worthclient.refmap.json"
 }
 
 

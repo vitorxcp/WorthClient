@@ -1,5 +1,6 @@
 package com.vitorxp.WorthClient.events;
 
+import com.vitorxp.WorthClient.chat.gui.GuiChatSettings;
 import com.vitorxp.WorthClient.gui.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiMainMenu;
@@ -68,6 +69,11 @@ public class GuiMenuEvent {
         if (event.phase == TickEvent.Phase.END && GuiAdminazw) {
             Minecraft.getMinecraft().displayGuiScreen(new AdminGui(nameArsAdmin));
             GuiAdminazw = false;
+        }
+
+        if (event.phase == TickEvent.Phase.END && openGuiChat) {
+            Minecraft.getMinecraft().displayGuiScreen(new GuiChatSettings(null));
+            openGuiChat = false;
         }
     }
 
