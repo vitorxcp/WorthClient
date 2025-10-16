@@ -24,6 +24,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import javax.net.ssl.HttpsURLConnection;
+
 public class GuiClientMainMenu extends GuiScreen {
 
     private static final ResourceLocation BACKGROUND_BLUR = new ResourceLocation("worthclient", "textures/gui/Background_3.png");
@@ -170,7 +172,7 @@ public class GuiClientMainMenu extends GuiScreen {
 
         switch (button.id) {
             case 0: triggerExitAnimation(new net.minecraft.client.gui.GuiSelectWorld(this)); break;
-            case 1: triggerExitAnimation(new net.minecraft.client.gui.GuiMultiplayer(this)); break;
+            case 1: triggerExitAnimation(new GuiMultiplayerCustom(this)); break;
             case 2: triggerExitAnimation(new net.minecraft.client.gui.GuiOptions(this, this.mc.gameSettings)); break;
             case 3: triggerExitAnimation(null); break;
             case 4: this.mc.refreshResources(); break;
@@ -227,15 +229,18 @@ public class GuiClientMainMenu extends GuiScreen {
             HttpURLConnection connection = null;
             try {
                 URL url = new URL(SERVER_STATUS_API);
-                connection = (HttpURLConnection) url.openConnection();
+
+                if (url.getProtocol().equalsIgnoreCase("https")) {
+                    connection = (HttpsURLConnection) url.openConnection();
+                } else {
+                    connection = (HttpURLConnection) url.openConnection();
+                }
 
                 connection.setConnectTimeout(10000);
                 connection.setReadTimeout(10000);
 
                 connection.setRequestProperty("User-Agent", "Mozilla/5.0");
-
                 connection.setRequestMethod("GET");
-                connection.connect();
 
                 String json;
                 try (InputStream inputStream = connection.getInputStream()) {
@@ -267,6 +272,7 @@ public class GuiClientMainMenu extends GuiScreen {
                     serverMotd = "§cServidor offline!";
                 }
             } catch (Exception e) {
+                System.out.println(e.getMessage());
                 serverMotd = "§cErro ao carregar MOTD!";
                 e.printStackTrace();
             } finally {

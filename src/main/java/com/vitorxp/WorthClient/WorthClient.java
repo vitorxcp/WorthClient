@@ -6,6 +6,7 @@ import com.vitorxp.WorthClient.chat.*;
 import com.vitorxp.WorthClient.commands.*;
 import com.vitorxp.WorthClient.config.KeystrokesColors;
 import com.vitorxp.WorthClient.config.PerfConfig;
+import com.vitorxp.WorthClient.config.VoidLagFixConfig;
 import com.vitorxp.WorthClient.events.AnnounceMutanteEvent;
 import com.vitorxp.WorthClient.events.GuiMenuEvent;
 import com.vitorxp.WorthClient.gui.AdminGui;
@@ -43,6 +44,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.event.FMLServerStoppedEvent;
 import net.minecraftforge.fml.common.network.FMLNetworkEvent;
 
+import java.io.File;
 import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -104,12 +106,16 @@ public class WorthClient {
         SSLTrustBypasser.install();
         SSLTrustManager.initialize();
         PerfConfig.load(e.getSuggestedConfigurationFile());
+
+        File configFile = e.getSuggestedConfigurationFile();
+        VoidLagFixConfig.syncConfig(configFile);
     }
 
     public static final Map<String, String> pendingPlayersTP = new ConcurrentHashMap<>();
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
+
         System.out.println("WorthClient ativando...");
 
         AccountManager.loadAccounts();
@@ -126,11 +132,11 @@ public class WorthClient {
         MinecraftForge.EVENT_BUS.register(this);
 
         MinecraftForge.EVENT_BUS.register(new com.vitorxp.WorthClient.WindowUtils());
+        MinecraftForge.EVENT_BUS.register(new VoidBlockLagFix());
         MinecraftForge.EVENT_BUS.register(new ParticleLimiter());
         MinecraftForge.EVENT_BUS.register(new EntityCull());
         MinecraftForge.EVENT_BUS.register(new ChunkTweaks());
         MinecraftForge.EVENT_BUS.register(new LightOptimizer());
-        MinecraftForge.EVENT_BUS.register(new VoidBlockLagFix());
         MinecraftForge.EVENT_BUS.register(new MinecraftOptimizer());
         MinecraftForge.EVENT_BUS.register(new ZoomHandler());
         MinecraftForge.EVENT_BUS.register(new PerspectiveMod());
@@ -218,9 +224,11 @@ public class WorthClient {
 
     @SubscribeEvent
     public void onClientConnectedToServer(FMLNetworkEvent.ClientConnectedToServerEvent event) {
+        Minecraft.getMinecraft().addScheduledTask(() -> {
         System.out.println("Conexão bem-sucedida. Salvando sessão válida...");
         Session currentSession = Minecraft.getMinecraft().getSession();
         sessionManager.saveSession(currentSession);
+        });
     }
 
     @SubscribeEvent

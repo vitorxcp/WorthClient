@@ -2,6 +2,7 @@ package com.vitorxp.WorthClient.events;
 
 import com.vitorxp.WorthClient.gui.*;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiIngameMenu;
 import net.minecraft.client.gui.GuiMainMenu;
 import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -76,6 +77,10 @@ public class GuiMenuEvent {
     public void onGuiOpen(GuiOpenEvent event) {
         if (event.gui instanceof GuiMainMenu) {
             event.gui = new GuiClientMainMenu();
+        }
+
+        if (event.gui instanceof GuiIngameMenu) {
+            event.gui = new GuiPauseMenuCustom();
         }
     }
 }

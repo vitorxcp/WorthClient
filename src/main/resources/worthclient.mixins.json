@@ -5,7 +5,7 @@
   "compatibilityLevel": "JAVA_8",
   "refmap": "worthclient.refmap.json",
   "mixins": [
-    "MixinMinecraft",
+    "MixinMinecraft"
   ],
   "client": [],
   "injectors": {
