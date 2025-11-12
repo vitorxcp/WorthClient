@@ -15,17 +15,11 @@ import java.util.Date;
 public class ChatModifier {
     @SubscribeEvent
     public void onChat(ClientChatReceivedEvent event) {
-        String formatted = event.message.getFormattedText();
+        if (event.type == 2) {
+            return;
+        }
+
         String raw = event.message.getUnformattedText();
-
-        if (formatted.contains("Você está invisível para os outros jogadores!") || formatted.contains("Você está na Fila para entrar no servidor") || formatted.length() < 10 || event.message.getChatStyle() == null) {
-            return;
-        }
-
-        if (formatted.matches(".*[❤⚜✎❁✯⸕➣➤➥➫➳➵➸⏣⚔⛏].*")) {
-            return;
-        }
-
         IChatComponent originalComponent = event.message.createCopy();
 
         if (com.vitorxp.WorthClient.WorthClient.showTime) {

@@ -6,7 +6,7 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.ResourceLocation;
 
-public class GuiIconButton extends GuiButton {
+public class  GuiIconButton extends GuiButton {
 
     private final ResourceLocation icon;
     private float hoverFade = 0.0f;
