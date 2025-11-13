@@ -18,7 +18,7 @@ import java.util.function.Consumer;
 
 public class MicrosoftAuth {
 
-    private static final String CLIENT_ID = "cc134b19-746a-4838-b397-e8eaee467b55"; // Client ID público do Minecraft Java
+    private static final String CLIENT_ID = "cc134b19-746a-4838-b397-e8eaee467b55";
     private static final JsonParser JSON_PARSER = new JsonParser();
 
     public static CompletableFuture<Account> login(Consumer<String> statusConsumer, Consumer<String> userCodeConsumer) {
@@ -26,7 +26,6 @@ public class MicrosoftAuth {
 
         new Thread(() -> {
             try {
-                // PASSO 1: Obter o Device Code da Microsoft
                 statusConsumer.accept("§eGerando código de dispositivo...");
                 JsonObject deviceCodeResponse = post("https://login.microsoftonline.com/common/oauth2/v2.0/devicecode",
                         "client_id=" + CLIENT_ID + "&scope=XboxLive.signin%20offline_access");
@@ -41,7 +40,6 @@ public class MicrosoftAuth {
                 userCodeConsumer.accept(userCode);
                 statusConsumer.accept("§fAcesse §b" + verificationUri + "§f e insira o código:");
 
-                // PASSO 2: Ficar perguntando se o usuário já autorizou (Polling)
                 JsonObject msTokenResponse = null;
                 while (System.currentTimeMillis() - startTime < expiresIn * 1000) {
                     Thread.sleep(interval * 1000);
@@ -58,7 +56,6 @@ public class MicrosoftAuth {
 
                 String msAccessToken = msTokenResponse.get("access_token").getAsString();
 
-                // PASSO 3: Autenticar com Xbox Live (XBL)
                 statusConsumer.accept("§eAutenticando com Xbox Live...");
                 JsonObject xblBody = new JsonObject();
                 JsonObject properties = new JsonObject();
@@ -73,7 +70,6 @@ public class MicrosoftAuth {
                 String xblToken = xblResponse.get("Token").getAsString();
                 String userHash = xblResponse.get("DisplayClaims").getAsJsonObject().get("xui").getAsJsonArray().get(0).getAsJsonObject().get("uhs").getAsString();
 
-                // PASSO 4: Obter o token XSTS
                 statusConsumer.accept("§eVerificando segurança (XSTS)...");
                 JsonObject xstsBody = new JsonObject();
                 properties = new JsonObject();
@@ -88,7 +84,6 @@ public class MicrosoftAuth {
                 JsonObject xstsResponse = postJson("https://xsts.auth.xboxlive.com/xsts/authorize", xstsBody);
                 String xstsToken = xstsResponse.get("Token").getAsString();
 
-                // PASSO 5: Autenticar com os serviços do Minecraft
                 statusConsumer.accept("§eEntrando no Minecraft...");
                 JsonObject mcLoginBody = new JsonObject();
                 mcLoginBody.addProperty("identityToken", "XBL3.0 x=" + userHash + ";" + xstsToken);
@@ -96,7 +91,6 @@ public class MicrosoftAuth {
                 JsonObject mcLoginResponse = postJson("https://api.minecraftservices.com/authentication/login_with_xbox", mcLoginBody);
                 String mcAccessToken = mcLoginResponse.get("access_token").getAsString();
 
-                // PASSO 6: Obter o perfil do jogador (nick, UUID)
                 statusConsumer.accept("§eObtendo perfil...");
                 JsonObject profileResponse = get("https://api.minecraftservices.com/minecraft/profile", mcAccessToken);
 
