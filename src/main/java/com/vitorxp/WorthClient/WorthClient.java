@@ -152,7 +152,8 @@ public class WorthClient {
                 new KeystrokesWasdHud(),
                 new KeystrokesLmbHud(),
                 new KeystrokesRmbHud(),
-                new ArmorStatusHUD()
+                new ArmorStatusHUD(),
+                new LookAtHUD()
         );
 
         ClientCommandHandler.instance.registerCommand(new CommandBase() {
