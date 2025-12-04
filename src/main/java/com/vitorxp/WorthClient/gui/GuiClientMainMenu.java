@@ -52,6 +52,7 @@ public class GuiClientMainMenu extends GuiScreen {
         this.buttonList.add(new GuiModernButton(3, this.width / 2 - 100, this.height - 40, 100, 20, "Sair", 800L));
         this.buttonList.add(new GuiModernButton(4, this.width / 2 + 10, this.height - 40, 100, 20, "Reiniciar Texturas", 800L));
         this.buttonList.add(new GuiModernButton(5, this.width - 110, 10, 100, 20, "Discord", 900L));
+        this.buttonList.add(new GuiModernButton(7, this.width - 110, 40, 100, 20, "Doação", 1000L));
         this.buttonList.add(new GuiModernButton(6, 10, 10, 100, 20, "Contas", 600L));
 
         fetchServerMotd();
@@ -177,6 +178,7 @@ public class GuiClientMainMenu extends GuiScreen {
             case 3: triggerExitAnimation(null); break;
             case 4: this.mc.refreshResources(); break;
             case 5: openDiscord("https://discord.gg/VWHvq9zpeV"); break;
+            case 7: openDiscord("https://livepix.gg/vitorxp1958"); break;
             case 6: this.mc.displayGuiScreen(new GuiAccountManager(this)); break;
         }
     }
