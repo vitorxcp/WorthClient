@@ -4,6 +4,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
+import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.entity.Entity;
@@ -41,6 +42,8 @@ public class LookAtHUD extends HudElement {
 
         MovingObjectPosition mop = mc.objectMouseOver;
         if (mop == null || mop.typeOfHit == MovingObjectPosition.MovingObjectType.MISS) return;
+
+        if (mc.currentScreen != null) return;
 
         resetData();
 
@@ -97,85 +100,97 @@ public class LookAtHUD extends HudElement {
 
     private void handleEntityHit(MovingObjectPosition mop) {
         Entity e = mop.entityHit;
-        if (e != null) {
-            if (e instanceof EntityArmorStand) {
-                EntityArmorStand stand = (EntityArmorStand) e;
-                ItemStack headItem = stand.getCurrentArmor(3);
+        if (e == null) return;
 
-                boolean isMinion = false;
-                boolean isPet = false;
-                String foundName = "";
+        if (e instanceof EntityArmorStand) {
+            EntityArmorStand stand = (EntityArmorStand) e;
+            ItemStack displayItem = null;
 
-                if (e.hasCustomName()) {
-                    foundName = e.getCustomNameTag();
-                }
+            ItemStack headSlot = stand.getEquipmentInSlot(4);
+            if (headSlot != null && headSlot.getItem() != null) {
+                displayItem = headSlot.copy();
+            }
+
+            if (displayItem == null) {
+                displayItem = searchForNearbyHead(stand);
+            }
+
+            boolean isMinion = false;
+            boolean isPet = false;
+            String foundName = "";
+
+            if (e.hasCustomName()) {
+                foundName = e.getCustomNameTag();
+            }
+
+            if (foundName.isEmpty() || foundName.equals("Armor Stand")) {
+                foundName = scanForHologramName(stand);
+            }
+
+            if (foundName.contains("Minion") || foundName.contains("Mithril") || foundName.contains("Collector")) {
+                isMinion = true;
+            } else if (foundName.contains("Pet") || (stand.isSmall() && displayItem != null)) {
+                if (foundName.contains("Pet")) isPet = true;
+                else isMinion = true;
 
                 if (foundName.isEmpty() || foundName.equals("Armor Stand")) {
-                    foundName = scanForHologramName(stand);
+                    foundName = EnumChatFormatting.YELLOW + "Minion";
                 }
+            }
 
-                if (foundName.contains("Minion") || foundName.contains("Mithril") || foundName.contains("Collector")) {
-                    isMinion = true;
-                } else if (stand.isSmall() && headItem != null) {
-                    isMinion = true;
-                    if (foundName.isEmpty() || foundName.equals("Armor Stand")) {
-                        foundName = EnumChatFormatting.YELLOW + "Minion";
-                    }
-                }
+            if (isMinion) {
+                name = foundName;
+                modSource = EnumChatFormatting.BLUE + "SkyBlock Minion";
+                mainPreviewStack = (displayItem != null) ? displayItem : new ItemStack(net.minecraft.init.Items.armor_stand);
 
-                if (foundName.contains("Pet")) {
-                    isPet = true;
-                }
+            } else if (isPet) {
+                name = foundName;
+                modSource = EnumChatFormatting.BLUE + "SkyBlock Pet";
+                mainPreviewStack = (displayItem != null) ? displayItem : new ItemStack(net.minecraft.init.Items.skull, 1, 3);
 
-                if (isMinion) {
-                    name = foundName;
-                    modSource = EnumChatFormatting.BLUE + "SkyBlock Minion";
-
-                    if (headItem != null) {
-                        mainPreviewStack = headItem.copy();
-                    } else {
-                        mainPreviewStack = new ItemStack(net.minecraft.init.Items.armor_stand);
-                    }
-                } else {
-                    if (isPet) {
-                        name = foundName;
-                        modSource = EnumChatFormatting.BLUE + "SkyBlock Pet";
-
-                        if (headItem != null) {
-                            mainPreviewStack = headItem.copy();
-                        } else {
-                            mainPreviewStack = new ItemStack(net.minecraft.init.Items.armor_stand);
-                        }
-                    } else {
-                        name = e.hasCustomName() ? e.getCustomNameTag() : EnumChatFormatting.WHITE + "Armor Stand";
-                        modSource = EnumChatFormatting.BLUE + "Minecraft";
-                        mainPreviewStack = new ItemStack(net.minecraft.init.Items.armor_stand);
-                    }
-                }
-
-            } else if (e instanceof EntityPlayer) {
-                name = EnumChatFormatting.GREEN + e.getName();
-                extraInfo = EnumChatFormatting.RED + String.format("%.1f ❤", ((EntityPlayer) e).getHealth());
-                mainPreviewStack = new ItemStack(net.minecraft.init.Items.skull, 1, 3);
-                modSource = EnumChatFormatting.YELLOW + "Jogador";
             } else {
-                name = e.getName();
-                mainPreviewStack = new ItemStack(net.minecraft.init.Items.spawn_egg);
-                modSource = EnumChatFormatting.GRAY + "Entidade";
+                name = e.hasCustomName() ? e.getCustomNameTag() : EnumChatFormatting.WHITE + "Armor Stand";
+                modSource = EnumChatFormatting.BLUE + "Minecraft";
+                mainPreviewStack = (displayItem != null) ? displayItem : new ItemStack(net.minecraft.init.Items.armor_stand);
+            }
+
+        } else if (e instanceof EntityPlayer) {
+            name = EnumChatFormatting.GREEN + e.getName();
+            extraInfo = EnumChatFormatting.WHITE + "Vida: " + EnumChatFormatting.RED + String.format("%.1f ❤", ((EntityPlayer) e).getHealth());
+            mainPreviewStack = new ItemStack(net.minecraft.init.Items.skull, 1, 3);
+            modSource = EnumChatFormatting.YELLOW + "Jogador";
+        } else {
+            name = e.getName();
+            mainPreviewStack = new ItemStack(net.minecraft.init.Items.spawn_egg);
+            modSource = EnumChatFormatting.GRAY + "Entidade";
+        }
+    }
+
+    // --- NOVA FUNÇÃO MÁGICA ---
+    private ItemStack searchForNearbyHead(EntityArmorStand source) {
+        AxisAlignedBB searchBox = source.getEntityBoundingBox().expand(1.0, 1.0, 1.0);
+
+        List<EntityArmorStand> nearby = mc.theWorld.getEntitiesWithinAABB(EntityArmorStand.class, searchBox);
+
+        for (EntityArmorStand neighbor : nearby) {
+            if (neighbor == source) continue;
+
+            ItemStack head = neighbor.getEquipmentInSlot(4);
+
+            if (head != null && head.getItem() != null && head.getItem() != net.minecraft.init.Blocks.air.getItem(mc.theWorld, null)) {
+                return head.copy();
             }
         }
+        return null;
     }
 
     private String scanForHologramName(Entity centerEntity) {
         AxisAlignedBB searchBox = centerEntity.getEntityBoundingBox().expand(0.5, 3.0, 0.5);
-
         List<EntityArmorStand> nearby = mc.theWorld.getEntitiesWithinAABB(EntityArmorStand.class, searchBox);
-
         for (EntityArmorStand nearbyStand : nearby) {
             if (nearbyStand.hasCustomName()) {
                 String cleanName = nearbyStand.getCustomNameTag();
                 String unformatted = EnumChatFormatting.getTextWithoutFormattingCodes(cleanName);
-
                 if (unformatted.contains("Minion") || unformatted.contains("Collector")) {
                     return cleanName;
                 }
@@ -185,60 +200,68 @@ public class LookAtHUD extends HudElement {
     }
 
     private void drawHudBox() {
-        int iconSize = 28;
-        int iconPadding = 38;
-
         int nameW = fontRenderer.getStringWidth(name);
-        int sourceW = fontRenderer.getStringWidth(modSource);
-        int infoW = (!extraInfo.isEmpty() && containerItems.isEmpty()) ? fontRenderer.getStringWidth(extraInfo) : 0;
+        int modW = fontRenderer.getStringWidth(modSource);
+        int infoW = extraInfo.isEmpty() ? 0 : fontRenderer.getStringWidth(extraInfo);
 
-        int maxTextWidth = Math.max(nameW, Math.max(sourceW, infoW));
+        int maxTextWidth = Math.max(nameW, Math.max(modW, infoW));
 
-        int boxWidth = Math.max(140, maxTextWidth + iconPadding + 10);
+        int iconSize = 28;
+        int paddingSide = 42;
+
+        int boxWidth = Math.max(140, maxTextWidth + paddingSide);
+
+        if (!containerItems.isEmpty()) {
+            int itemsPerRow = 9;
+            int inventoryNeededWidth = (itemsPerRow * 18) + 10;
+            boxWidth = Math.max(boxWidth, inventoryNeededWidth);
+        }
 
         int headerHeight = 34;
+
         if (!extraInfo.isEmpty() && containerItems.isEmpty()) {
-            headerHeight = 44;
+            headerHeight = 45;
         }
 
         int inventoryHeight = 0;
         if (!containerItems.isEmpty()) {
-            int itemsPerRow = 9;
-            boxWidth = Math.max(boxWidth, (itemsPerRow * 18) + 10);
-            int rows = (int) Math.ceil((double) containerItems.size() / itemsPerRow);
+            int rows = (int) Math.ceil((double) containerItems.size() / 9.0);
             inventoryHeight = (rows * 18) + 6;
         }
 
         int boxHeight = headerHeight + inventoryHeight;
+
+        ScaledResolution sr = new ScaledResolution(mc);
+
+        int screenWidth = sr.getScaledWidth();
+        this.x = (screenWidth / 2) - (boxWidth / 2);
 
         Gui.drawRect(this.x, this.y, this.x + boxWidth, this.y + boxHeight, 0xCC101010);
         Gui.drawRect(this.x, this.y, this.x + boxWidth, this.y + 2, 0xFF00A8FF);
 
         if (mainPreviewStack != null) {
             GlStateManager.pushMatrix();
-            float iconY = this.y + (headerHeight / 2.0f) - 12;
+            float iconY = this.y + (headerHeight - (16 * 1.5f)) / 2;
+            if (iconY < this.y + 4) iconY = this.y + 4;
             GlStateManager.translate(this.x + 6, iconY, 0);
             GlStateManager.scale(1.5, 1.5, 1.5);
             renderItem(mainPreviewStack, 0, 0);
             GlStateManager.popMatrix();
         }
 
-        int textAreaStart = this.x + iconPadding;
-        int textAreaWidth = boxWidth - iconPadding;
-        int centerX = textAreaStart + (textAreaWidth / 2);
+        int textX = this.x + 38;
+        int textY = this.y + 6;
 
-        int textStartY = this.y + 6;
-
-        drawTextCentered(name, centerX, textStartY, 0xFFFFFF);
-        drawTextCentered(modSource, centerX, textStartY + 11, 0xFFFFFF);
+        fontRenderer.drawStringWithShadow(name, textX, textY, 0xFFFFFF);
+        fontRenderer.drawStringWithShadow(modSource, textX, textY + 11, 0xFFFFFF);
 
         if (!extraInfo.isEmpty() && containerItems.isEmpty()) {
-            drawTextCentered(extraInfo, centerX, textStartY + 22, 0xAAAAAA);
+            fontRenderer.drawStringWithShadow(extraInfo, textX, textY + 22, 0xAAAAAA);
         }
 
         if (!containerItems.isEmpty()) {
-            int gridWidth = Math.min(containerItems.size(), 9) * 18;
-            int gridStartX = this.x + (boxWidth - gridWidth) / 2;
+            int gridStartX = this.x + (boxWidth - (9 * 18)) / 2;
+            if (gridStartX < this.x + 5) gridStartX = this.x + 5;
             int gridStartY = this.y + headerHeight + 2;
 
             for (int i = 0; i < containerItems.size(); i++) {
@@ -250,11 +273,6 @@ public class LookAtHUD extends HudElement {
                 renderItem(containerItems.get(i), drawX, drawY);
             }
         }
-    }
-
-    private void drawTextCentered(String text, int x, int y, int color) {
-        int width = fontRenderer.getStringWidth(text);
-        fontRenderer.drawStringWithShadow(text, x - (width / 2), y, color);
     }
 
     private void renderItem(ItemStack stack, int x, int y) {
