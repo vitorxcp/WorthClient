@@ -25,7 +25,6 @@ public class LookAtHUD extends HudElement {
 
     private final Minecraft mc = Minecraft.getMinecraft();
 
-    // Dados para renderização
     private String name = "";
     private String modSource = "";
     private String extraInfo = "";
@@ -187,15 +186,22 @@ public class LookAtHUD extends HudElement {
 
     private void drawHudBox() {
         int iconSize = 28;
-        int textWidth = Math.max(fontRenderer.getStringWidth(name), fontRenderer.getStringWidth(modSource));
+        int iconPadding = 38;
+
+        int nameW = fontRenderer.getStringWidth(name);
+        int sourceW = fontRenderer.getStringWidth(modSource);
+        int infoW = (!extraInfo.isEmpty() && containerItems.isEmpty()) ? fontRenderer.getStringWidth(extraInfo) : 0;
+
+        int maxTextWidth = Math.max(nameW, Math.max(sourceW, infoW));
+
+        int boxWidth = Math.max(140, maxTextWidth + iconPadding + 10);
+
+        int headerHeight = 34;
         if (!extraInfo.isEmpty() && containerItems.isEmpty()) {
-            textWidth = Math.max(textWidth, fontRenderer.getStringWidth(extraInfo));
+            headerHeight = 44;
         }
 
-        int boxWidth = Math.max(140, textWidth + iconSize + 25);
-        int headerHeight = 34;
         int inventoryHeight = 0;
-
         if (!containerItems.isEmpty()) {
             int itemsPerRow = 9;
             boxWidth = Math.max(boxWidth, (itemsPerRow * 18) + 10);
@@ -210,25 +216,31 @@ public class LookAtHUD extends HudElement {
 
         if (mainPreviewStack != null) {
             GlStateManager.pushMatrix();
-            GlStateManager.translate(this.x + 6, this.y + 6, 0);
+            float iconY = this.y + (headerHeight / 2.0f) - 12;
+            GlStateManager.translate(this.x + 6, iconY, 0);
             GlStateManager.scale(1.5, 1.5, 1.5);
             renderItem(mainPreviewStack, 0, 0);
             GlStateManager.popMatrix();
         }
 
-        int textX = this.x + 38;
-        int textY = this.y + 6;
+        int textAreaStart = this.x + iconPadding;
+        int textAreaWidth = boxWidth - iconPadding;
+        int centerX = textAreaStart + (textAreaWidth / 2);
 
-        fontRenderer.drawStringWithShadow(name, textX, textY, 0xFFFFFF);
-        fontRenderer.drawStringWithShadow(modSource, textX, textY + 11, 0xFFFFFF);
+        int textStartY = this.y + 6;
+
+        drawTextCentered(name, centerX, textStartY, 0xFFFFFF);
+        drawTextCentered(modSource, centerX, textStartY + 11, 0xFFFFFF);
 
         if (!extraInfo.isEmpty() && containerItems.isEmpty()) {
-            fontRenderer.drawStringWithShadow(extraInfo, textX, textY + 22, 0xAAAAAA);
+            drawTextCentered(extraInfo, centerX, textStartY + 22, 0xAAAAAA);
         }
 
         if (!containerItems.isEmpty()) {
-            int gridStartX = this.x + 5;
-            int gridStartY = this.y + 34;
+            int gridWidth = Math.min(containerItems.size(), 9) * 18;
+            int gridStartX = this.x + (boxWidth - gridWidth) / 2;
+            int gridStartY = this.y + headerHeight + 2;
+
             for (int i = 0; i < containerItems.size(); i++) {
                 int col = i % 9;
                 int row = i / 9;
@@ -238,6 +250,11 @@ public class LookAtHUD extends HudElement {
                 renderItem(containerItems.get(i), drawX, drawY);
             }
         }
+    }
+
+    private void drawTextCentered(String text, int x, int y, int color) {
+        int width = fontRenderer.getStringWidth(text);
+        fontRenderer.drawStringWithShadow(text, x - (width / 2), y, color);
     }
 
     private void renderItem(ItemStack stack, int x, int y) {
