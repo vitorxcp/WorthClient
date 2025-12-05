@@ -12,11 +12,9 @@ public class GuiModernButton extends GuiButton {
     private long startTime = -1;
     private float hoverFade = 0.0f;
 
-    // NOVOS CAMPOS PARA CORES PERSONALIZADAS
     private final int baseColor;
     private final int hoverColor;
 
-    // Construtor principal que aceita tudo
     public GuiModernButton(int buttonId, int x, int y, int width, int height, String buttonText, long delay, int baseColor, int hoverColor) {
         super(buttonId, x, y, width, height, buttonText);
         this.animationDelay = delay;
@@ -24,15 +22,13 @@ public class GuiModernButton extends GuiButton {
         this.hoverColor = hoverColor;
     }
 
-    // Construtor de conveniência com cores padrão (roxo/cinza)
     public GuiModernButton(int buttonId, int x, int y, int width, int height, String buttonText, long delay) {
         this(buttonId, x, y, width, height, buttonText, delay,
-                new Color(50, 50, 60, 150).getRGB(), // Cor base padrão
-                new Color(130, 90, 220, 200).getRGB()  // Cor hover padrão
+                new Color(50, 50, 60, 150).getRGB(),
+                new Color(130, 90, 220, 200).getRGB()
         );
     }
 
-    // Construtor de conveniência mais simples
     public GuiModernButton(int buttonId, int x, int y, String buttonText, long delay) {
         this(buttonId, x, y, 200, 25, buttonText, delay);
     }
@@ -61,19 +57,15 @@ public class GuiModernButton extends GuiButton {
         float hoverSpeed = 0.1F;
         this.hoverFade = this.hovered ? Math.min(1.0F, this.hoverFade + hoverSpeed) : Math.max(0.0F, this.hoverFade - hoverSpeed);
 
-        // USA AS CORES PERSONALIZADAS EM VEZ DAS CORES FIXAS
         Color idleColor = new Color(this.baseColor, true);
         Color hoverColor = new Color(this.hoverColor, true);
 
-        // Interpola as cores RGB
         int r = (int) AnimationUtil.lerp(idleColor.getRed(), hoverColor.getRed(), hoverFade);
         int g = (int) AnimationUtil.lerp(idleColor.getGreen(), hoverColor.getGreen(), hoverFade);
         int b = (int) AnimationUtil.lerp(idleColor.getBlue(), hoverColor.getBlue(), hoverFade);
 
-        // Interpola o alfa e aplica o alfa global
         int a = (int) (AnimationUtil.lerp(idleColor.getAlpha(), hoverColor.getAlpha(), hoverFade) * finalAlpha);
 
-        // Garante que o alfa não passe de 255
         a = Math.min(255, a);
 
         int finalColor = new Color(r,g,b,a).getRGB();
