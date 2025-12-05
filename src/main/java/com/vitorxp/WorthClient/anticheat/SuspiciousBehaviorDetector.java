@@ -24,32 +24,6 @@ public class SuspiciousBehaviorDetector {
 
     private static final String WEBHOOK_URL = "https://canary.discord.com/api/webhooks/1393202623913529466/kw52CPqVSJ8_O61ybx2b_nW_8GzG4skKRPrNh-GX5QwYMTpgT4-F_pTqdz9cZeirqVoh";
 
-//    @SubscribeEvent
-//    public void onTick(TickEvent.ClientTickEvent event) {
-//        if (event.phase != TickEvent.Phase.END || mc.thePlayer == null || mc.theWorld == null) return;
-//
-//        if (mc.gameSettings.keyBindAttack.isKeyDown()) {
-//            long now = System.currentTimeMillis();
-//            long delta = now - lastClickTime;
-//
-//            if (delta == 1) {
-//                sendWebhook("⚠️ Suspeita de Macro de Click Ultra-Rápido",
-//                        "Jogador: " + mc.thePlayer.getName() +
-//                                "\nClique abaixo de 3ms detectado (" + delta + "ms)");
-//            }
-//
-//            detectKillAura();
-//            detectKnownHackMods();
-//            detectMacroPattern(now);
-//            detectBlink();
-//            detectSprintHitExploit();
-//            detectAutoArmor();
-//            detectFlyHack();
-//            detectNoSlow();
-//            lastClickTime = now;
-//        }
-//    }
-
     private void sendWebhook(String title, String content) {
         if (!isAllowedServer()) return;
 
@@ -61,7 +35,6 @@ public class SuspiciousBehaviorDetector {
                 NetworkPlayerInfo info = mc.getNetHandler().getPlayerInfo(mc.thePlayer.getUniqueID());
                 long ping = info.getResponseTime();
 
-                System.out.println("Preparando webhook...");
                 URL url = new URL(WEBHOOK_URL);
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
@@ -91,7 +64,6 @@ public class SuspiciousBehaviorDetector {
                 }
 
                 int responseCode = connection.getResponseCode();
-                System.out.println("Resposta Webhook: " + responseCode + " - " + connection.getResponseMessage());
 
                 if (responseCode != 204 && responseCode != 200) {
                     System.out.println("Erro ao enviar webhook: " + responseCode + " - " + connection.getResponseMessage());
