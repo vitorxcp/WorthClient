@@ -29,6 +29,7 @@ public class MixinLoadingScreenRenderer {
         ScaledResolution res = new ScaledResolution(mc);
         int width = res.getScaledWidth();
         int height = res.getScaledHeight();
+        int scaleFactor = res.getScaleFactor();
 
         Framebuffer framebuffer = mc.getFramebuffer();
         if (framebuffer != null) {
@@ -50,6 +51,7 @@ public class MixinLoadingScreenRenderer {
         GlStateManager.alphaFunc(516, 0.1F);
         GlStateManager.enableBlend();
         OpenGlHelper.glBlendFunc(770, 771, 1, 0);
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
 
         LoadingScreenHook.customGUI.setWorldAndResolution(mc, width, height);
         LoadingScreenHook.customGUI.drawScreen(0, 0, 0);
