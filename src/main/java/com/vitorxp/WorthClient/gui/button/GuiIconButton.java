@@ -26,7 +26,6 @@ public class  GuiIconButton extends GuiButton {
             GlStateManager.pushMatrix();
             GlStateManager.enableBlend();
 
-            // A cor fica mais clara no hover
             float brightness = AnimationUtil.lerp(0.8f, 1.0f, this.hoverFade);
             GlStateManager.color(brightness, brightness, brightness, 1.0F);
 
