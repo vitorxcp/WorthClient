@@ -52,7 +52,7 @@ public class GuiClientMainMenu extends GuiScreen {
         this.buttonList.add(new GuiModernButton(3, this.width / 2 - 100, this.height - 40, 100, 20, "Sair", 800L));
         this.buttonList.add(new GuiModernButton(4, this.width / 2 + 10, this.height - 40, 100, 20, "Reiniciar Texturas", 800L));
         this.buttonList.add(new GuiModernButton(5, this.width - 110, 10, 100, 20, "Discord", 900L));
-        this.buttonList.add(new GuiModernButton(7, this.width - 110, 40, 100, 20, "Doação", 1000L));
+        this.buttonList.add(new GuiModernButton(7, this.width - 110, 35, 100, 20, "Doação", 1000L));
         this.buttonList.add(new GuiModernButton(6, 10, 10, 100, 20, "Contas", 600L));
 
         fetchServerMotd();
