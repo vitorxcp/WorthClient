@@ -1,0 +1,1 @@
+FMLCorePlugin: com.vitorxp.WorthClient.core.VXCoreMod
