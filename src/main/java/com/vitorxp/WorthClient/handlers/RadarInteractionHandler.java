@@ -25,9 +25,7 @@ public class RadarInteractionHandler {
 
                 if (area.contains(mouseX, mouseY)) {
                     mc.addScheduledTask(() -> mc.displayGuiScreen(new AdminGui(playerName)));
-
                     event.setCanceled(true);
-
                     break;
                 }
             }
