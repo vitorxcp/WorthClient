@@ -26,11 +26,9 @@ public class GuiPlayerInspector extends GuiScreen {
         int centerX = this.width / 2;
         int startY = this.height / 2 - 60;
 
-        // Título
         this.drawCenteredString(this.fontRendererObj, "§eInspecionando: §f" + targetPlayer.getName(), centerX, startY, 0xFFFFFF);
         startY += 20;
 
-        // --- Vida e Armadura ---
         float health = targetPlayer.getHealth();
         float maxHealth = targetPlayer.getMaxHealth();
         int armor = targetPlayer.getTotalArmorValue();
@@ -40,7 +38,6 @@ public class GuiPlayerInspector extends GuiScreen {
         this.drawString(this.fontRendererObj, armorText, centerX + 10, startY, 0xFFFFFF);
         startY += 15;
 
-        // --- Posição ---
         String posText = String.format("§6Posição: §fX: %d, Y: %d, Z: %d",
                 MathHelper.floor_double(targetPlayer.posX),
                 MathHelper.floor_double(targetPlayer.posY),
@@ -49,30 +46,25 @@ public class GuiPlayerInspector extends GuiScreen {
         this.drawString(this.fontRendererObj, posText, centerX - 90, startY, 0xFFFFFF);
         startY += 25;
 
-        // --- Equipamentos ---
         this.drawString(this.fontRendererObj, "§7Equipamentos:", centerX - 90, startY, 0xFFFFFF);
         startY += 10;
 
-        // Pega os itens
         ItemStack heldItem = targetPlayer.getHeldItem();
         ItemStack[] armorItems = targetPlayer.inventory.armorInventory;
 
-        // Prepara o OpenGL para renderizar itens
         RenderHelper.enableGUIStandardItemLighting();
         GlStateManager.pushMatrix();
 
-        // Renderiza o item da mão
         int itemX = centerX - 90;
         this.mc.getRenderItem().renderItemAndEffectIntoGUI(heldItem, itemX, startY);
         this.mc.getRenderItem().renderItemOverlayIntoGUI(this.fontRendererObj, heldItem, itemX, startY, null);
 
-        // Renderiza a armadura
         int armorX = centerX + 10;
-        for (int i = 3; i >= 0; i--) { // Renderiza do capacete para as botas
+        for (int i = 3; i >= 0; i--) {
             ItemStack armorPiece = armorItems[i];
             this.mc.getRenderItem().renderItemAndEffectIntoGUI(armorPiece, armorX, startY);
             this.mc.getRenderItem().renderItemOverlayIntoGUI(this.fontRendererObj, armorPiece, armorX, startY, null);
-            armorX += 20; // Espaçamento entre as peças
+            armorX += 20;
         }
 
         GlStateManager.popMatrix();
@@ -81,7 +73,6 @@ public class GuiPlayerInspector extends GuiScreen {
 
     @Override
     protected void keyTyped(char typedChar, int keyCode) throws IOException {
-        // Fecha a GUI com a tecla ESC
         if (keyCode == 1) {
             this.mc.displayGuiScreen(null);
         }
@@ -89,6 +80,6 @@ public class GuiPlayerInspector extends GuiScreen {
 
     @Override
     public boolean doesGuiPauseGame() {
-        return false; // Não pausa o jogo
+        return false;
     }
 }
