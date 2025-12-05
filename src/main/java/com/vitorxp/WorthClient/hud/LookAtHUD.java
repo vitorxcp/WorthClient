@@ -9,14 +9,18 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityArmorStand;
+import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 
 import java.util.ArrayList;
@@ -41,16 +45,17 @@ public class LookAtHUD extends HudElement {
         if (mc.theWorld == null || mc.thePlayer == null) return;
 
         MovingObjectPosition mop = mc.objectMouseOver;
+
         if (mop == null || mop.typeOfHit == MovingObjectPosition.MovingObjectType.MISS) return;
 
         if (mc.currentScreen != null) return;
 
         resetData();
 
-        if (mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-            handleBlockHit(mop);
-        } else if (mop.typeOfHit == MovingObjectPosition.MovingObjectType.ENTITY) {
+        if (mop.typeOfHit == MovingObjectPosition.MovingObjectType.ENTITY) {
             handleEntityHit(mop);
+        } else if (mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+            handleBlockHit(mop);
         }
 
         if (!name.isEmpty()) {
@@ -73,10 +78,25 @@ public class LookAtHUD extends HudElement {
 
         if (block != null && block != net.minecraft.init.Blocks.air) {
             mainPreviewStack = block.getPickBlock(mop, mc.theWorld, pos, mc.thePlayer);
-            if (mainPreviewStack == null) mainPreviewStack = new ItemStack(block);
 
-            name = mainPreviewStack.getDisplayName();
-            modSource = EnumChatFormatting.BLUE + "" + EnumChatFormatting.ITALIC + getModFromBlock(block);
+            if (mainPreviewStack == null) {
+                Item itemFromBlock = Item.getItemFromBlock(block);
+                if (itemFromBlock != null) {
+                    mainPreviewStack = new ItemStack(block);
+                }
+            }
+
+            if (mainPreviewStack == null || mainPreviewStack.getItem() == null) {
+                return;
+            }
+
+            try {
+                name = mainPreviewStack.getDisplayName();
+            } catch (Exception e) {
+                name = "Erro ao ler nome";
+            }
+
+            modSource = EnumChatFormatting.BLUE + "" + EnumChatFormatting.ITALIC + getModFromObject(block);
 
             TileEntity te = mc.theWorld.getTileEntity(pos);
             if (te != null) {
@@ -102,13 +122,32 @@ public class LookAtHUD extends HudElement {
         Entity e = mop.entityHit;
         if (e == null) return;
 
+        if (e instanceof EntityItem) {
+            EntityItem entityItem = (EntityItem) e;
+            ItemStack itemStack = entityItem.getEntityItem();
+
+            if (itemStack != null && itemStack.getItem() != null) {
+                mainPreviewStack = itemStack.copy();
+                name = itemStack.getDisplayName();
+
+                if (itemStack.stackSize > 1) {
+                    extraInfo = EnumChatFormatting.WHITE + "Qtd: " + EnumChatFormatting.YELLOW + "x" + itemStack.stackSize;
+                }
+
+                modSource = EnumChatFormatting.BLUE + "" + EnumChatFormatting.ITALIC + getModFromObject(itemStack.getItem());
+            }
+            return;
+        }
+
         if (e instanceof EntityArmorStand) {
             EntityArmorStand stand = (EntityArmorStand) e;
-            ItemStack displayItem = null;
 
-            ItemStack headSlot = stand.getEquipmentInSlot(4);
-            if (headSlot != null && headSlot.getItem() != null) {
-                displayItem = headSlot.copy();
+            ItemStack headItem = stand.getEquipmentInSlot(4);
+            ItemStack handItem = stand.getEquipmentInSlot(0);
+
+            ItemStack displayItem = null;
+            if (headItem != null && headItem.getItem() != null) {
+                displayItem = headItem.copy();
             }
 
             if (displayItem == null) {
@@ -129,7 +168,7 @@ public class LookAtHUD extends HudElement {
 
             if (foundName.contains("Minion") || foundName.contains("Mithril") || foundName.contains("Collector")) {
                 isMinion = true;
-            } else if (foundName.contains("Pet") || (stand.isSmall() && displayItem != null)) {
+            } else if (foundName.contains("Pet") || (stand.isSmall())) {
                 if (foundName.contains("Pet")) isPet = true;
                 else isMinion = true;
 
@@ -141,12 +180,25 @@ public class LookAtHUD extends HudElement {
             if (isMinion) {
                 name = foundName;
                 modSource = EnumChatFormatting.BLUE + "SkyBlock Minion";
-                mainPreviewStack = (displayItem != null) ? displayItem : new ItemStack(net.minecraft.init.Items.armor_stand);
+                if (headItem != null && headItem.getItem() != null) {
+                    mainPreviewStack = headItem.copy();
+                } else {
+                    mainPreviewStack = (displayItem != null) ? displayItem : new ItemStack(net.minecraft.init.Items.armor_stand);
+                }
 
             } else if (isPet) {
                 name = foundName;
                 modSource = EnumChatFormatting.BLUE + "SkyBlock Pet";
-                mainPreviewStack = (displayItem != null) ? displayItem : new ItemStack(net.minecraft.init.Items.skull, 1, 3);
+
+                ItemStack foundPetItem = searchForPetItem(stand);
+
+                if (foundPetItem != null) {
+                    mainPreviewStack = foundPetItem.copy();
+                } else if (handItem != null && handItem.getItem() != null) {
+                    mainPreviewStack = handItem.copy();
+                } else {
+                    mainPreviewStack = (displayItem != null) ? displayItem : new ItemStack(net.minecraft.init.Items.skull, 1, 3);
+                }
 
             } else {
                 name = e.hasCustomName() ? e.getCustomNameTag() : EnumChatFormatting.WHITE + "Armor Stand";
@@ -157,8 +209,15 @@ public class LookAtHUD extends HudElement {
         } else if (e instanceof EntityPlayer) {
             name = EnumChatFormatting.GREEN + e.getName();
             extraInfo = EnumChatFormatting.WHITE + "Vida: " + EnumChatFormatting.RED + String.format("%.1f ❤", ((EntityPlayer) e).getHealth());
-            mainPreviewStack = new ItemStack(net.minecraft.init.Items.skull, 1, 3);
+
+            ItemStack playerHead = new ItemStack(net.minecraft.init.Items.skull, 1, 3);
+            NBTTagCompound nbt = new NBTTagCompound();
+            nbt.setString("SkullOwner", e.getName());
+            playerHead.setTagCompound(nbt);
+
+            mainPreviewStack = playerHead;
             modSource = EnumChatFormatting.YELLOW + "Jogador";
+
         } else {
             name = e.getName();
             mainPreviewStack = new ItemStack(net.minecraft.init.Items.spawn_egg);
@@ -166,17 +225,29 @@ public class LookAtHUD extends HudElement {
         }
     }
 
-    // --- NOVA FUNÇÃO MÁGICA ---
-    private ItemStack searchForNearbyHead(EntityArmorStand source) {
-        AxisAlignedBB searchBox = source.getEntityBoundingBox().expand(1.0, 1.0, 1.0);
-
+    private ItemStack searchForPetItem(EntityArmorStand source) {
+        AxisAlignedBB searchBox = source.getEntityBoundingBox().expand(1.0, 1.5, 1.0);
         List<EntityArmorStand> nearby = mc.theWorld.getEntitiesWithinAABB(EntityArmorStand.class, searchBox);
 
         for (EntityArmorStand neighbor : nearby) {
             if (neighbor == source) continue;
 
-            ItemStack head = neighbor.getEquipmentInSlot(4);
+            ItemStack rightHand = neighbor.getEquipmentInSlot(0);
 
+            if (rightHand != null && rightHand.getItem() != null && rightHand.getItem() != net.minecraft.init.Blocks.air.getItem(mc.theWorld, null)) {
+                return rightHand.copy();
+            }
+        }
+        return null;
+    }
+
+    private ItemStack searchForNearbyHead(EntityArmorStand source) {
+        AxisAlignedBB searchBox = source.getEntityBoundingBox().expand(1.0, 1.0, 1.0);
+        List<EntityArmorStand> nearby = mc.theWorld.getEntitiesWithinAABB(EntityArmorStand.class, searchBox);
+
+        for (EntityArmorStand neighbor : nearby) {
+            if (neighbor == source) continue;
+            ItemStack head = neighbor.getEquipmentInSlot(4);
             if (head != null && head.getItem() != null && head.getItem() != net.minecraft.init.Blocks.air.getItem(mc.theWorld, null)) {
                 return head.copy();
             }
@@ -205,10 +276,7 @@ public class LookAtHUD extends HudElement {
         int infoW = extraInfo.isEmpty() ? 0 : fontRenderer.getStringWidth(extraInfo);
 
         int maxTextWidth = Math.max(nameW, Math.max(modW, infoW));
-
-        int iconSize = 28;
         int paddingSide = 42;
-
         int boxWidth = Math.max(140, maxTextWidth + paddingSide);
 
         if (!containerItems.isEmpty()) {
@@ -218,7 +286,6 @@ public class LookAtHUD extends HudElement {
         }
 
         int headerHeight = 34;
-
         if (!extraInfo.isEmpty() && containerItems.isEmpty()) {
             headerHeight = 45;
         }
@@ -232,7 +299,6 @@ public class LookAtHUD extends HudElement {
         int boxHeight = headerHeight + inventoryHeight;
 
         ScaledResolution sr = new ScaledResolution(mc);
-
         int screenWidth = sr.getScaledWidth();
         this.x = (screenWidth / 2) - (boxWidth / 2);
 
@@ -285,11 +351,17 @@ public class LookAtHUD extends HudElement {
         GlStateManager.popMatrix();
     }
 
-    private String getModFromBlock(Block block) {
+    private String getModFromObject(Object object) {
         try {
-            String registry = Block.blockRegistry.getNameForObject(block).toString();
-            if (registry.contains(":")) {
-                String modid = registry.split(":")[0];
+            ResourceLocation reg = null;
+            if (object instanceof Block) {
+                reg = Block.blockRegistry.getNameForObject((Block) object);
+            } else if (object instanceof Item) {
+                reg = Item.itemRegistry.getNameForObject((Item) object);
+            }
+
+            if (reg != null) {
+                String modid = reg.getResourceDomain();
                 if (modid.equalsIgnoreCase("minecraft")) return "Minecraft";
                 return capitalize(modid);
             }
