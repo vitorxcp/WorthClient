@@ -101,26 +101,51 @@ public class WorthClient {
     public static boolean GuiAdminazw = false;
     public static String nameArsAdmin;
 
-    @Mod.EventHandler
-    public void preInit(FMLPreInitializationEvent e) {
+    static {
+        disableForgeSplash();
+    }
 
+    private static void disableForgeSplash() {
         try {
-            Class<?> splash = Class.forName("net.minecraftforge.fml.client.SplashProgress");
+            File configFile = new File(Minecraft.getMinecraft().mcDataDir, "config/splash.properties");
+            System.out.println("[DEBUG] Procurando config em: " + configFile.getAbsolutePath());
 
-            java.lang.reflect.Field threadField = splash.getDeclaredField("thread");
-            threadField.setAccessible(true);
-            Thread splashThread = (Thread) threadField.get(null);
-
-            if (splashThread != null && splashThread.isAlive()) {
-                splashThread.interrupt();
+            if (!configFile.exists()) {
+                System.out.println("[DEBUG] Arquivo splash.properties NAO existe!");
+                return;
             }
 
-            java.lang.reflect.Field done = splash.getDeclaredField("done");
-            done.setAccessible(true);
-            done.setBoolean(null, true);
+            java.util.List<String> lines = java.nio.file.Files.readAllLines(configFile.toPath());
+            boolean changed = false;
 
-        } catch (Throwable ignored) {}
+            System.out.println("[DEBUG] Lendo arquivo...");
 
+            for (int i = 0; i < lines.size(); i++) {
+                String originalLine = lines.get(i);
+                String cleanLine = originalLine.replace(" ", "").trim();
+
+                System.out.println("[DEBUG] Linha " + i + ": " + originalLine);
+
+                if (cleanLine.startsWith("enabled=true")) {
+                    lines.set(i, "enabled=false");
+                    changed = true;
+                    System.out.println("[DEBUG] -> ENCONTREI E TROQUEI PARA FALSE!");
+                }
+            }
+
+            if (changed) {
+                java.nio.file.Files.write(configFile.toPath(), lines);
+                System.out.println("[WorthClient] ARQUIVO SALVO! Reinicie o jogo para aplicar.");
+            } else {
+                System.out.println("[DEBUG] Nenhuma linha precisou ser alterada. (Talvez ja fosse false?)");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Mod.EventHandler
+    public void preInit(FMLPreInitializationEvent e) {
         MinecraftForge.EVENT_BUS.register(LoadingScreenHook.INSTANCE);
         LoadingScreenHook.inject();
 
