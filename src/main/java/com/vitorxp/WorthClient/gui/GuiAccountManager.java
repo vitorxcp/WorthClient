@@ -189,7 +189,7 @@ public class GuiAccountManager extends GuiScreen implements GuiYesNoCallback {
         }
 
         @Override
-        protected void drawBackground() { /* Fundo principal já desenhado */ }
+        protected void drawBackground() { }
 
         @Override
         protected void drawSlot(int slotIndex, int x, int y, int slotHeightParam, int mouseX, int mouseY) {
