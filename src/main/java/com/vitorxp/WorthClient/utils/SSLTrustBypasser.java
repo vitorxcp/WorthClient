@@ -12,7 +12,6 @@ public class SSLTrustBypasser {
 
     public static void install() {
         try {
-            // Cria um TrustManager que não valida cadeias de certificados
             TrustManager[] trustAllCerts = new TrustManager[]{
                     new X509TrustManager() {
                         public X509Certificate[] getAcceptedIssuers() { return null; }
@@ -21,15 +20,11 @@ public class SSLTrustBypasser {
                     }
             };
 
-            // Obtém o contexto SSL e inicializa com nosso TrustManager
             SSLContext sc = SSLContext.getInstance("TLS");
             sc.init(null, trustAllCerts, new java.security.SecureRandom());
 
-            // **A MUDANÇA PRINCIPAL:**
-            // Usa nosso SocketFactory personalizado que força o TLSv1.2 e cifras compatíveis
             HttpsURLConnection.setDefaultSSLSocketFactory(new Tls12SocketFactory(sc.getSocketFactory()));
 
-            // Cria um HostnameVerifier que confia em todos os hosts
             HostnameVerifier allHostsValid = (hostname, session) -> true;
             HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
 
@@ -41,10 +36,6 @@ public class SSLTrustBypasser {
         }
     }
 
-    /**
-     * Uma implementação de SSLSocketFactory que delega a criação de sockets,
-     * mas força a ativação dos protocolos TLSv1.1 e TLSv1.2 nos sockets criados.
-     */
     private static class Tls12SocketFactory extends SSLSocketFactory {
 
         private static final String[] TLS_VERSIONS = {"TLSv1.1", "TLSv1.2"};
