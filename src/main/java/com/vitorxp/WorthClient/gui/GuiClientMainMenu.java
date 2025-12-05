@@ -33,7 +33,7 @@ public class GuiClientMainMenu extends GuiScreen {
 
     private long animationStartTime;
     private boolean isOpening, isClosing;
-    private final int ANIMATION_DURATION_MS = 1000;
+    private final int ANIMATION_DURATION_MS = 800;
     private GuiScreen nextScreen = null;
 
     private String serverMotd = "Carregando informações...";
