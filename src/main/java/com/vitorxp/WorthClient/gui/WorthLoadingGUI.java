@@ -44,8 +44,9 @@ public class WorthLoadingGUI extends GuiScreen {
 
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
-
         float alpha = getAnimationAlpha();
+
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
 
         drawBackgroundFancy(alpha);
         drawLogo(alpha);
@@ -62,6 +63,8 @@ public class WorthLoadingGUI extends GuiScreen {
     }
 
     private void drawBackgroundFancy(float alpha) {
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+
         mc.getTextureManager().bindTexture(BACKGROUND);
         drawModalRectWithCustomSizedTexture(0, 0, 0, 0, width, height, width, height);
 
@@ -93,7 +96,6 @@ public class WorthLoadingGUI extends GuiScreen {
 
     private void drawLoadingText(float alpha) {
         int c = new Color(220, 220, 220, (int)(255 * alpha)).getRGB();
-
         drawCenteredString(fontRendererObj, text, width / 2, height / 2 + 70, c);
     }
 
