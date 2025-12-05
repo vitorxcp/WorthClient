@@ -10,6 +10,7 @@ import com.vitorxp.WorthClient.config.VoidLagFixConfig;
 import com.vitorxp.WorthClient.events.AnnounceMutanteEvent;
 import com.vitorxp.WorthClient.events.GuiMenuEvent;
 import com.vitorxp.WorthClient.gui.AdminGui;
+import com.vitorxp.WorthClient.gui.LoadingScreenHook;
 import com.vitorxp.WorthClient.handlers.PlayerInspectorHandler;
 import com.vitorxp.WorthClient.handlers.RadarInteractionHandler;
 import com.vitorxp.WorthClient.hud.*;
@@ -102,6 +103,9 @@ public class WorthClient {
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent e) {
+        LoadingScreenHook.inject();
+        MinecraftForge.EVENT_BUS.register(new LoadingScreenHook());
+
         SSLTrustBypasser.install();
         SSLTrustManager.initialize();
         PerfConfig.load(e.getSuggestedConfigurationFile());
