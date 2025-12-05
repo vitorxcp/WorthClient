@@ -21,11 +21,10 @@ public class RenderUtil {
         GL11.glColor4f(r, g, b, a);
 
         GL11.glBegin(GL11.GL_POLYGON);
-        // Cantos
-        for (int i = 0; i <= 90; i += 3) GL11.glVertex2d(x + radius + Math.sin(Math.toRadians(i)) * -radius, y + radius + Math.cos(Math.toRadians(i)) * -radius); // Top Left
-        for (int i = 90; i <= 180; i += 3) GL11.glVertex2d(x + radius + Math.sin(Math.toRadians(i)) * -radius, y2 - radius + Math.cos(Math.toRadians(i)) * -radius); // Bottom Left
-        for (int i = 0; i <= 90; i += 3) GL11.glVertex2d(x2 - radius + Math.sin(Math.toRadians(i)) * radius, y2 - radius + Math.cos(Math.toRadians(i)) * radius); // Bottom Right
-        for (int i = 90; i <= 180; i += 3) GL11.glVertex2d(x2 - radius + Math.sin(Math.toRadians(i)) * radius, y + radius + Math.cos(Math.toRadians(i)) * radius); // Top Right
+        for (int i = 0; i <= 90; i += 3) GL11.glVertex2d(x + radius + Math.sin(Math.toRadians(i)) * -radius, y + radius + Math.cos(Math.toRadians(i)) * -radius);
+        for (int i = 90; i <= 180; i += 3) GL11.glVertex2d(x + radius + Math.sin(Math.toRadians(i)) * -radius, y2 - radius + Math.cos(Math.toRadians(i)) * -radius);
+        for (int i = 0; i <= 90; i += 3) GL11.glVertex2d(x2 - radius + Math.sin(Math.toRadians(i)) * radius, y2 - radius + Math.cos(Math.toRadians(i)) * radius);
+        for (int i = 90; i <= 180; i += 3) GL11.glVertex2d(x2 - radius + Math.sin(Math.toRadians(i)) * radius, y + radius + Math.cos(Math.toRadians(i)) * radius);
         GL11.glEnd();
 
         GlStateManager.enableTexture2D();
