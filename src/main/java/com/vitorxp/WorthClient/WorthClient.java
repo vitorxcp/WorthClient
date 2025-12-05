@@ -108,36 +108,22 @@ public class WorthClient {
     private static void disableForgeSplash() {
         try {
             File configFile = new File(Minecraft.getMinecraft().mcDataDir, "config/splash.properties");
-            System.out.println("[DEBUG] Procurando config em: " + configFile.getAbsolutePath());
-
             if (!configFile.exists()) {
-                System.out.println("[DEBUG] Arquivo splash.properties NAO existe!");
                 return;
             }
-
             java.util.List<String> lines = java.nio.file.Files.readAllLines(configFile.toPath());
             boolean changed = false;
-
-            System.out.println("[DEBUG] Lendo arquivo...");
-
             for (int i = 0; i < lines.size(); i++) {
                 String originalLine = lines.get(i);
                 String cleanLine = originalLine.replace(" ", "").trim();
 
-                System.out.println("[DEBUG] Linha " + i + ": " + originalLine);
-
                 if (cleanLine.startsWith("enabled=true")) {
                     lines.set(i, "enabled=false");
                     changed = true;
-                    System.out.println("[DEBUG] -> ENCONTREI E TROQUEI PARA FALSE!");
                 }
             }
-
             if (changed) {
                 java.nio.file.Files.write(configFile.toPath(), lines);
-                System.out.println("[WorthClient] ARQUIVO SALVO! Reinicie o jogo para aplicar.");
-            } else {
-                System.out.println("[DEBUG] Nenhuma linha precisou ser alterada. (Talvez ja fosse false?)");
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -272,7 +258,6 @@ public class WorthClient {
     @SubscribeEvent
     public void onClientConnectedToServer(FMLNetworkEvent.ClientConnectedToServerEvent event) {
         Minecraft.getMinecraft().addScheduledTask(() -> {
-        System.out.println("Conexão bem-sucedida. Salvando sessão válida...");
         Session currentSession = Minecraft.getMinecraft().getSession();
         sessionManager.saveSession(currentSession);
         });
@@ -282,18 +267,12 @@ public class WorthClient {
     public void onActionPerformed(GuiScreenEvent.ActionPerformedEvent.Pre event) {
         if (event.gui instanceof GuiMultiplayer) {
             if (event.button.id == 1) {
-                System.out.println("Botão 'Entrar no Servidor' clicado. Capturando IP...");
                 GuiMultiplayer multiplayerScreen = (GuiMultiplayer) event.gui;
                 try {
                     Field selectedServerField = GuiMultiplayer.class.getDeclaredField("field_146801_A");
                     selectedServerField.setAccessible(true);
                     lastServerAttempted = (ServerData) selectedServerField.get(multiplayerScreen);
-
-                    if (lastServerAttempted != null) {
-                        System.out.println("SUCESSO ao capturar no clique! Servidor: " + lastServerAttempted.serverName);
-                    }
                 } catch (Exception e) {
-                    System.err.println("Falha ao capturar o servidor selecionado na GuiMultiplayer.");
                     e.printStackTrace();
                 }
             }
@@ -322,15 +301,10 @@ public class WorthClient {
             }
 
             if (reason.toLowerCase().contains("authentication servers are currently down")) {
-                System.out.println("Detectado erro de servidores de autenticação!");
-
                 if (lastServerAttempted != null) {
-                    System.out.println("Tentando reconexão com sessão em cache para: " + lastServerAttempted.serverName);
                     sessionManager.applyCachedSession();
                     event.setCanceled(true);
                     Minecraft.getMinecraft().displayGuiScreen(new GuiConnecting(null, Minecraft.getMinecraft(), lastServerAttempted));
-                } else {
-                    System.err.println("Erro de autenticação, mas nenhum servidor foi capturado a tempo.");
                 }
             }
         }
