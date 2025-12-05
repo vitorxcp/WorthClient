@@ -85,7 +85,6 @@ public class WorthClient {
     public static boolean GuiOverlay = false;
     public static boolean GuiPerspective = false;
     public static boolean GuiAdminPainel = false;
-    public static boolean GuiPainelAdminP = false;
 
     public static boolean pendingOpenMenu = false;
     public static boolean pendingOpenMenuHud = false;
