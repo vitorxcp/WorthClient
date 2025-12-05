@@ -103,8 +103,26 @@ public class WorthClient {
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent e) {
+
+        try {
+            Class<?> splash = Class.forName("net.minecraftforge.fml.client.SplashProgress");
+
+            java.lang.reflect.Field threadField = splash.getDeclaredField("thread");
+            threadField.setAccessible(true);
+            Thread splashThread = (Thread) threadField.get(null);
+
+            if (splashThread != null && splashThread.isAlive()) {
+                splashThread.interrupt();
+            }
+
+            java.lang.reflect.Field done = splash.getDeclaredField("done");
+            done.setAccessible(true);
+            done.setBoolean(null, true);
+
+        } catch (Throwable ignored) {}
+
+        MinecraftForge.EVENT_BUS.register(LoadingScreenHook.INSTANCE);
         LoadingScreenHook.inject();
-        MinecraftForge.EVENT_BUS.register(new LoadingScreenHook());
 
         SSLTrustBypasser.install();
         SSLTrustManager.initialize();
