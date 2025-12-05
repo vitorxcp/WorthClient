@@ -77,10 +77,8 @@ public class TracerLineRenderer {
         GlStateManager.rotate(mc.getRenderManager().playerViewX, 1.0F, 0.0F, 0.0F);
         GlStateManager.scale(-scale, -scale, scale);
 
-        // Desabilitar depth para sobrepor
         GlStateManager.disableDepth();
 
-        // Fundo do texto
         GlStateManager.disableTexture2D();
         GlStateManager.enableBlend();
         GlStateManager.tryBlendFuncSeparate(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
