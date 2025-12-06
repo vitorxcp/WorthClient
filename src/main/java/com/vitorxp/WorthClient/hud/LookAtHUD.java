@@ -236,8 +236,8 @@ public class LookAtHUD extends HudElement {
             if (isMinion) {
                 name = foundName;
                 modSource = EnumChatFormatting.BLUE + "SkyBlock Minion";
-                if (handItem != null && handItem.getItem() != null) {
-                    mainPreviewStack = handItem.copy();
+                if (headItem != null && headItem.getItem() != null) {
+                    mainPreviewStack = headItem.copy();
                 } else {
                     mainPreviewStack = (displayItem != null) ? displayItem : new ItemStack(net.minecraft.init.Items.armor_stand);
                 }
