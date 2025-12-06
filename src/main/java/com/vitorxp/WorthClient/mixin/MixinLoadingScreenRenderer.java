@@ -1,6 +1,7 @@
 package com.vitorxp.WorthClient.mixin;
 
 import com.vitorxp.WorthClient.gui.LoadingScreenHook;
+import com.vitorxp.WorthClient.gui.WorthLoadingGUI; // Import necessário
 import net.minecraft.client.LoadingScreenRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
@@ -21,7 +22,9 @@ public class MixinLoadingScreenRenderer {
 
     @Inject(method = "setLoadingProgress", at = @At("HEAD"), cancellable = true)
     private void hookProgress(int progress, CallbackInfo ci) {
-        if (LoadingScreenHook.customGUI == null) return;
+        if (LoadingScreenHook.customGUI == null) {
+            LoadingScreenHook.customGUI = new WorthLoadingGUI(mc);
+        }
 
         float p = Math.min(1f, Math.max(0f, progress / 100f));
         LoadingScreenHook.customGUI.update(LoadingScreenHook.customGUI.text, p);
@@ -62,9 +65,11 @@ public class MixinLoadingScreenRenderer {
 
     @Inject(method = "displayLoadingString", at = @At("HEAD"), cancellable = true)
     private void hookDisplayText(String text, CallbackInfo ci) {
-        if (LoadingScreenHook.customGUI != null) {
-            LoadingScreenHook.customGUI.update(text, LoadingScreenHook.customGUI.progress);
-            ci.cancel();
+        if (LoadingScreenHook.customGUI == null) {
+            LoadingScreenHook.customGUI = new WorthLoadingGUI(mc);
         }
+
+        LoadingScreenHook.customGUI.update(text, LoadingScreenHook.customGUI.progress);
+        ci.cancel();
     }
 }
