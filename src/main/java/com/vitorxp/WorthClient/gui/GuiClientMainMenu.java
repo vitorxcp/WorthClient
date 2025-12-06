@@ -1,5 +1,6 @@
 package com.vitorxp.WorthClient.gui;
 
+import com.google.gson.JsonElement;
 import com.vitorxp.WorthClient.gui.button.GuiModernButton;
 import com.vitorxp.WorthClient.gui.utils.AnimationUtil;
 import net.minecraft.client.gui.GuiScreen;
@@ -254,16 +255,21 @@ public class GuiClientMainMenu extends GuiScreen {
                     if (root.has("motd")) {
                         JsonObject motdObj = root.getAsJsonObject("motd");
                         if (motdObj.has("raw")) {
-                            JsonArray rawArray = motdObj.getAsJsonArray("raw");
-                            StringBuilder motdBuilder = new StringBuilder();
-                            for (int i = 0; i < rawArray.size(); i++) {
-                                String line = rawArray.get(i).getAsString();
-                                motdBuilder.append(line);
-                                if (i < rawArray.size() - 1) {
-                                    motdBuilder.append("\n");
+                            JsonElement rawElement = motdObj.get("raw");
+
+                            if (rawElement.isJsonArray()) {
+                                JsonArray rawArray = rawElement.getAsJsonArray();
+                                StringBuilder motdBuilder = new StringBuilder();
+                                for (int i = 0; i < rawArray.size(); i++) {
+                                    motdBuilder.append(rawArray.get(i).getAsString());
+                                    if (i < rawArray.size() - 1) {
+                                        motdBuilder.append("\n");
+                                    }
                                 }
+                                serverMotd = motdBuilder.toString();
+                            } else {
+                                serverMotd = rawElement.getAsString();
                             }
-                            serverMotd = motdBuilder.toString();
                         } else {
                             serverMotd = "§aServidor online!";
                         }
