@@ -132,13 +132,16 @@ public class WorthClient {
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent e) {
-        MinecraftForge.EVENT_BUS.register(LoadingScreenHook.INSTANCE);
+        MinecraftForge.EVENT_BUS.register(new com.vitorxp.WorthClient.WindowUtils());
+
         LoadingScreenHook.inject();
+        MinecraftForge.EVENT_BUS.register(LoadingScreenHook.INSTANCE);
 
         SSLTrustBypasser.install();
         SSLTrustManager.initialize();
+
         PerfConfig.load(e.getSuggestedConfigurationFile());
-        MinecraftForge.EVENT_BUS.register(new com.vitorxp.WorthClient.WindowUtils());
+
         File configFile = e.getSuggestedConfigurationFile();
         VoidLagFixConfig.syncConfig(configFile);
     }
