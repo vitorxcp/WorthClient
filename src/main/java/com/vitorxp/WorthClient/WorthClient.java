@@ -138,7 +138,7 @@ public class WorthClient {
         SSLTrustBypasser.install();
         SSLTrustManager.initialize();
         PerfConfig.load(e.getSuggestedConfigurationFile());
-
+        MinecraftForge.EVENT_BUS.register(new com.vitorxp.WorthClient.WindowUtils());
         File configFile = e.getSuggestedConfigurationFile();
         VoidLagFixConfig.syncConfig(configFile);
     }
@@ -163,7 +163,7 @@ public class WorthClient {
 
         MinecraftForge.EVENT_BUS.register(this);
 
-        MinecraftForge.EVENT_BUS.register(new com.vitorxp.WorthClient.WindowUtils());
+        MinecraftForge.EVENT_BUS.register(new com.vitorxp.WorthClient.gui.TerrainLoadingHook());
         MinecraftForge.EVENT_BUS.register(new VoidBlockLagFix());
         MinecraftForge.EVENT_BUS.register(new ParticleLimiter());
         MinecraftForge.EVENT_BUS.register(new EntityCull());
