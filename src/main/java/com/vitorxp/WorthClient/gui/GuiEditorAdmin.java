@@ -62,7 +62,7 @@ public class GuiEditorAdmin extends GuiScreen {
 
         buttonAlpha = (int)(alpha * 255);
 
-        this.drawCenteredString(this.fontRendererObj, "§6WorthClient §f– §7Editor de Pet", this.width / 2, 20, (buttonAlpha << 24) | 0xFFFFFF);
+        this.drawCenteredString(this.fontRendererObj, "§6WorthClient §f– §7Admin", this.width / 2, 20, (buttonAlpha << 24) | 0xFFFFFF);
 
         super.drawScreen(mouseX, mouseY, partialTicks);
     }
