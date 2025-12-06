@@ -29,7 +29,7 @@ public class GuiCustomPrompt extends GuiScreen {
         int centerY = this.height / 2;
 
         this.inputField = new GuiTextField(0, this.fontRendererObj, centerX - 100, centerY - 10, 200, 20);
-        this.inputField.setFocused(true); // Foca no campo de texto ao abrir
+        this.inputField.setFocused(true);
         this.inputField.setMaxStringLength(32);
 
         this.buttonList.add(new GuiModernButton(0, centerX - 100, centerY + 20, 98, 20, "Confirmar", 0L));
@@ -43,10 +43,10 @@ public class GuiCustomPrompt extends GuiScreen {
 
     @Override
     protected void actionPerformed(GuiButton button) throws IOException {
-        if (button.id == 0) { // Confirmar
+        if (button.id == 0) {
             this.callback.accept(this.inputField.getText());
-        } else if (button.id == 1) { // Cancelar
-            this.callback.accept(null); // Retorna null para indicar cancelamento
+        } else if (button.id == 1) {
+            this.callback.accept(null);
             this.mc.displayGuiScreen(this.parentScreen);
         }
     }
@@ -54,10 +54,9 @@ public class GuiCustomPrompt extends GuiScreen {
     @Override
     protected void keyTyped(char typedChar, int keyCode) throws IOException {
         if (this.inputField.textboxKeyTyped(typedChar, keyCode)) {
-            // Ação se a tecla foi digitada no campo de texto
-        } else if (keyCode == Keyboard.KEY_RETURN) { // Tecla Enter
+        } else if (keyCode == Keyboard.KEY_RETURN) {
             this.actionPerformed(this.buttonList.get(0));
-        } else if (keyCode == Keyboard.KEY_ESCAPE) { // Tecla Esc
+        } else if (keyCode == Keyboard.KEY_ESCAPE) {
             this.actionPerformed(this.buttonList.get(1));
         }
         super.keyTyped(typedChar, keyCode);
