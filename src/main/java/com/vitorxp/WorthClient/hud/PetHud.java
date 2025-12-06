@@ -20,7 +20,7 @@ public class PetHud extends HudElement {
 
     @Override
     public void update(TickEvent.ClientTickEvent event) {
-        if (mc.thePlayer == null || mc.theWorld == null || mc.thePlayer.ticksExisted % 20 != 0 || com.vitorxp.WorthClient.WorthClient.petDisplayViewOff && isActivated) {
+        if (com.vitorxp.WorthClient.WorthClient.petDisplayViewOff && isActivated || mc.thePlayer == null || mc.theWorld == null || mc.thePlayer.ticksExisted % 20 != 0 || !isActivated) {
             return;
         }
 
@@ -36,7 +36,7 @@ public class PetHud extends HudElement {
             if (cleanName.startsWith("[Lvl") && cleanName.contains(mc.thePlayer.getName() + "'s")) {
                 parsePetInfo(name);
                 petFound = true;
-                break; // Encontrou o pet, não precisa continuar o loop
+                break;
             }
         }
 
@@ -48,7 +48,7 @@ public class PetHud extends HudElement {
 
     @Override
     public void render(RenderGameOverlayEvent event) {
-        if (!com.vitorxp.WorthClient.WorthClient.petOverlay) return;
+        if (com.vitorxp.WorthClient.WorthClient.petDisplayViewOff && isActivated || !isActivated) return;
 
         String display = "Pet: §6" + this.currentPetName + " §7(Lvl " + this.currentPetLevel + ")";
         messageDisplayHUDPet = display;
