@@ -6,21 +6,19 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityList;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.MovingObjectPosition;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.*;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 
 import java.util.ArrayList;
@@ -29,12 +27,20 @@ import java.util.List;
 public class LookAtHUD extends HudElement {
 
     private final Minecraft mc = Minecraft.getMinecraft();
+    private static final ResourceLocation GUI_ICONS = new ResourceLocation("textures/gui/icons.png");
 
     private String name = "";
     private String modSource = "";
     private String extraInfo = "";
+
     private ItemStack mainPreviewStack = null;
+    private EntityLivingBase entityToRender = null;
+
     private final List<ItemStack> containerItems = new ArrayList<>();
+
+    private float currentHealth = 0f;
+    private float maxHealth = 0f;
+    private boolean showHearts = false;
 
     public LookAtHUD() {
         super("LookAtHUD", 10, 70);
@@ -43,18 +49,24 @@ public class LookAtHUD extends HudElement {
     @Override
     public void render(RenderGameOverlayEvent event) {
         if (mc.theWorld == null || mc.thePlayer == null) return;
-
-        MovingObjectPosition mop = mc.objectMouseOver;
-
-        if (mop == null || mop.typeOfHit == MovingObjectPosition.MovingObjectType.MISS) return;
-
         if (mc.currentScreen != null) return;
 
         resetData();
 
-        if (mop.typeOfHit == MovingObjectPosition.MovingObjectType.ENTITY) {
-            handleEntityHit(mop);
-        } else if (mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+        MovingObjectPosition mop = mc.objectMouseOver;
+        Entity targetEntity = null;
+
+        if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.ENTITY) {
+            targetEntity = mop.entityHit;
+        }
+
+        if (targetEntity == null) {
+            targetEntity = scanForItems();
+        }
+
+        if (targetEntity != null) {
+            handleEntityHit(targetEntity);
+        } else if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
             handleBlockHit(mop);
         }
 
@@ -68,7 +80,50 @@ public class LookAtHUD extends HudElement {
         modSource = "";
         extraInfo = "";
         mainPreviewStack = null;
+        entityToRender = null;
         containerItems.clear();
+        currentHealth = 0f;
+        maxHealth = 0f;
+        showHearts = false;
+    }
+
+    private EntityItem scanForItems() {
+        Entity entity = mc.getRenderViewEntity();
+        if (entity == null) return null;
+
+        double distance = 4.5;
+        Vec3 pos = entity.getPositionEyes(1.0F);
+        Vec3 look = entity.getLook(1.0F);
+        Vec3 reach = pos.addVector(look.xCoord * distance, look.yCoord * distance, look.zCoord * distance);
+        AxisAlignedBB box = entity.getEntityBoundingBox().addCoord(look.xCoord * distance, look.yCoord * distance, look.zCoord * distance).expand(1.0, 1.0, 1.0);
+
+        List<Entity> list = mc.theWorld.getEntitiesWithinAABBExcludingEntity(entity, box);
+        EntityItem closest = null;
+        double minDst = distance * distance;
+
+        for (Entity e : list) {
+            if (e instanceof EntityItem) {
+                float border = 0.5F;
+                AxisAlignedBB hitBox = e.getEntityBoundingBox().expand(border, border, border);
+
+                if (hitBox.isVecInside(pos)) {
+                    if (0.0 < minDst) {
+                        closest = (EntityItem) e;
+                        minDst = 0.0;
+                    }
+                } else {
+                    MovingObjectPosition intercept = hitBox.calculateIntercept(pos, reach);
+                    if (intercept != null) {
+                        double dst = pos.squareDistanceTo(intercept.hitVec);
+                        if (dst < minDst) {
+                            closest = (EntityItem) e;
+                            minDst = dst;
+                        }
+                    }
+                }
+            }
+        }
+        return closest;
     }
 
     private void handleBlockHit(MovingObjectPosition mop) {
@@ -93,7 +148,7 @@ public class LookAtHUD extends HudElement {
             try {
                 name = mainPreviewStack.getDisplayName();
             } catch (Exception e) {
-                name = "Erro ao ler nome";
+                name = "Unknown Block";
             }
 
             modSource = EnumChatFormatting.BLUE + "" + EnumChatFormatting.ITALIC + getModFromObject(block);
@@ -118,8 +173,7 @@ public class LookAtHUD extends HudElement {
         }
     }
 
-    private void handleEntityHit(MovingObjectPosition mop) {
-        Entity e = mop.entityHit;
+    private void handleEntityHit(Entity e) {
         if (e == null) return;
 
         if (e instanceof EntityItem) {
@@ -180,8 +234,8 @@ public class LookAtHUD extends HudElement {
             if (isMinion) {
                 name = foundName;
                 modSource = EnumChatFormatting.BLUE + "SkyBlock Minion";
-                if (headItem != null && headItem.getItem() != null) {
-                    mainPreviewStack = headItem.copy();
+                if (handItem != null && handItem.getItem() != null) {
+                    mainPreviewStack = handItem.copy();
                 } else {
                     mainPreviewStack = (displayItem != null) ? displayItem : new ItemStack(net.minecraft.init.Items.armor_stand);
                 }
@@ -205,35 +259,38 @@ public class LookAtHUD extends HudElement {
                 modSource = EnumChatFormatting.BLUE + "Minecraft";
                 mainPreviewStack = (displayItem != null) ? displayItem : new ItemStack(net.minecraft.init.Items.armor_stand);
             }
+            return;
+        }
 
-        } else if (e instanceof EntityPlayer) {
-            name = EnumChatFormatting.GREEN + e.getName();
-            extraInfo = EnumChatFormatting.WHITE + "Vida: " + EnumChatFormatting.RED + String.format("%.1f ❤", ((EntityPlayer) e).getHealth());
+        if (e instanceof EntityLivingBase) {
+            EntityLivingBase living = (EntityLivingBase) e;
 
-            ItemStack playerHead = new ItemStack(net.minecraft.init.Items.skull, 1, 3);
-            NBTTagCompound nbt = new NBTTagCompound();
-            nbt.setString("SkullOwner", e.getName());
-            playerHead.setTagCompound(nbt);
+            entityToRender = living;
+            currentHealth = living.getHealth();
+            maxHealth = living.getMaxHealth();
+            showHearts = maxHealth > 0;
 
-            mainPreviewStack = playerHead;
-            modSource = EnumChatFormatting.YELLOW + "Jogador";
+            if (e instanceof EntityPlayer) {
+                name = EnumChatFormatting.GREEN + e.getName();
+                modSource = EnumChatFormatting.YELLOW + "Jogador";
+            } else {
+                name = e.getName();
+                if (e.hasCustomName()) name = e.getCustomNameTag();
 
-        } else {
-            name = e.getName();
-            mainPreviewStack = new ItemStack(net.minecraft.init.Items.spawn_egg);
-            modSource = EnumChatFormatting.GRAY + "Entidade";
+                String entityName = EntityList.getEntityString(e);
+                if (entityName == null) entityName = "Entidade";
+                modSource = EnumChatFormatting.GRAY + entityName;
+            }
         }
     }
 
     private ItemStack searchForPetItem(EntityArmorStand source) {
-        AxisAlignedBB searchBox = source.getEntityBoundingBox().expand(1.0, 1.5, 1.0);
+        AxisAlignedBB searchBox = source.getEntityBoundingBox().expand(2.0, 2.0, 2.0);
         List<EntityArmorStand> nearby = mc.theWorld.getEntitiesWithinAABB(EntityArmorStand.class, searchBox);
 
         for (EntityArmorStand neighbor : nearby) {
             if (neighbor == source) continue;
-
             ItemStack rightHand = neighbor.getEquipmentInSlot(0);
-
             if (rightHand != null && rightHand.getItem() != null && rightHand.getItem() != net.minecraft.init.Blocks.air.getItem(mc.theWorld, null)) {
                 return rightHand.copy();
             }
@@ -290,6 +347,10 @@ public class LookAtHUD extends HudElement {
             headerHeight = 45;
         }
 
+        if (showHearts) {
+            headerHeight += 12;
+        }
+
         int inventoryHeight = 0;
         if (!containerItems.isEmpty()) {
             int rows = (int) Math.ceil((double) containerItems.size() / 9.0);
@@ -305,24 +366,43 @@ public class LookAtHUD extends HudElement {
         Gui.drawRect(this.x, this.y, this.x + boxWidth, this.y + boxHeight, 0xCC101010);
         Gui.drawRect(this.x, this.y, this.x + boxWidth, this.y + 2, 0xFF00A8FF);
 
-        if (mainPreviewStack != null) {
+        int textX = this.x + 38;
+        int textY = this.y + 6;
+
+        if (entityToRender != null) {
+            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+            try {
+                drawEntityOnScreen(this.x + 19, this.y + 35, 14, entityToRender);
+            } catch (Exception e) {
+                entityToRender = null;
+            }
+        }
+
+        if (entityToRender == null && mainPreviewStack != null) {
             GlStateManager.pushMatrix();
             float iconY = this.y + (headerHeight - (16 * 1.5f)) / 2;
             if (iconY < this.y + 4) iconY = this.y + 4;
+            if (showHearts) iconY -= 6;
+
             GlStateManager.translate(this.x + 6, iconY, 0);
             GlStateManager.scale(1.5, 1.5, 1.5);
             renderItem(mainPreviewStack, 0, 0);
             GlStateManager.popMatrix();
         }
 
-        int textX = this.x + 38;
-        int textY = this.y + 6;
-
         fontRenderer.drawStringWithShadow(name, textX, textY, 0xFFFFFF);
-        fontRenderer.drawStringWithShadow(modSource, textX, textY + 11, 0xFFFFFF);
+
+        int currentY = textY + 11;
+
+        if (showHearts) {
+            drawHearts(textX, currentY);
+            currentY += 11;
+        }
+
+        fontRenderer.drawStringWithShadow(modSource, textX, currentY, 0xFFFFFF);
 
         if (!extraInfo.isEmpty() && containerItems.isEmpty()) {
-            fontRenderer.drawStringWithShadow(extraInfo, textX, textY + 22, 0xAAAAAA);
+            fontRenderer.drawStringWithShadow(extraInfo, textX, currentY + 11, 0xAAAAAA);
         }
 
         if (!containerItems.isEmpty()) {
@@ -339,6 +419,74 @@ public class LookAtHUD extends HudElement {
                 renderItem(containerItems.get(i), drawX, drawY);
             }
         }
+    }
+
+    private void drawEntityOnScreen(int posX, int posY, int scale, EntityLivingBase ent) {
+        GlStateManager.enableColorMaterial();
+        GlStateManager.pushMatrix();
+        GlStateManager.translate((float)posX, (float)posY, 50.0F);
+        GlStateManager.scale((float)(-scale), (float)scale, (float)scale);
+        GlStateManager.rotate(180.0F, 0.0F, 0.0F, 1.0F);
+
+        float f = ent.renderYawOffset;
+        float f1 = ent.rotationYaw;
+        float f2 = ent.rotationPitch;
+        float f3 = ent.prevRotationYawHead;
+        float f4 = ent.rotationYawHead;
+
+        GlStateManager.rotate(135.0F, 0.0F, 1.0F, 0.0F);
+        RenderHelper.enableStandardItemLighting();
+        GlStateManager.rotate(-135.0F, 0.0F, 1.0F, 0.0F);
+        GlStateManager.rotate(-((float)Math.atan(10.0F / 40.0F)) * 20.0F, 1.0F, 0.0F, 0.0F);
+
+        ent.renderYawOffset = (float)Math.atan(0.0F) * 20.0F;
+        ent.rotationYaw = (float)Math.atan(0.0F) * 40.0F;
+        ent.rotationPitch = -((float)Math.atan(10.0F / 40.0F)) * 20.0F;
+        ent.rotationYawHead = ent.rotationYaw;
+        ent.prevRotationYawHead = ent.rotationYaw;
+
+        GlStateManager.translate(0.0F, 0.0F, 0.0F);
+        mc.getRenderManager().playerViewY = 180.0F;
+        mc.getRenderManager().renderEntityWithPosYaw(ent, 0.0D, 0.0D, 0.0D, 0.0F, 1.0F);
+
+        ent.renderYawOffset = f;
+        ent.rotationYaw = f1;
+        ent.rotationPitch = f2;
+        ent.prevRotationYawHead = f3;
+        ent.rotationYawHead = f4;
+
+        GlStateManager.popMatrix();
+        RenderHelper.disableStandardItemLighting();
+        GlStateManager.disableRescaleNormal();
+        GlStateManager.setActiveTexture(OpenGlHelper.lightmapTexUnit);
+        GlStateManager.disableTexture2D();
+        GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
+        GlStateManager.enableTexture2D();
+        GlStateManager.disableDepth();
+    }
+
+    private void drawHearts(int x, int y) {
+        mc.getTextureManager().bindTexture(GUI_ICONS);
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+        GlStateManager.enableBlend();
+
+        int heartsToDraw = (int) Math.ceil(maxHealth / 2.0f);
+        boolean hasHalfHeart = (currentHealth % 2) != 0;
+
+        if (heartsToDraw > 20) heartsToDraw = 20;
+
+        for (int i = 0; i < heartsToDraw; i++) {
+            int drawX = x + (i * 8);
+
+            mc.ingameGUI.drawTexturedModalRect(drawX, y, 16, 0, 9, 9);
+
+            if (i < Math.floor(currentHealth / 2.0f)) {
+                mc.ingameGUI.drawTexturedModalRect(drawX, y, 52, 0, 9, 9);
+            } else if (i == Math.floor(currentHealth / 2.0f) && hasHalfHeart) {
+                mc.ingameGUI.drawTexturedModalRect(drawX, y, 61, 0, 9, 9);
+            }
+        }
+        GlStateManager.disableBlend();
     }
 
     private void renderItem(ItemStack stack, int x, int y) {
