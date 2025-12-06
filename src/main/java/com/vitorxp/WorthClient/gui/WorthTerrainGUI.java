@@ -53,8 +53,8 @@ public class WorthTerrainGUI extends GuiScreen {
 
         this.mc.getTextureManager().bindTexture(LOGO);
 
-        int w = 170; // Largura logo
-        int h = 150; // Altura logo
+        int w = 200;
+        int h = 150;
         int x = width / 2 - w / 2;
         int y = height / 2 - 100 + (int) floatOffset;
 
