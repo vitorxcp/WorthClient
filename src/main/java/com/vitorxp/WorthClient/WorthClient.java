@@ -236,6 +236,7 @@ public class WorthClient {
         ClientCommandHandler.instance.registerCommand(new AdminCommandStaff());
         ClientCommandHandler.instance.registerCommand(new ECTPCOmmand());
         ClientCommandHandler.instance.registerCommand(new PainelAdminCommand());
+        ClientCommandHandler.instance.registerCommand(new CommandAntiCheatLogs());
 
         GameSettings settings = Minecraft.getMinecraft().gameSettings;
         settings.fboEnable = true;
