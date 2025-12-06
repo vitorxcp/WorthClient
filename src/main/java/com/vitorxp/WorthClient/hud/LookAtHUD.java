@@ -17,7 +17,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.*;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
@@ -42,6 +41,8 @@ public class LookAtHUD extends HudElement {
     private float currentHealth = 0f;
     private float maxHealth = 0f;
     private boolean showHearts = false;
+
+    private static final int MAX_VISIBLE_HEARTS = 10;
 
     public LookAtHUD() {
         super("LookAtHUD", 10, 70);
@@ -92,7 +93,7 @@ public class LookAtHUD extends HudElement {
         Entity entity = mc.getRenderViewEntity();
         if (entity == null) return null;
 
-        double distance = 4.0;
+        double distance = 4.5;
         Vec3 pos = entity.getPositionEyes(1.0F);
         Vec3 look = entity.getLook(1.0F);
         Vec3 reach = pos.addVector(look.xCoord * distance, look.yCoord * distance, look.zCoord * distance);
@@ -186,7 +187,7 @@ public class LookAtHUD extends HudElement {
                 name = itemStack.getDisplayName();
 
                 if (itemStack.stackSize > 1) {
-                    extraInfo = EnumChatFormatting.WHITE + "Qtd: " + EnumChatFormatting.YELLOW + "x" + itemStack.stackSize;
+                    name = itemStack.getDisplayName() + " " + EnumChatFormatting.YELLOW + "x" + itemStack.stackSize;
                 }
 
                 modSource = EnumChatFormatting.BLUE + "" + EnumChatFormatting.ITALIC + getModFromObject(itemStack.getItem());
@@ -235,8 +236,8 @@ public class LookAtHUD extends HudElement {
             if (isMinion) {
                 name = foundName;
                 modSource = EnumChatFormatting.BLUE + "SkyBlock Minion";
-                if (headItem != null && headItem.getItem() != null) {
-                    mainPreviewStack = headItem.copy();
+                if (handItem != null && handItem.getItem() != null) {
+                    mainPreviewStack = handItem.copy();
                 } else {
                     mainPreviewStack = (displayItem != null) ? displayItem : new ItemStack(net.minecraft.init.Items.armor_stand);
                 }
@@ -279,7 +280,7 @@ public class LookAtHUD extends HudElement {
                 if (e.hasCustomName()) name = e.getCustomNameTag();
 
                 String entityName = EntityList.getEntityString(e);
-                if (entityName == null) entityName = "NPC";
+                if (entityName == null) entityName = "Entidade";
                 modSource = EnumChatFormatting.GRAY + entityName;
             }
         }
@@ -335,8 +336,18 @@ public class LookAtHUD extends HudElement {
 
         int heartsWidth = 0;
         if (showHearts) {
-            int heartsCount = (int) Math.ceil(maxHealth / 2.0f);
-            heartsWidth = heartsCount * 8;
+            int totalHearts = (int) Math.ceil(maxHealth / 2.0f);
+            int visibleHearts = Math.min(totalHearts, MAX_VISIBLE_HEARTS);
+            heartsWidth = visibleHearts * 8;
+
+            if (totalHearts > MAX_VISIBLE_HEARTS) {
+                float overflowHealth = currentHealth - (MAX_VISIBLE_HEARTS * 2);
+                if (overflowHealth > 0) {
+                    int overflowHearts = (int)Math.ceil(overflowHealth / 2.0f);
+                    String overflowText = " +" + overflowHearts;
+                    heartsWidth += fontRenderer.getStringWidth(overflowText);
+                }
+            }
         }
 
         int maxTextWidth = Math.max(nameW, Math.max(modW, infoW));
@@ -480,20 +491,41 @@ public class LookAtHUD extends HudElement {
         GlStateManager.disableDepth();
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
 
-        int heartsToDraw = (int) Math.ceil(maxHealth / 2.0f);
-        if (heartsToDraw > 20) heartsToDraw = 20; // Limite visual
+        int heartsToDraw;
+        boolean forceFull = false;
+
+        float maxVisibleHealth = MAX_VISIBLE_HEARTS * 2;
+
+        if (currentHealth > maxVisibleHealth) {
+            heartsToDraw = MAX_VISIBLE_HEARTS;
+            forceFull = true;
+        } else {
+            heartsToDraw = (int) Math.ceil(maxHealth / 2.0f);
+            if (heartsToDraw > MAX_VISIBLE_HEARTS) heartsToDraw = MAX_VISIBLE_HEARTS;
+        }
 
         for (int i = 0; i < heartsToDraw; i++) {
             int drawX = x + (i * 8);
 
-            mc.ingameGUI.drawTexturedModalRect(drawX, y, 16, 0, 9, 9); // Vazio
+            mc.ingameGUI.drawTexturedModalRect(drawX, y, 16, 0, 9, 9);
 
-            if (i * 2 + 1 < (int)currentHealth) {
-                mc.ingameGUI.drawTexturedModalRect(drawX, y, 52, 0, 9, 9); // Cheio
-            } else if (i * 2 + 1 == (int)currentHealth) {
-                mc.ingameGUI.drawTexturedModalRect(drawX, y, 61, 0, 9, 9); // Metade
+            if (forceFull) {
+                mc.ingameGUI.drawTexturedModalRect(drawX, y, 52, 0, 9, 9);
+            } else {
+                if (i * 2 + 1 < (int)currentHealth) {
+                    mc.ingameGUI.drawTexturedModalRect(drawX, y, 52, 0, 9, 9);
+                } else if (i * 2 + 1 == (int)currentHealth) {
+                    mc.ingameGUI.drawTexturedModalRect(drawX, y, 61, 0, 9, 9);
+                }
             }
         }
+
+        if (currentHealth > maxVisibleHealth) {
+            int overflow = (int)Math.ceil((currentHealth - maxVisibleHealth) / 2.0f);
+            String overflowText = EnumChatFormatting.GOLD + " +" + overflow;
+            fontRenderer.drawStringWithShadow(overflowText, x + (heartsToDraw * 8) + 2, y, 0xFFFFFF);
+        }
+
         GlStateManager.disableBlend();
         GlStateManager.enableDepth();
     }
