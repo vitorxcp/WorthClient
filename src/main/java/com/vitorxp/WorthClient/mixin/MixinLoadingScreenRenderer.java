@@ -1,7 +1,7 @@
 package com.vitorxp.WorthClient.mixin;
 
 import com.vitorxp.WorthClient.gui.LoadingScreenHook;
-import com.vitorxp.WorthClient.gui.WorthLoadingGUI; // Import necessário
+import com.vitorxp.WorthClient.gui.WorthLoadingGUI;
 import net.minecraft.client.LoadingScreenRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
