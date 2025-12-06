@@ -29,7 +29,7 @@ public class GuiCustomMultiplayer extends GuiScreen {
 
     private long animationStartTime;
     private boolean isOpening, isClosing;
-    private final int ANIMATION_DURATION_MS = 800;
+    private final int ANIMATION_DURATION_MS = 500;
     private GuiScreen nextScreen = null;
 
     private final GuiScreen parentScreen;
