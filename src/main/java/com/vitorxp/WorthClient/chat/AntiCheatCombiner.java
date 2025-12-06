@@ -5,19 +5,40 @@ import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatStyle;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.IChatComponent;
 import net.minecraft.util.StringUtils;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class AntiCheatCombiner {
+
+    public static class StoredLog {
+        public String playerName;
+        public String cheatType;
+        public String typeLetter;
+        public int count;
+        public Integer currentVl;
+        public Integer maxVl;
+        public long timestamp;
+
+        public StoredLog(String playerName, String cheatType, String typeLetter, int count, Integer cur, Integer max) {
+            this.playerName = playerName;
+            this.cheatType = cheatType;
+            this.typeLetter = typeLetter;
+            this.count = count;
+            this.currentVl = cur;
+            this.maxVl = max;
+            this.timestamp = System.currentTimeMillis();
+        }
+    }
+
+    public static final Map<String, LinkedList<StoredLog>> history = new HashMap<>();
 
     private static final Pattern CHEAT_PATTERN = Pattern.compile(
             "(?i)Anti-?\\s*Cheat\\s*[➜→:>\\-]\\s*(.+?)\\s+falha\\s+em\\s+(.+?)" +
@@ -27,7 +48,6 @@ public class AntiCheatCombiner {
     );
 
     private static final long COMBINE_TIME_MS = 10_000L;
-
     private static final Timer timer = new Timer("AntiCheatCombinerTimer", true);
 
     private static final class Entry {
@@ -75,28 +95,10 @@ public class AntiCheatCombiner {
         e.lastUpdate = System.currentTimeMillis();
         if (!typeLetter.isEmpty()) e.lastType = typeLetter;
 
-        StringBuilder sb = new StringBuilder();
-        sb.append("§cAnti-Cheat ➜ §e").append(player)
-                .append(" §7falha em §6").append(cheatType);
-        if (e.lastType != null && !e.lastType.isEmpty()) {
-            sb.append(" §7(§fTipo ").append(e.lastType).append("§7)");
-        }
-        sb.append(" §7[§a").append(e.count).append("§7]");
-        if (cur != null && max != null) {
-            sb.append(" §7[").append(cur).append("/").append(max).append("]");
-        }
+        IChatComponent formattedMsg = buildMessage(player, cheatType, e.lastType, e.count, cur, max);
+        Minecraft.getMinecraft().ingameGUI.getChatGUI().printChatMessageWithOptionalDeletion(formattedMsg, e.lineId);
 
-        ChatComponentText clickable = new ChatComponentText(sb.toString());
-        ChatStyle style = new ChatStyle();
-        style.setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/vtp " + player));
-        style.setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                new ChatComponentText("§eClique para teleportar em " + player)));
-        clickable.setChatStyle(style);
-
-        Minecraft.getMinecraft().ingameGUI.getChatGUI().printChatMessageWithOptionalDeletion(
-                clickable, e.lineId
-        );
-
+        updateHistory(player, cheatType, typeLetter, e.count, cur, max);
 
         TimerTask old = resetTasks.get(key);
         if (old != null) old.cancel();
@@ -125,6 +127,55 @@ public class AntiCheatCombiner {
         };
         resetTasks.put(key, task);
         timer.schedule(task, COMBINE_TIME_MS);
+    }
+
+    private void updateHistory(String player, String cheat, String type, int count, Integer cur, Integer max) {
+        LinkedList<StoredLog> logs = history.computeIfAbsent(player.toLowerCase(), k -> new LinkedList<>());
+
+        StoredLog existing = null;
+        for (StoredLog log : logs) {
+            if (log.cheatType.equalsIgnoreCase(cheat)) {
+                existing = log;
+                break;
+            }
+        }
+
+        if (existing != null) {
+            existing.count = count;
+            existing.currentVl = cur;
+            existing.maxVl = max;
+            existing.timestamp = System.currentTimeMillis();
+            if (!type.isEmpty()) existing.typeLetter = type;
+            logs.remove(existing);
+            logs.addFirst(existing);
+        } else {
+            if (logs.size() >= 10) {
+                logs.removeLast();
+            }
+            logs.addFirst(new StoredLog(player, cheat, type, count, cur, max));
+        }
+    }
+
+    public static IChatComponent buildMessage(String player, String cheatType, String typeLetter, int count, Integer cur, Integer max) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("§cAnti-Cheat ➜ §e").append(player)
+                .append(" §7falha em §6").append(cheatType);
+        if (typeLetter != null && !typeLetter.isEmpty()) {
+            sb.append(" §7(§fTipo ").append(typeLetter).append("§7)");
+        }
+        sb.append(" §7[§a").append(count).append("§7]");
+        if (cur != null && max != null) {
+            sb.append(" §7[").append(cur).append("/").append(max).append("]");
+        }
+
+        ChatComponentText clickable = new ChatComponentText(sb.toString());
+        ChatStyle style = new ChatStyle();
+        style.setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/vtp " + player));
+        style.setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+                new ChatComponentText("§eClique para teleportar em " + player)));
+        clickable.setChatStyle(style);
+
+        return clickable;
     }
 
     private static String safe(Matcher m, int group) {
