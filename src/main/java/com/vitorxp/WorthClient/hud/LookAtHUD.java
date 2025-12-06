@@ -17,6 +17,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.*;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
@@ -91,7 +92,7 @@ public class LookAtHUD extends HudElement {
         Entity entity = mc.getRenderViewEntity();
         if (entity == null) return null;
 
-        double distance = 4.5;
+        double distance = 4.0;
         Vec3 pos = entity.getPositionEyes(1.0F);
         Vec3 look = entity.getLook(1.0F);
         Vec3 reach = pos.addVector(look.xCoord * distance, look.yCoord * distance, look.zCoord * distance);
@@ -234,8 +235,8 @@ public class LookAtHUD extends HudElement {
             if (isMinion) {
                 name = foundName;
                 modSource = EnumChatFormatting.BLUE + "SkyBlock Minion";
-                if (handItem != null && handItem.getItem() != null) {
-                    mainPreviewStack = handItem.copy();
+                if (headItem != null && headItem.getItem() != null) {
+                    mainPreviewStack = headItem.copy();
                 } else {
                     mainPreviewStack = (displayItem != null) ? displayItem : new ItemStack(net.minecraft.init.Items.armor_stand);
                 }
@@ -278,7 +279,7 @@ public class LookAtHUD extends HudElement {
                 if (e.hasCustomName()) name = e.getCustomNameTag();
 
                 String entityName = EntityList.getEntityString(e);
-                if (entityName == null) entityName = "Entidade";
+                if (entityName == null) entityName = "NPC";
                 modSource = EnumChatFormatting.GRAY + entityName;
             }
         }
@@ -332,7 +333,15 @@ public class LookAtHUD extends HudElement {
         int modW = fontRenderer.getStringWidth(modSource);
         int infoW = extraInfo.isEmpty() ? 0 : fontRenderer.getStringWidth(extraInfo);
 
+        int heartsWidth = 0;
+        if (showHearts) {
+            int heartsCount = (int) Math.ceil(maxHealth / 2.0f);
+            heartsWidth = heartsCount * 8;
+        }
+
         int maxTextWidth = Math.max(nameW, Math.max(modW, infoW));
+        maxTextWidth = Math.max(maxTextWidth, heartsWidth);
+
         int paddingSide = 42;
         int boxWidth = Math.max(140, maxTextWidth + paddingSide);
 
@@ -467,26 +476,26 @@ public class LookAtHUD extends HudElement {
 
     private void drawHearts(int x, int y) {
         mc.getTextureManager().bindTexture(GUI_ICONS);
-        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         GlStateManager.enableBlend();
+        GlStateManager.disableDepth();
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
 
         int heartsToDraw = (int) Math.ceil(maxHealth / 2.0f);
-        boolean hasHalfHeart = (currentHealth % 2) != 0;
-
-        if (heartsToDraw > 20) heartsToDraw = 20;
+        if (heartsToDraw > 20) heartsToDraw = 20; // Limite visual
 
         for (int i = 0; i < heartsToDraw; i++) {
             int drawX = x + (i * 8);
 
-            mc.ingameGUI.drawTexturedModalRect(drawX, y, 16, 0, 9, 9);
+            mc.ingameGUI.drawTexturedModalRect(drawX, y, 16, 0, 9, 9); // Vazio
 
-            if (i < Math.floor(currentHealth / 2.0f)) {
-                mc.ingameGUI.drawTexturedModalRect(drawX, y, 52, 0, 9, 9);
-            } else if (i == Math.floor(currentHealth / 2.0f) && hasHalfHeart) {
-                mc.ingameGUI.drawTexturedModalRect(drawX, y, 61, 0, 9, 9);
+            if (i * 2 + 1 < (int)currentHealth) {
+                mc.ingameGUI.drawTexturedModalRect(drawX, y, 52, 0, 9, 9); // Cheio
+            } else if (i * 2 + 1 == (int)currentHealth) {
+                mc.ingameGUI.drawTexturedModalRect(drawX, y, 61, 0, 9, 9); // Metade
             }
         }
         GlStateManager.disableBlend();
+        GlStateManager.enableDepth();
     }
 
     private void renderItem(ItemStack stack, int x, int y) {
