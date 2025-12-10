@@ -328,7 +328,6 @@ public class GuiCustomMultiplayer extends GuiScreen {
     }
 
     private void refreshServerList() {
-        // Apenas recarrega a tela atual para reiniciar os pings
         this.mc.displayGuiScreen(new GuiCustomMultiplayer(this.parentScreen));
     }
 
@@ -351,7 +350,6 @@ public class GuiCustomMultiplayer extends GuiScreen {
         }
     }
 
-    // Método chamado pela GuiCustomServerList quando um item é clicado
     public void selectServer(int index) {
         this.selectedServer = index;
         this.updateButtonStates();
