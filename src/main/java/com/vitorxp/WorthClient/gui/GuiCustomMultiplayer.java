@@ -1,7 +1,10 @@
 package com.vitorxp.WorthClient.gui;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.vitorxp.WorthClient.gui.button.GuiModernButton;
 import com.vitorxp.WorthClient.gui.utils.AnimationUtil;
+import com.vitorxp.WorthClient.utils.SSLTrustBypasser;
 import net.minecraft.client.gui.*;
 import net.minecraft.client.multiplayer.GuiConnecting;
 import net.minecraft.client.multiplayer.ServerData;
@@ -12,16 +15,20 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.WorldRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.ResourceLocation;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 
-import java.awt.*;
+import java.awt.Color;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 public class GuiCustomMultiplayer extends GuiScreen {
 
@@ -36,15 +43,19 @@ public class GuiCustomMultiplayer extends GuiScreen {
     private ServerList savedServerList;
     private GuiCustomServerList serverListSelector;
     private int selectedServer = -1;
+
     private final OldServerPinger oldServerPinger = new OldServerPinger();
+
     private LanServerDetector.LanServerList lanServerList;
     private LanServerDetector.ThreadLanServerFind lanServerDetector;
-    private ScheduledExecutorService pingExecutor;
+
+    private ExecutorService apiExecutor;
 
     private GuiButton btnSelectServer, btnEditServer, btnDeleteServer;
 
     public GuiCustomMultiplayer(GuiScreen parentScreen) {
         this.parentScreen = parentScreen;
+        try { SSLTrustBypasser.install(); } catch (Exception ignored) {}
     }
 
     @Override
@@ -66,10 +77,10 @@ public class GuiCustomMultiplayer extends GuiScreen {
         } catch (Exception ignored) {}
 
         this.serverListSelector = new GuiCustomServerList(this, this.mc, this.width, this.height, 32, this.height - 64, 44);
-        this.serverListSelector.setServerList(this.savedServerList);
 
         createButtons();
-        startPingExecutor();
+
+        loadServersViaApi();
     }
 
     private void createButtons() {
@@ -92,6 +103,83 @@ public class GuiCustomMultiplayer extends GuiScreen {
         this.buttonList.add(new GuiModernButton(0, 10, 10, 60, 20, "Voltar", 600L));
 
         this.updateButtonStates();
+    }
+
+    private void loadServersViaApi() {
+        if (this.apiExecutor != null && !this.apiExecutor.isShutdown()) {
+            this.apiExecutor.shutdownNow();
+        }
+        this.apiExecutor = Executors.newFixedThreadPool(20);
+
+        for (int i = 0; i < this.savedServerList.countServers(); i++) {
+            final ServerData server = this.savedServerList.getServerData(i);
+
+            server.serverMOTD = EnumChatFormatting.GRAY + "Carregando API...";
+            server.pingToServer = -1;
+
+            this.apiExecutor.submit(() -> fetchServerStatus(server));
+        }
+    }
+
+    private void fetchServerStatus(ServerData server) {
+        HttpURLConnection connection = null;
+        try {
+            URL url = new URL("https://api.mcstatus.io/v2/status/java/" + server.serverIP);
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.setConnectTimeout(5000);
+            connection.setReadTimeout(5000);
+            connection.setRequestProperty("User-Agent", "WorthClient/1.0");
+
+            if (connection.getResponseCode() == 200) {
+                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                StringBuilder response = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    response.append(line);
+                }
+                reader.close();
+
+                JsonObject json = new JsonParser().parse(response.toString()).getAsJsonObject();
+                boolean online = json.get("online").getAsBoolean();
+
+                if (online) {
+                    String motdClean = "";
+                    if (json.has("motd") && json.get("motd").isJsonObject()) {
+                        JsonObject motdObj = json.getAsJsonObject("motd");
+                        if (motdObj.has("clean")) {
+                            motdClean = motdObj.get("clean").getAsString();
+                        }
+                    }
+
+                    String playersInfo = "?/?";
+                    if (json.has("players") && json.get("players").isJsonObject()) {
+                        JsonObject playersObj = json.getAsJsonObject("players");
+                        int onlinePlayers = playersObj.get("online").getAsInt();
+                        int maxPlayers = playersObj.get("max").getAsInt();
+                        playersInfo = EnumChatFormatting.GRAY + "" + onlinePlayers + "/" + maxPlayers;
+                    }
+
+                    server.serverMOTD = motdClean.isEmpty() ? "Online" : motdClean;
+                    server.populationInfo = playersInfo;
+                    server.pingToServer = 1;
+                } else {
+                    server.serverMOTD = EnumChatFormatting.DARK_RED + "Offline";
+                    server.pingToServer = -1;
+                }
+            } else {
+                server.serverMOTD = EnumChatFormatting.RED + "API Error: " + connection.getResponseCode();
+            }
+
+        } catch (Exception e) {
+            server.serverMOTD = EnumChatFormatting.DARK_RED + "Can't connect";
+            server.pingToServer = -1;
+            e.printStackTrace();
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
+        }
     }
 
     private void triggerExitAnimation(GuiScreen screenToOpen) {
@@ -165,6 +253,8 @@ public class GuiCustomMultiplayer extends GuiScreen {
         if (isOpening || isClosing) {
             long elapsedTime = System.currentTimeMillis() - this.animationStartTime;
             progress = Math.min(1.0f, (float)elapsedTime / (float)this.ANIMATION_DURATION_MS);
+        } else {
+            progress = 1.0f;
         }
         float easedProgress = AnimationUtil.easeOutCubic(progress);
 
@@ -179,7 +269,7 @@ public class GuiCustomMultiplayer extends GuiScreen {
         if (isClosing) uiAlpha = 1.0f - easedProgress;
         uiAlpha = Math.max(0.0f, uiAlpha);
 
-        this.drawCenteredString(this.fontRendererObj, "Multijogador", this.width / 2, 15, new Color(1f, 1f, 1f, uiAlpha).getRGB());
+        this.drawCenteredString(this.fontRendererObj, "Multijogadoraa", this.width / 2, 15, new Color(1f, 1f, 1f, uiAlpha).getRGB());
 
         for (GuiButton button : this.buttonList) {
             if (button instanceof GuiModernButton) {
@@ -218,14 +308,14 @@ public class GuiCustomMultiplayer extends GuiScreen {
                 this.mc.displayGuiScreen(new GuiScreenServerList(this, new ServerData("", "", false)));
                 break;
             case 3:
-                if (this.selectedServer >= 0 && this.selectedServer < this.serverListSelector.getSize()) {
-                    String serverName = this.serverListSelector.getServerData(this.selectedServer).serverName;
+                if (this.selectedServer >= 0 && this.selectedServer < this.savedServerList.countServers()) {
+                    String serverName = this.savedServerList.getServerData(this.selectedServer).serverName;
                     this.mc.displayGuiScreen(new GuiYesNo(this, "Tem certeza que quer remover este servidor?", "'" + serverName + "' será perdido para sempre!", "Deletar", "Cancelar", this.selectedServer));
                 }
                 break;
             case 4:
-                if (this.selectedServer >= 0 && this.selectedServer < this.serverListSelector.getSize()) {
-                    this.mc.displayGuiScreen(new GuiScreenAddServer(this, this.serverListSelector.getServerData(this.selectedServer)));
+                if (this.selectedServer >= 0 && this.selectedServer < this.savedServerList.countServers()) {
+                    this.mc.displayGuiScreen(new GuiScreenAddServer(this, this.savedServerList.getServerData(this.selectedServer)));
                 }
                 break;
             case 7:
@@ -237,52 +327,38 @@ public class GuiCustomMultiplayer extends GuiScreen {
         }
     }
 
-
-    private void startPingExecutor() {
-        if (this.pingExecutor != null && !this.pingExecutor.isShutdown()) {
-            this.pingExecutor.shutdownNow();
-        }
-        this.pingExecutor = Executors.newSingleThreadScheduledExecutor();
-        this.pingExecutor.scheduleAtFixedRate(this::pingAllServers, 0, 3, TimeUnit.SECONDS);
-    }
-
-    private void pingAllServers() {
-        for(int i = 0; i < this.savedServerList.countServers(); i++) {
-            ServerData server = this.savedServerList.getServerData(i);
-            if (server != null && server.pingToServer != -2L) {
-                try { oldServerPinger.ping(server); } catch (Exception ignored) {}
-            }
-        }
-    }
-
     private void refreshServerList() {
+        // Apenas recarrega a tela atual para reiniciar os pings
         this.mc.displayGuiScreen(new GuiCustomMultiplayer(this.parentScreen));
     }
 
     @Override
     public void confirmClicked(boolean result, int id) {
-        if (result && id < this.savedServerList.countServers()) {
+        if (result && id >= 0 && id < this.savedServerList.countServers()) {
             this.savedServerList.removeServerData(id);
             this.savedServerList.saveServerList();
-            this.selectServer(-1);
-            this.serverListSelector.setServerList(this.savedServerList);
+            this.selectedServer = -1;
+            this.updateButtonStates();
+            this.mc.displayGuiScreen(this);
+        } else {
+            this.mc.displayGuiScreen(this);
         }
-        this.mc.displayGuiScreen(this);
     }
 
     public void connectToSelected() {
-        if (this.selectedServer >= 0 && this.selectedServer < this.serverListSelector.getSize()) {
-            this.mc.displayGuiScreen(new GuiConnecting(this, this.mc, this.serverListSelector.getServerData(this.selectedServer)));
+        if (this.selectedServer >= 0 && this.selectedServer < this.savedServerList.countServers()) {
+            this.mc.displayGuiScreen(new GuiConnecting(this, this.mc, this.savedServerList.getServerData(this.selectedServer)));
         }
     }
 
+    // Método chamado pela GuiCustomServerList quando um item é clicado
     public void selectServer(int index) {
         this.selectedServer = index;
         this.updateButtonStates();
     }
 
     public void updateButtonStates() {
-        boolean isServerSelected = this.selectedServer >= 0 && this.selectedServer < this.serverListSelector.getSize();
+        boolean isServerSelected = this.selectedServer >= 0 && this.selectedServer < this.savedServerList.countServers();
         this.btnSelectServer.enabled = isServerSelected;
         this.btnEditServer.enabled = isServerSelected;
         this.btnDeleteServer.enabled = isServerSelected;
@@ -291,18 +367,18 @@ public class GuiCustomMultiplayer extends GuiScreen {
     @Override
     public void handleMouseInput() throws IOException {
         super.handleMouseInput();
-        this.serverListSelector.handleMouseInput();
+        if (this.serverListSelector != null) {
+            this.serverListSelector.handleMouseInput();
+        }
     }
 
     @Override
     public void updateScreen() {
         super.updateScreen();
-        if (this.lanServerList.getWasUpdated()) {
+        if (this.lanServerList != null && this.lanServerList.getWasUpdated()) {
             List<LanServerDetector.LanServer> lanServers = this.lanServerList.getLanServers();
             this.lanServerList.setWasNotUpdated();
-            this.serverListSelector.setLanServers(lanServers);
         }
-        this.oldServerPinger.pingPendingNetworks();
     }
 
     @Override
@@ -310,8 +386,10 @@ public class GuiCustomMultiplayer extends GuiScreen {
         Keyboard.enableRepeatEvents(false);
         if (this.lanServerDetector != null) this.lanServerDetector.interrupt();
         this.oldServerPinger.clearPendingNetworks();
-        if (this.serverListSelector != null) this.serverListSelector.cleanup();
-        if (this.pingExecutor != null) this.pingExecutor.shutdownNow();
+
+        if (this.apiExecutor != null) {
+            this.apiExecutor.shutdownNow();
+        }
     }
 
     public OldServerPinger getOldServerPinger() { return this.oldServerPinger; }
