@@ -1,5 +1,7 @@
 buildscript {
     repositories {
+        mavenCentral()
+        jcenter()
         maven {
             name = "forge"
             url = "https://files.minecraftforge.net/maven"
@@ -18,14 +20,6 @@ buildscript {
 apply plugin: 'net.minecraftforge.gradle.forge'
 apply plugin: 'org.spongepowered.mixin'
 
-sourceSets {
-    main {
-        resources {
-            srcDirs = ['src/main/resources']
-        }
-    }
-}
-
 version = "1.0.1-alpha"
 group = "com.vitorxp.WorthClient"
 archivesBaseName = "WorthClient"
@@ -38,9 +32,11 @@ minecraft {
     runDir = "run"
     mappings = "stable_22"
     makeObfSourceJar = false
+    // clientJvmArgs += "-Dfml.coreMods.load=com.vitorxp.WorthClient.mixin.MixinLoader"
 }
 
 repositories {
+    mavenCentral()
     maven {
         name = "forge"
         url = "https://files.minecraftforge.net/maven"
@@ -51,13 +47,26 @@ repositories {
     }
 }
 
-mixin {
-    add sourceSets.main, "worthclient.refmap.json"
+configurations {
+    embed
+    compile.extendsFrom(embed)
 }
 
-
 dependencies {
-    compile 'org.spongepowered:mixin:0.7.11-SNAPSHOT'
+    embed('org.spongepowered:mixin:0.7.11-SNAPSHOT') {
+        exclude module: 'launchwrapper'
+        exclude module: 'guava'
+        exclude module: 'gson'
+        exclude module: 'commons-io'
+        exclude module: 'log4j-core'
+    }
+
+    embed "io.socket:socket.io-client:2.1.0"
+}
+
+mixin {
+    defaultObfuscationEnv = "searge"
+    add sourceSets.main, "worthclient.refmap.json"
 }
 
 processResources {
@@ -74,4 +83,22 @@ processResources {
     }
 
     rename '(.+_at.cfg)', 'META-INF/$1'
+}
+
+jar {
+    from {
+        configurations.embed.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+
+    manifest {
+        attributes(
+                "FMLCorePluginContainsFMLMod": "true",
+                "ForceLoadAsMod": "true",
+                "TweakClass": "org.spongepowered.asm.launch.MixinTweaker",
+                "TweakOrder": 0,
+                "MixinConfigs": "mixins.worthclient.json"
+        )
+    }
+
+    exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA'
 }
