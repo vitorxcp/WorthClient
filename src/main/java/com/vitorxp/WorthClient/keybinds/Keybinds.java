@@ -1,5 +1,6 @@
 package com.vitorxp.WorthClient.keybinds;
 
+import com.vitorxp.WorthClient.manager.ConfigManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.util.ChatComponentText;
@@ -27,23 +28,46 @@ public class Keybinds {
     public static KeyBinding perspectiveM;
     public static KeyBinding zoomKey;
     public static KeyBinding toggleRadarKey;
+    private static boolean keysInitialized = false;
+    private boolean wasPressed = false;
+
 
     public static void init() {
-        openConfig = new KeyBinding("Abrir menu de Configurações", Keyboard.KEY_K, "SkyBlockModVX");
+        ConfigManager.load();
+
+        openConfig = new KeyBinding("Abrir menu de Configurações", Keyboard.KEY_K, "WorthClient");
         ClientRegistry.registerKeyBinding(openConfig);
 
-        openConfigHud = new KeyBinding("Abrir menu de Overlays", Keyboard.KEY_RSHIFT, "SkyBlockModVX");
+        openConfigHud = new KeyBinding("Abrir menu de Overlays", Keyboard.KEY_RSHIFT, "WorthClient");
         ClientRegistry.registerKeyBinding(openConfigHud);
 
-        screenshotKey = new KeyBinding("Tirar Screenshot", Keyboard.KEY_P, "SkyBlockModVX");
+        screenshotKey = new KeyBinding("Tirar Screenshot", Keyboard.KEY_P, "WorthClient");
         //ClientRegistry.registerKeyBinding(screenshotKey);
 
-        perspectiveM = new KeyBinding("Perspective Mod", WorthClient.KeyPerspective, "SkyBlockModVX");
+        perspectiveM = new KeyBinding("Perspective Mod", WorthClient.KeyPerspective, "WorthClient");
         ClientRegistry.registerKeyBinding(perspectiveM);
 
-        zoomKey = new KeyBinding("Botão de Zoom", Keyboard.KEY_C, "SkyBlockModVX");
+        zoomKey = new KeyBinding("Botão de Zoom", Keyboard.KEY_C, "WorthClient");
         ClientRegistry.registerKeyBinding(zoomKey);
+    }
 
+    public static void updatePerspectiveKey(int newKeyCode) {
+        if (perspectiveM != null) {
+            perspectiveM.setKeyCode(newKeyCode);
+            KeyBinding.resetKeyBindingArrayAndHash();
+        }
+    }
+
+    public static void disableOptifineZoom() {
+        Minecraft mc = Minecraft.getMinecraft();
+        for (KeyBinding kb : mc.gameSettings.keyBindings) {
+            if (kb.getKeyDescription().equals("of.key.zoom")) {
+                if (kb.getKeyCode() == zoomKey.getKeyCode() || kb.getKeyCode() == Keyboard.KEY_C) {
+                    kb.setKeyCode(0);
+                    KeyBinding.resetKeyBindingArrayAndHash();
+                }
+            }
+        }
     }
 
     @SubscribeEvent
@@ -65,28 +89,31 @@ public class Keybinds {
         }
     }
 
-    private boolean wasPressed = false;
-
-    public static void updatePerspectiveKey(int newKeyCode) {
-        if (perspectiveM != null) {
-            perspectiveM.setKeyCode(newKeyCode);
-            KeyBinding.resetKeyBindingArrayAndHash();
-        }
-    }
-
     @SubscribeEvent
     public void onClientTick(TickEvent.ClientTickEvent event) {
-        boolean isPressed = perspectiveM.isKeyDown();
+        if (!keysInitialized) {
+            if (perspectiveM != null) {
+                perspectiveM.setKeyCode(WorthClient.KeyPerspective);
+            }
 
-        if (isPressed && !wasPressed) {
-            com.vitorxp.WorthClient.WorthClient.perspective = true;
+            disableOptifineZoom();
+            KeyBinding.resetKeyBindingArrayAndHash();
+            keysInitialized = true;
         }
 
-        if (!isPressed && wasPressed) {
-            com.vitorxp.WorthClient.WorthClient.perspective = false;
-        }
+        if (!WorthClient.PerspectiveModToggle) {
+            boolean isPressed = Keyboard.isKeyDown(perspectiveM.getKeyCode());
 
-        wasPressed = isPressed;
+            if (isPressed && !wasPressed) {
+                WorthClient.perspective = true;
+            }
+
+            if (!isPressed && wasPressed) {
+                WorthClient.perspective = false;
+            }
+
+            wasPressed = isPressed;
+        }
     }
 
     public void takeScreenshotAndUpload() {
