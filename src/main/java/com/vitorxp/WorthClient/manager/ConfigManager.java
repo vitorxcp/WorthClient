@@ -29,6 +29,7 @@ public class ConfigManager {
         obj.addProperty("enableCopy", com.vitorxp.WorthClient.WorthClient.enableCopy);
         obj.addProperty("keystrokesOverlay", com.vitorxp.WorthClient.WorthClient.keystrokesOverlay);
         obj.addProperty("PerspectiveModToggle", com.vitorxp.WorthClient.WorthClient.PerspectiveModToggle);
+        obj.addProperty("ArmorsOverlays", com.vitorxp.WorthClient.WorthClient.ArmorsOverlays);
         obj.addProperty("RadarOverlay", com.vitorxp.WorthClient.WorthClient.RadarOverlay);
 
         try (FileWriter writer = new FileWriter(FILE)) {
@@ -62,6 +63,7 @@ public class ConfigManager {
             if (obj.has("keystrokesOverlay")) com.vitorxp.WorthClient.WorthClient.keystrokesOverlay = obj.get("keystrokesOverlay").getAsBoolean();
             if (obj.has("PerspectiveModToggle")) com.vitorxp.WorthClient.WorthClient.PerspectiveModToggle = obj.get("PerspectiveModToggle").getAsBoolean();
             if (obj.has("RadarOverlay")) com.vitorxp.WorthClient.WorthClient.RadarOverlay = obj.get("RadarOverlay").getAsBoolean();
+            if (obj.has("ArmorsOverlays")) com.vitorxp.WorthClient.WorthClient.ArmorsOverlays = obj.get("ArmorsOverlays").getAsBoolean();
         } catch (Exception e) {
             e.printStackTrace();
         }
