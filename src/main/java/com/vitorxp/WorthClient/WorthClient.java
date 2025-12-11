@@ -44,6 +44,7 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.event.FMLServerStoppedEvent;
 import net.minecraftforge.fml.common.network.FMLNetworkEvent;
+import org.lwjgl.input.Keyboard;
 
 import java.io.File;
 import java.lang.reflect.Field;
@@ -53,6 +54,8 @@ import java.util.concurrent.ConcurrentHashMap;
 @Mod(modid = "worthclient", name = "WorthClient", version = "1.0.1-alpha", dependencies = "after:optifine", clientSideOnly = true)
 public class WorthClient {
     public static boolean openGuiChat = false;
+    public static boolean ArmorsOverlays = false;
+    public static int KeyPerspective = Keyboard.KEY_LMENU;
     private final SessionManager sessionManager = new SessionManager();
     private static ServerData lastServerAttempted;
 
