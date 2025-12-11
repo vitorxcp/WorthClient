@@ -202,6 +202,11 @@ public class GuiModMenu extends GuiScreen {
             }
         });
 
+        allModules.add(new ModCard("Waila", "Mostrar informações do bloco focado", "waila", Category.HUD) {
+            @Override public boolean isEnabled() { return WorthClient.WailaMod; }
+            @Override public void toggle() { WorthClient.WailaMod = !WorthClient.WailaMod; }
+        });
+
         allModules.add(new ModCard("TimeChanger", "Hora do dia", "time", Category.WORLD) {
             @Override public boolean isEnabled() { return toggleTimeChanger; }
             @Override public void toggle() { toggleTimeChanger = !toggleTimeChanger; }
