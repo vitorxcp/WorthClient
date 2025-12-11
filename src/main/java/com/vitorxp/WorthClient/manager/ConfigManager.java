@@ -31,6 +31,7 @@ public class ConfigManager {
         obj.addProperty("PerspectiveModToggle", com.vitorxp.WorthClient.WorthClient.PerspectiveModToggle);
         obj.addProperty("ArmorsOverlays", com.vitorxp.WorthClient.WorthClient.ArmorsOverlays);
         obj.addProperty("RadarOverlay", com.vitorxp.WorthClient.WorthClient.RadarOverlay);
+        obj.addProperty("KeyPerspective", com.vitorxp.WorthClient.WorthClient.KeyPerspective);
 
         try (FileWriter writer = new FileWriter(FILE)) {
             new Gson().toJson(obj, writer);
@@ -64,6 +65,7 @@ public class ConfigManager {
             if (obj.has("PerspectiveModToggle")) com.vitorxp.WorthClient.WorthClient.PerspectiveModToggle = obj.get("PerspectiveModToggle").getAsBoolean();
             if (obj.has("RadarOverlay")) com.vitorxp.WorthClient.WorthClient.RadarOverlay = obj.get("RadarOverlay").getAsBoolean();
             if (obj.has("ArmorsOverlays")) com.vitorxp.WorthClient.WorthClient.ArmorsOverlays = obj.get("ArmorsOverlays").getAsBoolean();
+            if (obj.has("KeyPerspective")) com.vitorxp.WorthClient.WorthClient.KeyPerspective = obj.get("KeyPerspective").getAsInt();
         } catch (Exception e) {
             e.printStackTrace();
         }
