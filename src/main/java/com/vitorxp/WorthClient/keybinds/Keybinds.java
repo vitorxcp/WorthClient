@@ -8,6 +8,7 @@ import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import com.vitorxp.WorthClient.WorthClient;
 import org.lwjgl.input.Keyboard;
 
 import java.awt.*;
@@ -37,7 +38,7 @@ public class Keybinds {
         screenshotKey = new KeyBinding("Tirar Screenshot", Keyboard.KEY_P, "SkyBlockModVX");
         //ClientRegistry.registerKeyBinding(screenshotKey);
 
-        perspectiveM = new KeyBinding("Perspective Mod", Keyboard.KEY_LMENU, "SkyBlockModVX");
+        perspectiveM = new KeyBinding("Perspective Mod", WorthClient.KeyPerspective, "SkyBlockModVX");
         ClientRegistry.registerKeyBinding(perspectiveM);
 
         zoomKey = new KeyBinding("Botão de Zoom", Keyboard.KEY_C, "SkyBlockModVX");
@@ -56,9 +57,22 @@ public class Keybinds {
         if (screenshotKey.isPressed()) {
             takeScreenshotAndUpload();
         }
+
+        if (WorthClient.PerspectiveModToggle) {
+            if (perspectiveM.isPressed()) {
+                WorthClient.perspective = !WorthClient.perspective;
+            }
+        }
     }
 
     private boolean wasPressed = false;
+
+    public static void updatePerspectiveKey(int newKeyCode) {
+        if (perspectiveM != null) {
+            perspectiveM.setKeyCode(newKeyCode);
+            KeyBinding.resetKeyBindingArrayAndHash();
+        }
+    }
 
     @SubscribeEvent
     public void onClientTick(TickEvent.ClientTickEvent event) {
