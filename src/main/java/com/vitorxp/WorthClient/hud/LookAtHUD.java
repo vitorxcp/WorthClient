@@ -52,6 +52,7 @@ public class LookAtHUD extends HudElement {
     public void render(RenderGameOverlayEvent event) {
         if (mc.theWorld == null || mc.thePlayer == null) return;
         if (mc.currentScreen != null) return;
+        if (!com.vitorxp.WorthClient.WorthClient.WailaMod) return;
 
         resetData();
 
