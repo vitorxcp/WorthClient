@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "minVersion": "0.7",
+  "package": "com.vitorxp.WorthClient.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "refmap": "worthclient.refmap.json",
+  "mixins": [
+    "MixinLoadingScreenRenderer",
+    "MixinGuiPlayerTabOverlay"
+  ],
+  "client": [],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
