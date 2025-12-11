@@ -102,12 +102,10 @@ public class GuiModMenu extends GuiScreen {
             @Override public boolean isEnabled() { return WorthClient.fpsOverlay; }
             @Override public void toggle() {WorthClient.fpsOverlay = !WorthClient.fpsOverlay; }
         });
-
         allModules.add(new ModCard("Ping", "Latência do servidor", "ping", Category.HUD) {
             @Override public boolean isEnabled() { return com.vitorxp.WorthClient.WorthClient.pingOverlay; }
             @Override public void toggle() {WorthClient.pingOverlay = !WorthClient.pingOverlay;}
         });
-
         allModules.add(new ModCard("Keystrokes", "Mostra teclas", "keys", Category.HUD) {
             @Override public boolean isEnabled() { return WorthClient.keystrokesOverlay; }
             @Override public void toggle() {WorthClient.keystrokesOverlay = !WorthClient.keystrokesOverlay;}
@@ -142,7 +140,6 @@ public class GuiModMenu extends GuiScreen {
                 }));
             }
         });
-
         allModules.add(new ModCard("ArmorStatus", "Estado da Armadura", "armor", Category.HUD) {
             @Override public boolean isEnabled() { return WorthClient.ArmorsOverlays; }
             @Override public void toggle() { WorthClient.ArmorsOverlays = !WorthClient.ArmorsOverlays; }
@@ -169,7 +166,6 @@ public class GuiModMenu extends GuiScreen {
                 ));
             }
         });
-
         allModules.add(new ModCard("TimeChanger", "Hora do dia", "time", Category.WORLD) {
             @Override public boolean isEnabled() { return toggleTimeChanger; }
             @Override public void toggle() { toggleTimeChanger = !toggleTimeChanger; }
@@ -178,7 +174,6 @@ public class GuiModMenu extends GuiScreen {
             }
             @Override public boolean isBlocked() { return true; }
         });
-
         allModules.add(new ModCard("Perspective", "Visão 360", "360", Category.WORLD) {
             @Override public boolean isEnabled() { return WorthClient.GuiPerspective; }
             @Override public boolean isMenuOnly() { return true; }
@@ -204,14 +199,16 @@ public class GuiModMenu extends GuiScreen {
                 ));
             }
         });
-
         allModules.add(new ModCard("Mutante", "Alerta Zealot", "mutant", Category.MISC) {
             @Override public boolean isEnabled() { return com.vitorxp.WorthClient.WorthClient.announceZealot; }
             @Override public void toggle() { if(ActivationManager.isActivated) com.vitorxp.WorthClient.WorthClient.announceZealot = !com.vitorxp.WorthClient.WorthClient.announceZealot; }
             @Override public boolean isBlocked() { return !ActivationManager.isActivated; }
         });
 
-        allModules.add(new ModCard("Chat", "Configurar Chat", "chat", Category.MISC) { @Override public boolean isMenuOnly() { return true; } });
+        allModules.add(new ModCard("Chat", "Configurar Chat", "chat", Category.MISC) {
+            @Override public boolean isMenuOnly() { return true; }
+            
+        });
 
         if (isStaff(Minecraft.getMinecraft().thePlayer)) {
             allModules.add(new ModCard("Admin", "Painel Staff", "admin", Category.MISC) { @Override public boolean isMenuOnly() { return true; } });
@@ -234,6 +231,7 @@ public class GuiModMenu extends GuiScreen {
         drawRect(0, 0, width, height, 0x50000000);
 
         if (closing) {
+            ConfigManager.save();
             currentScale = lerp(currentScale, 0f, 0.5f);
             if (currentScale < 0.1f) { mc.displayGuiScreen(null); return; }
         } else {
