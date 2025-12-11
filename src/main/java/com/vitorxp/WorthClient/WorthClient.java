@@ -56,6 +56,7 @@ public class WorthClient {
     public static boolean openGuiChat = false;
     public static boolean ArmorsOverlays = false;
     public static int KeyPerspective = Keyboard.KEY_LMENU;
+    public static boolean WailaMod = false;
     private final SessionManager sessionManager = new SessionManager();
     private static ServerData lastServerAttempted;
 
@@ -323,5 +324,12 @@ public class WorthClient {
         InventoryLossLogger.saveToFile();
         HudPositionManager.save();
         ConfigManager.save();
+    }
+
+    private void reloadLanguage() {
+        Minecraft mc = Minecraft.getMinecraft();
+        mc.getLanguageManager().onResourceManagerReload(mc.getResourceManager());
+        mc.gameSettings.saveOptions();
+        System.out.println("[WorthClient] Sistema de tradução recarregado com sucesso!");
     }
 }
