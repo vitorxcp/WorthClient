@@ -54,6 +54,8 @@ public class ChatModifier {
         }
 
         Minecraft mc = Minecraft.getMinecraft();
+        if (mc.thePlayer == null) return;
+
         String playerName = mc.thePlayer.getName();
 
         if (raw.toLowerCase().contains(playerName.toLowerCase())) {
