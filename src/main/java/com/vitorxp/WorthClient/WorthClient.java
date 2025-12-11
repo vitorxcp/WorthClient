@@ -43,6 +43,7 @@ import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.event.FMLServerStoppedEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.common.network.FMLNetworkEvent;
 import org.lwjgl.input.Keyboard;
 
@@ -241,6 +242,8 @@ public class WorthClient {
         ClientCommandHandler.instance.registerCommand(new ECTPCOmmand());
         ClientCommandHandler.instance.registerCommand(new PainelAdminCommand());
         ClientCommandHandler.instance.registerCommand(new CommandAntiCheatLogs());
+
+        com.vitorxp.WorthClient.socket.ClientSocket.connect();
 
         GameSettings settings = Minecraft.getMinecraft().gameSettings;
         settings.fboEnable = true;
