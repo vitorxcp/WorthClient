@@ -1,5 +1,6 @@
 package com.vitorxp.WorthClient.gui;
 
+import com.vitorxp.WorthClient.WorthClient;
 import com.vitorxp.WorthClient.gui.utils.NotificationRenderer;
 import com.vitorxp.WorthClient.manager.ActivationManager;
 import com.vitorxp.WorthClient.manager.ConfigManager;
@@ -13,6 +14,8 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.WorldRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.ResourceLocation;
+import org.lwjgl.input.Mouse;
+import java.util.function.Supplier;
 import org.lwjgl.opengl.GL11;
 
 import java.io.IOException;
@@ -25,10 +28,9 @@ import static com.vitorxp.WorthClient.utils.RankUtils.isStaff;
 public class GuiModMenu extends GuiScreen {
 
     private final Color themeColor = new Color(158, 96, 32);
-    private final Color themeColorDark = new Color(60, 30, 5);
 
     private final int colBackgroundTop = new Color(20, 20, 20, 240).getRGB();
-    private final int colBackgroundBottom = new Color(35, 15, 5, 240).getRGB(); // Gradiente sutil pro laranja
+    private final int colBackgroundBottom = new Color(35, 15, 5, 240).getRGB();
 
     private final int btnEnabledTop = 0xFF2ECC71;
     private final int btnEnabledBottom = 0xFF27AE60;
@@ -47,6 +49,9 @@ public class GuiModMenu extends GuiScreen {
     private int guiHeight = 410;
     private int guiLeft, guiTop;
 
+    private float scrollOffset = 0;
+    private float maxScroll = 0;
+
     private float currentScale = 0.0f;
     private boolean closing = false;
 
@@ -61,99 +66,107 @@ public class GuiModMenu extends GuiScreen {
         this.selectedMod = null;
         this.closing = false;
         this.currentScale = 0.0f;
+        this.scrollOffset = 0;
         this.guiLeft = (this.width - this.guiWidth) / 2;
         this.guiTop = (this.height - this.guiHeight) / 2;
         setupModules();
         filterModules();
     }
 
+    @Override
+    public void handleMouseInput() throws IOException {
+        super.handleMouseInput();
+
+        if (currentState == ScreenState.CONFIG) {
+            int dWheel = Mouse.getEventDWheel();
+            if (dWheel != 0) {
+                if (dWheel > 0) {
+                    scrollOffset += 35;
+                } else {
+                    scrollOffset -= 35;
+                }
+                clampScroll();
+            }
+        }
+    }
+
+    private void clampScroll() {
+        if (scrollOffset > 0) scrollOffset = 0;
+        if (scrollOffset < -maxScroll) scrollOffset = -maxScroll;
+    }
+
     private void setupModules() {
         allModules.clear();
 
         allModules.add(new ModCard("FPS", "Exibe o framerate", "fps", Category.HUD) {
-            @Override public boolean isEnabled() { return com.vitorxp.WorthClient.WorthClient.fpsOverlay; }
-            @Override public void toggle() {com.vitorxp.WorthClient.WorthClient.fpsOverlay = !com.vitorxp.WorthClient.WorthClient.fpsOverlay; }
+            @Override public boolean isEnabled() { return WorthClient.fpsOverlay; }
+            @Override public void toggle() {WorthClient.fpsOverlay = !WorthClient.fpsOverlay; }
         });
+
         allModules.add(new ModCard("Ping", "Latência do servidor", "ping", Category.HUD) {
             @Override public boolean isEnabled() { return com.vitorxp.WorthClient.WorthClient.pingOverlay; }
-            @Override public void toggle() {com.vitorxp.WorthClient.WorthClient.pingOverlay = !com.vitorxp.WorthClient.WorthClient.pingOverlay;}
+            @Override public void toggle() {WorthClient.pingOverlay = !WorthClient.pingOverlay;}
         });
+
         allModules.add(new ModCard("Keystrokes", "Mostra teclas", "keys", Category.HUD) {
-            @Override public boolean isEnabled() { return com.vitorxp.WorthClient.WorthClient.keystrokesOverlay; }
-            @Override public void toggle() {com.vitorxp.WorthClient.WorthClient.keystrokesOverlay = !com.vitorxp.WorthClient.WorthClient.keystrokesOverlay;}
+            @Override public boolean isEnabled() { return WorthClient.keystrokesOverlay; }
+            @Override public void toggle() {WorthClient.keystrokesOverlay = !WorthClient.keystrokesOverlay;}
+
             @Override public void initSettings() {
-                settings.add(new ActionSetting("Cor: Fundo Padrão", () -> {
-                    Color nova = JColorChooser.showDialog(null, "Fundo Padrão", KeystrokesColors.backgroundDefault);
-                    if (nova != null) KeystrokesColors.setBackgroundDefault(nova);
-                }));
-                settings.add(new ActionSetting("Cor: Fundo Pressionado", () -> {
-                    Color nova = JColorChooser.showDialog(null, "Fundo Pressionado", KeystrokesColors.backgroundPressed);
-                    if (nova != null) KeystrokesColors.setBackgroundPressed(nova);
-                }));
-                settings.add(new ActionSetting("Cor: Borda", () -> {
-                    Color nova = JColorChooser.showDialog(null, "Cor da Borda", KeystrokesColors.border);
-                    if (nova != null) KeystrokesColors.setBorder(nova);
-                }));
-                settings.add(new ActionSetting("Cor: Texto", () -> {
-                    Color nova = JColorChooser.showDialog(null, "Cor do Texto", KeystrokesColors.text);
-                    if (nova != null) KeystrokesColors.setText(nova);
-                }));
-                settings.add(new ActionSetting("Cor: Texto CPS", () -> {
-                    Color nova = JColorChooser.showDialog(null, "Cor do CPS", KeystrokesColors.cpsText);
-                    if (nova != null) KeystrokesColors.setCpsText(nova);
-                }));
+                settings.add(new ActionSetting("Cor: Fundo Padrão", () -> changeColor("Fundo Padrão", KeystrokesColors.backgroundDefault, KeystrokesColors::setBackgroundDefault)));
+                settings.add(new ActionSetting("Cor: Fundo Press", () -> changeColor("Fundo Pressionado", KeystrokesColors.backgroundPressed, KeystrokesColors::setBackgroundPressed)));
+                settings.add(new ActionSetting("Cor: Borda", () -> changeColor("Cor da Borda", KeystrokesColors.border, KeystrokesColors::setBorder)));
+                settings.add(new ActionSetting("Cor: Texto", () -> changeColor("Cor do Texto", KeystrokesColors.text, KeystrokesColors::setText)));
+                settings.add(new ActionSetting("Cor: Texto CPS", () -> changeColor("Cor do CPS", KeystrokesColors.cpsText, KeystrokesColors::setCpsText)));
+
                 settings.add(new BooleanSetting("Rainbow Fundo", KeystrokesColors.chromaBackground) {
-                    @Override
-                    boolean mouseClicked(int x, int y, int mouseX, int mouseY, int mouseButton) {
-                        if (super.mouseClicked(x, y, mouseX, mouseY, mouseButton)) {
-                            KeystrokesColors.chromaBackground = this.value;
-                            return true;
-                        }
-                        return false;
+                    @Override boolean mouseClicked(int x, int y, int mouseX, int mouseY, int mouseButton) {
+                        if (super.mouseClicked(x, y, mouseX, mouseY, mouseButton)) { KeystrokesColors.chromaBackground = this.value; return true; } return false;
                     }
                 });
                 settings.add(new BooleanSetting("Rainbow Borda", KeystrokesColors.chromaBorder) {
-                    @Override
-                    boolean mouseClicked(int x, int y, int mouseX, int mouseY, int mouseButton) {
-                        if (super.mouseClicked(x, y, mouseX, mouseY, mouseButton)) {
-                            KeystrokesColors.chromaBorder = this.value;
-                            return true;
-                        }
-                        return false;
+                    @Override boolean mouseClicked(int x, int y, int mouseX, int mouseY, int mouseButton) {
+                        if (super.mouseClicked(x, y, mouseX, mouseY, mouseButton)) { KeystrokesColors.chromaBorder = this.value; return true; } return false;
                     }
                 });
-                settings.add(new BooleanSetting("Rainbow Texto", KeystrokesColors.chromaText) {
-                    @Override
-                    boolean mouseClicked(int x, int y, int mouseX, int mouseY, int mouseButton) {
-                        if (super.mouseClicked(x, y, mouseX, mouseY, mouseButton)) {
-                            KeystrokesColors.chromaText = this.value;
-                            return true;
-                        }
-                        return false;
-                    }
-                });
-                settings.add(new ActionSetting("Salvar Cores", () -> {
-                    try {
-                        KeystrokesColors.saveColors();
-                        NotificationRenderer.send(NotificationRenderer.Type.SUCCESS, "Cores salvas com sucesso!");
-                    } catch (Exception e) {
-                        NotificationRenderer.send(NotificationRenderer.Type.ERROR, "Erro ao salvar config.");
-                        e.printStackTrace();
-                    }
-                }));
+                //settings.add(new BooleanSetting("Mostrar Barra de Espaço", true));
+                //settings.add(new BooleanSetting("Mostrar Botões do Mouse", true));
+                //settings.add(new BooleanSetting("Animação de Clique", true));
+                //settings.add(new ModeSetting("Estilo das Setas", "Padrão", Arrays.asList("Padrão", "Compacto", "Setinhas")));
                 settings.add(new ActionSetting("Resetar Padrão", () -> {
-                    KeystrokesColors.resetToDefault();
-                    NotificationRenderer.send(NotificationRenderer.Type.WARNING, "Cores resetadas!");
+                    KeystrokesColors.resetToDefault(); NotificationRenderer.send(NotificationRenderer.Type.WARNING, "Cores resetadas!");
+                }));
+                settings.add(new ActionSetting("Salvar Cores", () -> {
+                    try { KeystrokesColors.saveColors(); NotificationRenderer.send(NotificationRenderer.Type.SUCCESS, "Cores salvas!"); }
+                    catch (Exception e) { NotificationRenderer.send(NotificationRenderer.Type.ERROR, "Erro ao salvar."); e.printStackTrace(); }
                 }));
             }
         });
+
         allModules.add(new ModCard("ArmorStatus", "Estado da Armadura", "armor", Category.HUD) {
-            @Override public boolean isEnabled() { return toggleArmor; }
-            @Override public void toggle() { toggleArmor = !toggleArmor; }
+            @Override public boolean isEnabled() { return WorthClient.ArmorsOverlays; }
+            @Override public void toggle() { WorthClient.ArmorsOverlays = !WorthClient.ArmorsOverlays; }
             @Override public void initSettings() {
-                settings.add(new ActionSetting("Cor: Fundo", () -> changeColor("Fundo", KeystrokesColors.backgroundDefault, KeystrokesColors::setBackgroundDefault)));
-                settings.add(new ActionSetting("Cor: Texto", () -> changeColor("Texto", KeystrokesColors.text, KeystrokesColors::setText)));
-                settings.add(new ActionSetting("Salvar Cores", () -> { KeystrokesColors.saveColors(); NotificationRenderer.send(NotificationRenderer.Type.SUCCESS, "Salvo!"); }));
+                settings.add(new BooleanSetting("Mostrar Item na Mão",
+                        () -> WorthClient.mainHandHUDOverlay,
+                        () -> WorthClient.mainHandHUDOverlay = !WorthClient.mainHandHUDOverlay
+                ));
+                settings.add(new BooleanSetting("Mostrar Capacete",
+                        () -> WorthClient.helmetHUDOverlay,
+                        () -> WorthClient.helmetHUDOverlay = !WorthClient.helmetHUDOverlay
+                ));
+                settings.add(new BooleanSetting("Mostrar Peitoral",
+                        () -> WorthClient.chestplateHUDOverlay,
+                        () -> WorthClient.chestplateHUDOverlay = !WorthClient.chestplateHUDOverlay
+                ));
+                settings.add(new BooleanSetting("Mostrar Calças",
+                        () ->WorthClient.leggingsHUDOverlay,
+                        () -> WorthClient.leggingsHUDOverlay = !WorthClient.leggingsHUDOverlay
+                ));
+                settings.add(new BooleanSetting("Mostrar Botas",
+                        () -> WorthClient.bootsHUDOverlay,
+                        () -> WorthClient.bootsHUDOverlay = !WorthClient.bootsHUDOverlay
+                ));
             }
         });
 
@@ -165,9 +178,31 @@ public class GuiModMenu extends GuiScreen {
             }
             @Override public boolean isBlocked() { return true; }
         });
+
         allModules.add(new ModCard("Perspective", "Visão 360", "360", Category.WORLD) {
-            @Override public boolean isEnabled() { return com.vitorxp.WorthClient.WorthClient.GuiPerspective; }
-            @Override public void toggle() { com.vitorxp.WorthClient.WorthClient.GuiPerspective = !com.vitorxp.WorthClient.WorthClient.GuiPerspective; }
+            @Override public boolean isEnabled() { return WorthClient.GuiPerspective; }
+            @Override public boolean isMenuOnly() { return true; }
+
+            @Override
+            public void initSettings() {
+                settings.add(new KeybindSetting("Tecla do Perspective",
+                        () -> WorthClient.KeyPerspective,
+
+                        (val) -> {
+                            WorthClient.KeyPerspective = val;
+                            com.vitorxp.WorthClient.keybinds.Keybinds.updatePerspectiveKey(val);
+                            com.vitorxp.WorthClient.manager.ConfigManager.save();
+                        }
+                ));
+
+                settings.add(new BooleanSetting("Modo Toggle (Ativar/Desativar)",
+                        () -> com.vitorxp.WorthClient.WorthClient.PerspectiveModToggle,
+                        () -> {
+                            WorthClient.PerspectiveModToggle = !WorthClient.PerspectiveModToggle;
+                            com.vitorxp.WorthClient.manager.ConfigManager.save();
+                        }
+                ));
+            }
         });
 
         allModules.add(new ModCard("Mutante", "Alerta Zealot", "mutant", Category.MISC) {
@@ -175,6 +210,7 @@ public class GuiModMenu extends GuiScreen {
             @Override public void toggle() { if(ActivationManager.isActivated) com.vitorxp.WorthClient.WorthClient.announceZealot = !com.vitorxp.WorthClient.WorthClient.announceZealot; }
             @Override public boolean isBlocked() { return !ActivationManager.isActivated; }
         });
+
         allModules.add(new ModCard("Chat", "Configurar Chat", "chat", Category.MISC) { @Override public boolean isMenuOnly() { return true; } });
 
         if (isStaff(Minecraft.getMinecraft().thePlayer)) {
@@ -283,16 +319,44 @@ public class GuiModMenu extends GuiScreen {
 
         drawRect(guiLeft + 20, guiTop + 55, guiLeft + guiWidth - 20, guiTop + 56, 0x40FFFFFF);
 
+        int settingsHeight = selectedMod.settings.size() * 35;
+        int viewHeight = guiHeight - 80;
+
+        this.maxScroll = Math.max(0, settingsHeight - viewHeight + 20);
+        clampScroll();
+
+        int scaleFactor = new net.minecraft.client.gui.ScaledResolution(mc).getScaleFactor();
+        int scissorX = (guiLeft + 20) * scaleFactor;
+        int scissorY = (mc.displayHeight - (guiTop + guiHeight - 10) * scaleFactor);
+        int scissorW = (guiWidth - 40) * scaleFactor;
+        int scissorH = (guiHeight - 70) * scaleFactor;
+
+        GL11.glEnable(GL11.GL_SCISSOR_TEST);
+        GL11.glScissor(scissorX, scissorY, scissorW, scissorH);
+
         int setX = guiLeft + 40;
-        int setY = guiTop + 80;
+        int setY = (int) (guiTop + 80 + scrollOffset);
 
         if (selectedMod.settings.isEmpty()) {
             fontRendererObj.drawString("Nenhuma configuração disponível.", setX, setY, 0xFFAAAAAA);
         } else {
             for (Setting s : selectedMod.settings) {
-                s.draw(mc, setX, setY, mouseX, mouseY);
+                if (setY > guiTop + 50 && setY < guiTop + guiHeight) {
+                    s.draw(mc, setX, setY, mouseX, mouseY);
+                }
                 setY += 35;
             }
+        }
+
+        GL11.glDisable(GL11.GL_SCISSOR_TEST);
+
+        if (maxScroll > 0) {
+            int scrollBarH = (int) ((float) viewHeight / settingsHeight * viewHeight);
+            if (scrollBarH < 30) scrollBarH = 30;
+
+            int scrollBarY = guiTop + 80 + (int)((-scrollOffset / maxScroll) * (viewHeight - scrollBarH));
+
+            drawRoundedRect(guiLeft + guiWidth - 15, scrollBarY, 5, scrollBarH, 2, 0x80FFFFFF);
         }
     }
 
@@ -301,6 +365,9 @@ public class GuiModMenu extends GuiScreen {
         super.mouseClicked(mouseX, mouseY, mouseButton);
 
         if (currentState == ScreenState.GRID) {
+            int startX = guiLeft + 30; int startY = guiTop + 60;
+            int cardWidth = 135; int cardHeight = 150; int gapX = 18; int gapY = 18; int columns = 4;
+
             int catStartX = guiLeft + 150; int catGap = 80; int i = 0;
             for (Category cat : Category.values()) {
                 int x = catStartX + (i * catGap);
@@ -308,9 +375,6 @@ public class GuiModMenu extends GuiScreen {
                     currentCategory = cat; mc.getSoundHandler().playSound(net.minecraft.client.audio.PositionedSoundRecord.create(new ResourceLocation("gui.button.press"), 1.0F)); filterModules(); return;
                 } i++;
             }
-
-            int startX = guiLeft + 30; int startY = guiTop + 60;
-            int cardWidth = 135; int cardHeight = 150; int gapX = 18; int gapY = 18; int columns = 4;
 
             for (int j = 0; j < visibleModules.size(); j++) {
                 ModCard mod = visibleModules.get(j);
@@ -330,7 +394,9 @@ public class GuiModMenu extends GuiScreen {
                     boolean clickTog = (mouseX >= x+5 && mouseX <= x+cardWidth-5) && (mouseY >= statusY && mouseY <= statusY+btnH);
 
                     if (mod.isMenuOnly() || (clickOpt && !mod.settings.isEmpty())) {
-                        selectedMod = mod; currentState = ScreenState.CONFIG;
+                        selectedMod = mod;
+                        currentState = ScreenState.CONFIG;
+                        scrollOffset = 0;
                     } else if (clickTog) {
                         mod.toggle(); ConfigManager.save();
                     } else {
@@ -344,17 +410,43 @@ public class GuiModMenu extends GuiScreen {
                 currentState = ScreenState.GRID; selectedMod = null; return;
             }
             if (selectedMod != null) {
-                int setX = guiLeft + 40; int setY = guiTop + 80;
-                for (Setting s : selectedMod.settings) {
-                    if (s.mouseClicked(setX, setY, mouseX, mouseY, mouseButton)) { ConfigManager.save(); return; }
-                    setY += 35;
+                int setX = guiLeft + 40;
+                int setY = (int) (guiTop + 80 + scrollOffset);
+
+                if (mouseY > guiTop + 55 && mouseY < guiTop + guiHeight - 10) {
+                    for (Setting s : selectedMod.settings) {
+                        if (s.mouseClicked(setX, setY, mouseX, mouseY, mouseButton)) { ConfigManager.save(); return; }
+                        setY += 35;
+                    }
                 }
             }
         }
         if (currentState == ScreenState.GRID && (mouseX < guiLeft || mouseX > guiLeft + guiWidth || mouseY < guiTop || mouseY > guiTop + guiHeight)) closing = true;
     }
 
-    @Override public void keyTyped(char typedChar, int keyCode) throws IOException { if (keyCode == 1) { if(currentState==ScreenState.CONFIG) {currentState=ScreenState.GRID; selectedMod=null;} else closing=true; } }
+    @Override
+    public void keyTyped(char typedChar, int keyCode) throws IOException {
+        if (currentState == ScreenState.CONFIG && selectedMod != null) {
+            for (Setting s : selectedMod.settings) {
+                if (s instanceof KeybindSetting) {
+                    KeybindSetting ks = (KeybindSetting) s;
+                    if (ks.isBinding) {
+                        ks.onKeyTyped(keyCode);
+                        return;
+                    }
+                }
+            }
+        }
+
+        if (keyCode == 1) {
+            if (currentState == ScreenState.CONFIG) {
+                currentState = ScreenState.GRID;
+                selectedMod = null;
+            } else {
+                closing = true;
+            }
+        }
+    }
     @Override public boolean doesGuiPauseGame() { return false; }
     private float lerp(float a, float b, float f) { return a + f * (b - a); }
 
@@ -451,16 +543,54 @@ public class GuiModMenu extends GuiScreen {
         }
     }
     class BooleanSetting extends Setting {
-        boolean value; public BooleanSetting(String name, boolean defaultValue) { super(name); this.value = defaultValue; }
-        @Override void draw(Minecraft mc, int x, int y, int mouseX, int mouseY) {
+        boolean value;
+
+        Supplier<Boolean> getter;
+        Runnable toggler;
+        boolean isDynamic = false;
+
+        public BooleanSetting(String name, boolean defaultValue) {
+            super(name);
+            this.value = defaultValue;
+            this.isDynamic = false;
+        }
+
+        public BooleanSetting(String name, Supplier<Boolean> getter, Runnable toggler) {
+            super(name);
+            this.getter = getter;
+            this.toggler = toggler;
+            this.isDynamic = true;
+        }
+
+        public boolean isOn() {
+            return isDynamic ? getter.get() : value;
+        }
+
+        @Override
+        void draw(Minecraft mc, int x, int y, int mouseX, int mouseY) {
             drawRoundedRect(x, y, 220, 25, 6, 0xFF222222);
             mc.fontRendererObj.drawString(name, x+10, y+9, 0xFFFFFFFF);
+
             int switchX = x + 190;
-            drawRoundedRect(switchX, y+5, 20, 15, 7, value ? btnEnabledTop : 0xFF555555);
-            drawCircleSector(value ? switchX+15 : switchX+5, y+12, 5, 0, 360); // Bolinha do switch
+            boolean active = isOn();
+
+            drawRoundedRect(switchX, y+5, 20, 15, 7, active ? btnEnabledTop : 0xFF555555);
+            drawCircleSector(active ? switchX+15 : switchX+5, y+12, 5, 0, 360);
         }
-        @Override boolean mouseClicked(int x, int y, int mouseX, int mouseY, int mouseButton) {
-            if (mouseX >= x && mouseX <= x+220 && mouseY >= y && mouseY <= y+25) { value = !value; mc.getSoundHandler().playSound(net.minecraft.client.audio.PositionedSoundRecord.create(new ResourceLocation("gui.button.press"), 1.0F)); return true; } return false;
+
+        @Override
+        boolean mouseClicked(int x, int y, int mouseX, int mouseY, int mouseButton) {
+            if (mouseX >= x && mouseX <= x+220 && mouseY >= y && mouseY <= y+25) {
+                mc.getSoundHandler().playSound(net.minecraft.client.audio.PositionedSoundRecord.create(new ResourceLocation("gui.button.press"), 1.0F));
+
+                if (isDynamic) {
+                    toggler.run();
+                } else {
+                    value = !value;
+                }
+                return true;
+            }
+            return false;
         }
     }
     class ModeSetting extends Setting {
@@ -513,5 +643,50 @@ public class GuiModMenu extends GuiScreen {
         worldrenderer.pos(cx, cy, 0.0D).endVertex();
         for (int i = startAngle; i <= endAngle; i += 5) { double angle = Math.toRadians(i); worldrenderer.pos(cx + Math.sin(angle) * r, cy + Math.cos(angle) * r, 0.0D).endVertex(); }
         tessellator.draw();
+    }
+
+    class KeybindSetting extends Setting {
+        Supplier<Integer> getter;
+        java.util.function.Consumer<Integer> setter;
+        boolean isBinding = false;
+
+        public KeybindSetting(String name, Supplier<Integer> getter, java.util.function.Consumer<Integer> setter) {
+            super(name);
+            this.getter = getter;
+            this.setter = setter;
+        }
+
+        @Override
+        void draw(Minecraft mc, int x, int y, int mouseX, int mouseY) {
+            drawRoundedRect(x, y, 220, 25, 6, 0xFF222222);
+            mc.fontRendererObj.drawString(name, x + 10, y + 9, 0xFFAAAAAA);
+
+            String keyName = isBinding ? "..." : org.lwjgl.input.Keyboard.getKeyName(getter.get());
+
+            int color = isBinding ? 0xFF55FF55 : 0xFFFFFFFF;
+            drawCenteredString(mc.fontRendererObj, "[" + keyName + "]", x + 180, y + 9, color);
+        }
+
+        @Override
+        boolean mouseClicked(int x, int y, int mouseX, int mouseY, int mouseButton) {
+            if (mouseX >= x && mouseX <= x + 220 && mouseY >= y && mouseY <= y + 25) {
+                mc.getSoundHandler().playSound(net.minecraft.client.audio.PositionedSoundRecord.create(new ResourceLocation("gui.button.press"), 1.0F));
+                isBinding = !isBinding;
+                return true;
+            }
+            if (isBinding) isBinding = false;
+            return false;
+        }
+
+        public void onKeyTyped(int keyCode) {
+            if (isBinding) {
+                if (keyCode == 1) {
+                    isBinding = false;
+                } else {
+                    setter.accept(keyCode);
+                    isBinding = false;
+                }
+            }
+        }
     }
 }
