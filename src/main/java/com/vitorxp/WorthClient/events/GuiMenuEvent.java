@@ -26,46 +26,6 @@ public class GuiMenuEvent {
             pendingOpenMenuHud = false;
         }
 
-        if (event.phase == TickEvent.Phase.END && guiEditorArmor) {
-            Minecraft.getMinecraft().displayGuiScreen(new GuiEditorArmor());
-            guiEditorArmor = false;
-        }
-
-        if (event.phase == TickEvent.Phase.END && guiEditorPet) {
-            Minecraft.getMinecraft().displayGuiScreen(new GuiEditorPet());
-            guiEditorPet = false;
-        }
-
-        if (event.phase == TickEvent.Phase.END && guiEditorChat) {
-            Minecraft.getMinecraft().displayGuiScreen(new GuiChatEnvEditor());
-            guiEditorChat = false;
-        }
-
-        if (event.phase == TickEvent.Phase.END && GuiKeyEditor) {
-            Minecraft.getMinecraft().displayGuiScreen(new GuiKeystrokesColorEditor());
-            GuiKeyEditor = false;
-        }
-
-        if (event.phase == TickEvent.Phase.END && GuiOverlay) {
-            Minecraft.getMinecraft().displayGuiScreen(new GuiEditorOverlays());
-            GuiOverlay = false;
-        }
-
-        if (event.phase == TickEvent.Phase.END && GuiPerspective) {
-            Minecraft.getMinecraft().displayGuiScreen(new GuiPerspectiveMod());
-            GuiPerspective = false;
-        }
-
-        if (event.phase == TickEvent.Phase.END && GuiAdminPainel) {
-            Minecraft.getMinecraft().displayGuiScreen(new PainelAdminGui());
-            GuiAdminPainel = false;
-        }
-
-        if (event.phase == TickEvent.Phase.END && guiEditorAdmin) {
-            Minecraft.getMinecraft().displayGuiScreen(new GuiEditorAdmin());
-            guiEditorAdmin = false;
-        }
-
         if (event.phase == TickEvent.Phase.END && GuiAdminazw) {
             Minecraft.getMinecraft().displayGuiScreen(new AdminGui(nameArsAdmin));
             GuiAdminazw = false;
