@@ -1,114 +1,517 @@
 package com.vitorxp.WorthClient.gui;
 
+import com.vitorxp.WorthClient.gui.utils.NotificationRenderer;
 import com.vitorxp.WorthClient.manager.ActivationManager;
 import com.vitorxp.WorthClient.manager.ConfigManager;
-import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
+import com.vitorxp.WorthClient.config.KeystrokesColors;
+import javax.swing.JColorChooser;
+import java.awt.Color;
+import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.WorldRenderer;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.util.ResourceLocation;
+import org.lwjgl.opengl.GL11;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import static com.vitorxp.WorthClient.utils.RankUtils.isStaff;
 
 public class GuiModMenu extends GuiScreen {
 
-    private GuiButton btnPet, btnMutante, btnOvewrlays, btnChatC, btnPerspective, btnStaff;
-    private float alpha = 0f;
-    private boolean fadeIn = true;
-    int buttonAlpha = 0;
+    private final Color themeColor = new Color(158, 96, 32);
+    private final Color themeColorDark = new Color(60, 30, 5);
+
+    private final int colBackgroundTop = new Color(20, 20, 20, 240).getRGB();
+    private final int colBackgroundBottom = new Color(35, 15, 5, 240).getRGB(); // Gradiente sutil pro laranja
+
+    private final int btnEnabledTop = 0xFF2ECC71;
+    private final int btnEnabledBottom = 0xFF27AE60;
+    private final int btnDisabledTop = 0xFFE74C3C;
+    private final int btnDisabledBottom = 0xFFC0392B;
+
+    private enum ScreenState { GRID, CONFIG }
+    private ScreenState currentState = ScreenState.GRID;
+
+    private final List<ModCard> allModules = new ArrayList<>();
+    private final List<ModCard> visibleModules = new ArrayList<>();
+    private ModCard selectedMod = null;
+    private Category currentCategory = Category.HUD;
+
+    private int guiWidth = 660;
+    private int guiHeight = 410;
+    private int guiLeft, guiTop;
+
+    private float currentScale = 0.0f;
+    private boolean closing = false;
+
+    public static boolean toggleArmor = true;
+    public static boolean toggleTimeChanger = false;
+
+    public GuiModMenu() {}
 
     @Override
     public void initGui() {
-        int centerX = this.width / 2;
-        int centerY = this.height / 2;
-
-        this.buttonList.clear();
-
-        int y = centerY - 100;
-
-        btnPet = new GuiButton(1, centerX - 125, y, 250, 20,
-                "§9[Config] §7Configurações de Pets");
-        this.buttonList.add(btnPet); y += 25;
-
-        btnChatC = new GuiButton(12, centerX - 125, y, 250, 20,
-                "§9[Config] §7Configurações do Chat");
-        this.buttonList.add(btnChatC); y += 25;
-
-        btnOvewrlays = new GuiButton(13, centerX - 125, y, 250, 20,
-                "§9[Config] §7Configurações de Overlays");
-
-        this.buttonList.add(btnOvewrlays); y += 25;
-
-        btnPerspective = new GuiButton(14, centerX - 125, y, 250, 20,
-                "§9[Config] §7Configurações do Perspective Mod");
-        this.buttonList.add(btnPerspective); y += 25;
-        if (isStaff(mc.thePlayer)) {
-            btnStaff = new GuiButton(15, centerX - 125, y, 250, 20,
-                    "§9[Config] §7Configurações da Staff");
-
-            this.buttonList.add(btnStaff); y += 25;
-        }
-
-
-        btnMutante = new GuiButton(4, centerX - 125, y, 250, 20,
-                "§6[Alerta] §7Mutante: " + getStatus(com.vitorxp.WorthClient.WorthClient.announceZealot));
-        if (!ActivationManager.isActivated) {
-            btnMutante.enabled = false;
-            btnMutante.displayString = "§c[Mutante] Alerta (bloqueado)";
-        }
-        this.buttonList.add(btnMutante); y += 25;
+        this.currentState = ScreenState.GRID;
+        this.selectedMod = null;
+        this.closing = false;
+        this.currentScale = 0.0f;
+        this.guiLeft = (this.width - this.guiWidth) / 2;
+        this.guiTop = (this.height - this.guiHeight) / 2;
+        setupModules();
+        filterModules();
     }
 
-    @Override
-    protected void actionPerformed(GuiButton button) {
-        if (button.id == 1) {
-            mc.displayGuiScreen(null);
-            com.vitorxp.WorthClient.WorthClient.guiEditorPet = true;
-        } else if (button.id == 4 && ActivationManager.isActivated) {
-            com.vitorxp.WorthClient.WorthClient.announceZealot = !com.vitorxp.WorthClient.WorthClient.announceZealot;
-            button.displayString = "§d[Mutante] §7Alerta: " + getStatus(com.vitorxp.WorthClient.WorthClient.announceZealot);
-        } else if (button.id == 12) {
-            mc.displayGuiScreen(null);
-            com.vitorxp.WorthClient.WorthClient.guiEditorChat = true;
-        } else if (button.id == 13) {
-            mc.displayGuiScreen(null);
-            com.vitorxp.WorthClient.WorthClient.GuiOverlay = true;
-        } else if (button.id == 14) {
-            mc.displayGuiScreen(null);
-            com.vitorxp.WorthClient.WorthClient.GuiPerspective = true;
-        } else if (button.id == 15) {
-            mc.displayGuiScreen(null);
-            com.vitorxp.WorthClient.WorthClient.guiEditorAdmin = true;
+    private void setupModules() {
+        allModules.clear();
+
+        allModules.add(new ModCard("FPS", "Exibe o framerate", "fps", Category.HUD) {
+            @Override public boolean isEnabled() { return com.vitorxp.WorthClient.WorthClient.fpsOverlay; }
+            @Override public void toggle() {com.vitorxp.WorthClient.WorthClient.fpsOverlay = !com.vitorxp.WorthClient.WorthClient.fpsOverlay; }
+        });
+        allModules.add(new ModCard("Ping", "Latência do servidor", "ping", Category.HUD) {
+            @Override public boolean isEnabled() { return com.vitorxp.WorthClient.WorthClient.pingOverlay; }
+            @Override public void toggle() {com.vitorxp.WorthClient.WorthClient.pingOverlay = !com.vitorxp.WorthClient.WorthClient.pingOverlay;}
+        });
+        allModules.add(new ModCard("Keystrokes", "Mostra teclas", "keys", Category.HUD) {
+            @Override public boolean isEnabled() { return com.vitorxp.WorthClient.WorthClient.keystrokesOverlay; }
+            @Override public void toggle() {com.vitorxp.WorthClient.WorthClient.keystrokesOverlay = !com.vitorxp.WorthClient.WorthClient.keystrokesOverlay;}
+            @Override public void initSettings() {
+                settings.add(new ActionSetting("Cor: Fundo Padrão", () -> {
+                    Color nova = JColorChooser.showDialog(null, "Fundo Padrão", KeystrokesColors.backgroundDefault);
+                    if (nova != null) KeystrokesColors.setBackgroundDefault(nova);
+                }));
+                settings.add(new ActionSetting("Cor: Fundo Pressionado", () -> {
+                    Color nova = JColorChooser.showDialog(null, "Fundo Pressionado", KeystrokesColors.backgroundPressed);
+                    if (nova != null) KeystrokesColors.setBackgroundPressed(nova);
+                }));
+                settings.add(new ActionSetting("Cor: Borda", () -> {
+                    Color nova = JColorChooser.showDialog(null, "Cor da Borda", KeystrokesColors.border);
+                    if (nova != null) KeystrokesColors.setBorder(nova);
+                }));
+                settings.add(new ActionSetting("Cor: Texto", () -> {
+                    Color nova = JColorChooser.showDialog(null, "Cor do Texto", KeystrokesColors.text);
+                    if (nova != null) KeystrokesColors.setText(nova);
+                }));
+                settings.add(new ActionSetting("Cor: Texto CPS", () -> {
+                    Color nova = JColorChooser.showDialog(null, "Cor do CPS", KeystrokesColors.cpsText);
+                    if (nova != null) KeystrokesColors.setCpsText(nova);
+                }));
+                settings.add(new BooleanSetting("Rainbow Fundo", KeystrokesColors.chromaBackground) {
+                    @Override
+                    boolean mouseClicked(int x, int y, int mouseX, int mouseY, int mouseButton) {
+                        if (super.mouseClicked(x, y, mouseX, mouseY, mouseButton)) {
+                            KeystrokesColors.chromaBackground = this.value;
+                            return true;
+                        }
+                        return false;
+                    }
+                });
+                settings.add(new BooleanSetting("Rainbow Borda", KeystrokesColors.chromaBorder) {
+                    @Override
+                    boolean mouseClicked(int x, int y, int mouseX, int mouseY, int mouseButton) {
+                        if (super.mouseClicked(x, y, mouseX, mouseY, mouseButton)) {
+                            KeystrokesColors.chromaBorder = this.value;
+                            return true;
+                        }
+                        return false;
+                    }
+                });
+                settings.add(new BooleanSetting("Rainbow Texto", KeystrokesColors.chromaText) {
+                    @Override
+                    boolean mouseClicked(int x, int y, int mouseX, int mouseY, int mouseButton) {
+                        if (super.mouseClicked(x, y, mouseX, mouseY, mouseButton)) {
+                            KeystrokesColors.chromaText = this.value;
+                            return true;
+                        }
+                        return false;
+                    }
+                });
+                settings.add(new ActionSetting("Salvar Cores", () -> {
+                    try {
+                        KeystrokesColors.saveColors();
+                        NotificationRenderer.send(NotificationRenderer.Type.SUCCESS, "Cores salvas com sucesso!");
+                    } catch (Exception e) {
+                        NotificationRenderer.send(NotificationRenderer.Type.ERROR, "Erro ao salvar config.");
+                        e.printStackTrace();
+                    }
+                }));
+                settings.add(new ActionSetting("Resetar Padrão", () -> {
+                    KeystrokesColors.resetToDefault();
+                    NotificationRenderer.send(NotificationRenderer.Type.WARNING, "Cores resetadas!");
+                }));
+            }
+        });
+        allModules.add(new ModCard("ArmorStatus", "Estado da Armadura", "armor", Category.HUD) {
+            @Override public boolean isEnabled() { return toggleArmor; }
+            @Override public void toggle() { toggleArmor = !toggleArmor; }
+            @Override public void initSettings() {
+                settings.add(new ActionSetting("Cor: Fundo", () -> changeColor("Fundo", KeystrokesColors.backgroundDefault, KeystrokesColors::setBackgroundDefault)));
+                settings.add(new ActionSetting("Cor: Texto", () -> changeColor("Texto", KeystrokesColors.text, KeystrokesColors::setText)));
+                settings.add(new ActionSetting("Salvar Cores", () -> { KeystrokesColors.saveColors(); NotificationRenderer.send(NotificationRenderer.Type.SUCCESS, "Salvo!"); }));
+            }
+        });
+
+        allModules.add(new ModCard("TimeChanger", "Hora do dia", "time", Category.WORLD) {
+            @Override public boolean isEnabled() { return toggleTimeChanger; }
+            @Override public void toggle() { toggleTimeChanger = !toggleTimeChanger; }
+            @Override public void initSettings() {
+                settings.add(new ModeSetting("Horário", "Dia", Arrays.asList("Dia", "Noite", "Tarde")));
+            }
+            @Override public boolean isBlocked() { return true; }
+        });
+        allModules.add(new ModCard("Perspective", "Visão 360", "360", Category.WORLD) {
+            @Override public boolean isEnabled() { return com.vitorxp.WorthClient.WorthClient.GuiPerspective; }
+            @Override public void toggle() { com.vitorxp.WorthClient.WorthClient.GuiPerspective = !com.vitorxp.WorthClient.WorthClient.GuiPerspective; }
+        });
+
+        allModules.add(new ModCard("Mutante", "Alerta Zealot", "mutant", Category.MISC) {
+            @Override public boolean isEnabled() { return com.vitorxp.WorthClient.WorthClient.announceZealot; }
+            @Override public void toggle() { if(ActivationManager.isActivated) com.vitorxp.WorthClient.WorthClient.announceZealot = !com.vitorxp.WorthClient.WorthClient.announceZealot; }
+            @Override public boolean isBlocked() { return !ActivationManager.isActivated; }
+        });
+        allModules.add(new ModCard("Chat", "Configurar Chat", "chat", Category.MISC) { @Override public boolean isMenuOnly() { return true; } });
+
+        if (isStaff(Minecraft.getMinecraft().thePlayer)) {
+            allModules.add(new ModCard("Admin", "Painel Staff", "admin", Category.MISC) { @Override public boolean isMenuOnly() { return true; } });
         }
-
-
-        ConfigManager.save();
     }
 
-    private String getStatus(boolean value) {
-        return value ? "§aAtivado" : "§cDesativado";
+    private void changeColor(String t, Color c, java.util.function.Consumer<Color> s) {
+        Color n = JColorChooser.showDialog(null, t, c); if(n!=null) s.accept(n);
+    }
+
+    private void filterModules() {
+        visibleModules.clear();
+        for (ModCard mod : allModules) {
+            if (mod.category == currentCategory) visibleModules.add(mod);
+        }
     }
 
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
-        if (fadeIn && alpha < 1f) {
-            alpha += 0.05f;
-            if (alpha > 1f) alpha = 1f;
-        } else if (!fadeIn && alpha > 0f) {
-            alpha -= 0.05f;
-            if (alpha < 0f) alpha = 0f;
+        drawRect(0, 0, width, height, 0x50000000);
+
+        if (closing) {
+            currentScale = lerp(currentScale, 0f, 0.5f);
+            if (currentScale < 0.1f) { mc.displayGuiScreen(null); return; }
+        } else {
+            currentScale = lerp(currentScale, 1f, 0.4f);
         }
 
-        int bgColor = ((int)(0.3f * 255) << 24) | 0x000000;
+        GlStateManager.pushMatrix();
+        GlStateManager.translate(width / 2f, height / 2f, 0);
+        GlStateManager.scale(currentScale, currentScale, 1f);
+        GlStateManager.translate(-width / 2f, -height / 2f, 0);
 
-        this.drawRect(0, 0, this.width, this.height, bgColor);
+        drawGradientRoundedRect(guiLeft, guiTop, guiWidth, guiHeight, 15, colBackgroundTop, colBackgroundBottom);
+        drawRoundedOutline(guiLeft, guiTop, guiWidth, guiHeight, 15, 2.0f, themeColor.getRGB());
 
-        buttonAlpha = (int)(alpha * 255);
+        if (currentState == ScreenState.GRID) {
+            drawGridScreen(mouseX, mouseY);
+        } else if (currentState == ScreenState.CONFIG) {
+            drawConfigScreen(mouseX, mouseY);
+        }
 
-        this.drawCenteredString(this.fontRendererObj, "§6WorthClient §f– §7Configurações", this.width / 2, 20, (buttonAlpha << 24) | 0xFFFFFF);
+        NotificationRenderer.render(mc);
+        GlStateManager.popMatrix();
+    }
 
-        super.drawScreen(mouseX, mouseY, partialTicks);
+    private void drawGridScreen(int mouseX, int mouseY) {
+        drawCenteredString(fontRendererObj, "WorthClient", guiLeft + 70, guiTop + 20, themeColor.getRGB());
+
+        int catStartX = guiLeft + 150;
+        int catY = guiTop + 18;
+        int catGap = 80;
+
+        int i = 0;
+        for (Category cat : Category.values()) {
+            int x = catStartX + (i * catGap);
+            boolean selected = (cat == currentCategory);
+            int color = selected ? 0xFFFFFFFF : 0xFFAAAAAA;
+
+            if (mouseX >= x && mouseX <= x + 50 && mouseY >= catY && mouseY <= catY + 15) {
+                color = 0xFFDDDDDD;
+            }
+
+            fontRendererObj.drawStringWithShadow(cat.name(), x, catY, color);
+
+            if (selected) {
+                drawRect(x, catY + 12, x + fontRendererObj.getStringWidth(cat.name()), catY + 14, themeColor.getRGB());
+                drawGradientRect(x, catY + 14, x + fontRendererObj.getStringWidth(cat.name()), catY + 20, 0x609E6020, 0x00000000);
+            }
+            i++;
+        }
+
+        drawRect(guiLeft + 20, guiTop + 45, guiLeft + guiWidth - 20, guiTop + 46, 0x30FFFFFF);
+
+        int startX = guiLeft + 30;
+        int startY = guiTop + 60;
+        int cardWidth = 135;
+        int cardHeight = 150;
+        int gapX = 18;
+        int gapY = 18;
+        int columns = 4;
+
+        for (int j = 0; j < visibleModules.size(); j++) {
+            ModCard mod = visibleModules.get(j);
+            int col = j % columns;
+            int row = j / columns;
+            int x = startX + (col * (cardWidth + gapX));
+            int y = startY + (row * (cardHeight + gapY));
+
+            mod.drawPremiumCard(mc, x, y, cardWidth, cardHeight, mouseX, mouseY);
+        }
+    }
+
+    private void drawConfigScreen(int mouseX, int mouseY) {
+        if (selectedMod == null) { currentState = ScreenState.GRID; return; }
+
+        boolean hoverBack = mouseX >= guiLeft + 20 && mouseX <= guiLeft + 70 && mouseY >= guiTop + 20 && mouseY <= guiTop + 40;
+        drawRoundedRect(guiLeft + 20, guiTop + 20, 50, 20, 5, hoverBack ? 0xFF555555 : 0xFF333333);
+        drawCenteredString(fontRendererObj, "< Voltar", guiLeft + 45, guiTop + 26, 0xFFFFFFFF);
+
+        GlStateManager.pushMatrix();
+        GlStateManager.scale(2.0, 2.0, 1);
+        fontRendererObj.drawStringWithShadow(selectedMod.name, (guiLeft + 100) / 2.0f, (guiTop + 23) / 2.0f, 0xFFFFFFFF);
+        GlStateManager.popMatrix();
+
+        drawRect(guiLeft + 20, guiTop + 55, guiLeft + guiWidth - 20, guiTop + 56, 0x40FFFFFF);
+
+        int setX = guiLeft + 40;
+        int setY = guiTop + 80;
+
+        if (selectedMod.settings.isEmpty()) {
+            fontRendererObj.drawString("Nenhuma configuração disponível.", setX, setY, 0xFFAAAAAA);
+        } else {
+            for (Setting s : selectedMod.settings) {
+                s.draw(mc, setX, setY, mouseX, mouseY);
+                setY += 35;
+            }
+        }
     }
 
     @Override
-    public boolean doesGuiPauseGame() {
-        return true;
+    protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
+        super.mouseClicked(mouseX, mouseY, mouseButton);
+
+        if (currentState == ScreenState.GRID) {
+            int catStartX = guiLeft + 150; int catGap = 80; int i = 0;
+            for (Category cat : Category.values()) {
+                int x = catStartX + (i * catGap);
+                if (mouseX >= x && mouseX <= x + 50 && mouseY >= guiTop + 15 && mouseY <= guiTop + 30) {
+                    currentCategory = cat; mc.getSoundHandler().playSound(net.minecraft.client.audio.PositionedSoundRecord.create(new ResourceLocation("gui.button.press"), 1.0F)); filterModules(); return;
+                } i++;
+            }
+
+            int startX = guiLeft + 30; int startY = guiTop + 60;
+            int cardWidth = 135; int cardHeight = 150; int gapX = 18; int gapY = 18; int columns = 4;
+
+            for (int j = 0; j < visibleModules.size(); j++) {
+                ModCard mod = visibleModules.get(j);
+                int col = j % columns; int row = j / columns;
+                int x = startX + (col * (cardWidth + gapX));
+                int y = startY + (row * (cardHeight + gapY));
+
+                if (mouseX >= x && mouseX <= x + cardWidth && mouseY >= y && mouseY <= y + cardHeight) {
+                    mc.getSoundHandler().playSound(net.minecraft.client.audio.PositionedSoundRecord.create(new ResourceLocation("gui.button.press"), 1.0F));
+                    if (mod.isBlocked()) return;
+
+                    int btnH = 22;
+                    int statusY = y + cardHeight - btnH - 8;
+                    int optY = statusY - btnH - 4;
+
+                    boolean clickOpt = (mouseX >= x+5 && mouseX <= x+cardWidth-5) && (mouseY >= optY && mouseY <= optY+btnH);
+                    boolean clickTog = (mouseX >= x+5 && mouseX <= x+cardWidth-5) && (mouseY >= statusY && mouseY <= statusY+btnH);
+
+                    if (mod.isMenuOnly() || (clickOpt && !mod.settings.isEmpty())) {
+                        selectedMod = mod; currentState = ScreenState.CONFIG;
+                    } else if (clickTog) {
+                        mod.toggle(); ConfigManager.save();
+                    } else {
+                        mod.toggle(); ConfigManager.save();
+                    }
+                    return;
+                }
+            }
+        } else if (currentState == ScreenState.CONFIG) {
+            if (mouseX >= guiLeft + 20 && mouseX <= guiLeft + 70 && mouseY >= guiTop + 20 && mouseY <= guiTop + 40) {
+                currentState = ScreenState.GRID; selectedMod = null; return;
+            }
+            if (selectedMod != null) {
+                int setX = guiLeft + 40; int setY = guiTop + 80;
+                for (Setting s : selectedMod.settings) {
+                    if (s.mouseClicked(setX, setY, mouseX, mouseY, mouseButton)) { ConfigManager.save(); return; }
+                    setY += 35;
+                }
+            }
+        }
+        if (currentState == ScreenState.GRID && (mouseX < guiLeft || mouseX > guiLeft + guiWidth || mouseY < guiTop || mouseY > guiTop + guiHeight)) closing = true;
+    }
+
+    @Override public void keyTyped(char typedChar, int keyCode) throws IOException { if (keyCode == 1) { if(currentState==ScreenState.CONFIG) {currentState=ScreenState.GRID; selectedMod=null;} else closing=true; } }
+    @Override public boolean doesGuiPauseGame() { return false; }
+    private float lerp(float a, float b, float f) { return a + f * (b - a); }
+
+    public enum Category { HUD, PLAYER, WORLD, MISC }
+
+    abstract class ModCard {
+        String name; String description; String iconName; Category category; List<Setting> settings = new ArrayList<>();
+        float hoverScale = 1.0f;
+
+        public ModCard(String name, String description, String iconName, Category category) {
+            this.name = name; this.description = description; this.iconName = iconName; this.category = category; this.initSettings();
+        }
+        public void initSettings() {} public boolean isEnabled() { return false; } public boolean isBlocked() { return false; } public boolean isMenuOnly() { return false; } public void toggle() {}
+
+        public void drawPremiumCard(Minecraft mc, int x, int y, int w, int h, int mouseX, int mouseY) {
+            boolean hovered = mouseX >= x && mouseX <= x + w && mouseY >= y && mouseY <= y + h;
+
+            float targetScale = hovered ? 1.05f : 1.0f;
+            hoverScale = lerp(hoverScale, targetScale, 0.2f);
+
+            float centerX = x + w / 2.0f;
+            float centerY = y + h / 2.0f;
+
+            GlStateManager.pushMatrix();
+            GlStateManager.translate(centerX, centerY, 0);
+            GlStateManager.scale(hoverScale, hoverScale, 1f);
+            GlStateManager.translate(-centerX, -centerY, 0);
+
+            if (isEnabled() || hovered) {
+                drawRoundedRect(x - 2, y - 2, w + 4, h + 4, 10, hovered ? 0x60FFAA00 : 0x40FFAA00);
+            }
+
+            drawGradientRoundedRect(x, y, w, h, 8, 0xE6151515, 0xE6252525);
+
+            int borderColor = hovered ? 0xFFFFAA00 : 0x40FFFFFF;
+            drawRoundedOutline(x, y, w, h, 8, 1.0f, borderColor);
+
+            int iconY = y + 25;
+
+            drawCircleSector(x + w/2, iconY + 16, 20, 0, 360);
+            GlStateManager.color(0.2f, 0.2f, 0.2f);
+            drawCircleSector(x + w/2, iconY + 16, 18, 0, 360);
+            GlStateManager.pushMatrix();
+            GlStateManager.scale(2, 2, 1);
+            drawCenteredString(mc.fontRendererObj, name.substring(0, 1), (int)((x + w/2)/2), (int)((iconY + 12)/2), 0xFFFFAA00);
+            GlStateManager.popMatrix();
+
+            drawCenteredString(mc.fontRendererObj, name, x + w/2, y + 70, 0xFFFFFFFF);
+            GlStateManager.pushMatrix();
+            GlStateManager.scale(0.65, 0.65, 1);
+            drawCenteredString(mc.fontRendererObj, description, (int)((x + w/2)/0.65), (int)((y + 85)/0.65), 0xFFAAAAAA);
+            GlStateManager.popMatrix();
+
+            int btnH = 22;
+            int padding = 6;
+            int statusY = y + h - btnH - padding;
+            int optY = statusY - btnH - 4;
+
+            if (!settings.isEmpty() || isMenuOnly()) {
+                boolean hovOpt = hovered && (mouseY >= optY && mouseY <= optY+btnH);
+                drawRoundedRect(x+padding, optY, w-(padding*2), btnH, 5, hovOpt ? 0xFF555555 : 0xFF333333);
+                drawCenteredString(mc.fontRendererObj, "OPÇÕES", x+w/2, optY+7, 0xFFCCCCCC);
+            }
+
+            if (!isMenuOnly()) {
+                boolean active = isEnabled();
+                boolean blocked = isBlocked();
+                int colTop = blocked ? btnDisabledTop : (active ? btnEnabledTop : btnDisabledTop);
+                int colBot = blocked ? btnDisabledBottom : (active ? btnEnabledBottom : btnDisabledBottom);
+                String txt = blocked ? "BLOQUEADO" : (active ? "ATIVADO" : "DESATIVADO");
+
+                drawGradientRoundedRect(x+padding, statusY, w-(padding*2), btnH, 5, colTop, colBot);
+                drawCenteredString(mc.fontRendererObj, txt, x+w/2, statusY+7, 0xFFFFFFFF);
+            } else {
+                drawGradientRoundedRect(x+padding, statusY, w-(padding*2), btnH, 5, btnEnabledTop, btnEnabledBottom);
+                drawCenteredString(mc.fontRendererObj, "ABRIR MENU", x+w/2, statusY+7, 0xFFFFFFFF);
+            }
+
+            GlStateManager.popMatrix();
+        }
+    }
+
+    abstract class Setting { String name; public Setting(String name) { this.name = name; } abstract void draw(Minecraft mc, int x, int y, int mouseX, int mouseY); abstract boolean mouseClicked(int x, int y, int mouseX, int mouseY, int mouseButton); }
+
+    class ActionSetting extends Setting {
+        Runnable action; public ActionSetting(String name, Runnable action) { super(name); this.action = action; }
+        @Override void draw(Minecraft mc, int x, int y, int mouseX, int mouseY) {
+            boolean hov = mouseX >= x && mouseX <= x+220 && mouseY >= y && mouseY <= y+25;
+            drawRoundedRect(x, y, 220, 25, 6, hov ? 0xFF555555 : 0xFF333333);
+            drawCenteredString(mc.fontRendererObj, name, x+110, y+9, 0xFFFFFFFF);
+        }
+        @Override boolean mouseClicked(int x, int y, int mouseX, int mouseY, int mouseButton) {
+            if (mouseX >= x && mouseX <= x+220 && mouseY >= y && mouseY <= y+25) { mc.getSoundHandler().playSound(net.minecraft.client.audio.PositionedSoundRecord.create(new ResourceLocation("gui.button.press"), 1.0F)); if (action != null) action.run(); return true; } return false;
+        }
+    }
+    class BooleanSetting extends Setting {
+        boolean value; public BooleanSetting(String name, boolean defaultValue) { super(name); this.value = defaultValue; }
+        @Override void draw(Minecraft mc, int x, int y, int mouseX, int mouseY) {
+            drawRoundedRect(x, y, 220, 25, 6, 0xFF222222);
+            mc.fontRendererObj.drawString(name, x+10, y+9, 0xFFFFFFFF);
+            int switchX = x + 190;
+            drawRoundedRect(switchX, y+5, 20, 15, 7, value ? btnEnabledTop : 0xFF555555);
+            drawCircleSector(value ? switchX+15 : switchX+5, y+12, 5, 0, 360); // Bolinha do switch
+        }
+        @Override boolean mouseClicked(int x, int y, int mouseX, int mouseY, int mouseButton) {
+            if (mouseX >= x && mouseX <= x+220 && mouseY >= y && mouseY <= y+25) { value = !value; mc.getSoundHandler().playSound(net.minecraft.client.audio.PositionedSoundRecord.create(new ResourceLocation("gui.button.press"), 1.0F)); return true; } return false;
+        }
+    }
+    class ModeSetting extends Setting {
+        String currentValue; List<String> modes; int index = 0;
+        public ModeSetting(String name, String current, List<String> modes) { super(name); this.currentValue = current; this.modes = modes; this.index = modes.indexOf(current); }
+        @Override void draw(Minecraft mc, int x, int y, int mouseX, int mouseY) {
+            drawRoundedRect(x, y, 220, 25, 6, 0xFF222222);
+            mc.fontRendererObj.drawString(name, x+10, y+9, 0xFFAAAAAA);
+            drawCenteredString(mc.fontRendererObj, modes.get(index), x+180, y+9, 0xFFFFAA00);
+        }
+        @Override boolean mouseClicked(int x, int y, int mouseX, int mouseY, int mouseButton) {
+            if (mouseX >= x && mouseX <= x+220 && mouseY >= y && mouseY <= y+25) { index++; if (index >= modes.size()) index = 0; currentValue = modes.get(index); mc.getSoundHandler().playSound(net.minecraft.client.audio.PositionedSoundRecord.create(new ResourceLocation("gui.button.press"), 1.0F)); return true; } return false;
+        }
+    }
+
+    public static void drawGradientRoundedRect(float x, float y, float width, float height, float radius, int colorTop, int colorBottom) {
+        drawRoundedRect(x, y, width, height, radius, colorTop);
+    }
+
+    public static void drawRoundedOutline(float x, float y, float width, float height, float radius, float thickness, int color) {
+        float x1 = x; float y1 = y; float x2 = x + width; float y2 = y + height;
+        float alpha = (color >> 24 & 255) / 255.0F; float red = (color >> 16 & 255) / 255.0F; float green = (color >> 8 & 255) / 255.0F; float blue = (color & 255) / 255.0F;
+        GlStateManager.pushMatrix(); GlStateManager.enableBlend(); GlStateManager.disableTexture2D(); GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+        GlStateManager.color(red, green, blue, alpha); GL11.glLineWidth(thickness);
+        Tessellator tessellator = Tessellator.getInstance(); WorldRenderer worldrenderer = tessellator.getWorldRenderer();
+        worldrenderer.begin(GL11.GL_LINE_LOOP, DefaultVertexFormats.POSITION);
+        for (int i = 270; i >= 180; i -= 5) { double angle = Math.toRadians(i); worldrenderer.pos(x1 + radius + Math.sin(angle) * radius, y1 + radius + Math.cos(angle) * radius, 0).endVertex(); }
+        for (int i = 180; i >= 90; i -= 5) { double angle = Math.toRadians(i); worldrenderer.pos(x2 - radius + Math.sin(angle) * radius, y1 + radius + Math.cos(angle) * radius, 0).endVertex(); }
+        for (int i = 90; i >= 0; i -= 5) { double angle = Math.toRadians(i); worldrenderer.pos(x2 - radius + Math.sin(angle) * radius, y2 - radius + Math.cos(angle) * radius, 0).endVertex(); }
+        for (int i = 0; i >= -90; i -= 5) { double angle = Math.toRadians(i); worldrenderer.pos(x1 + radius + Math.sin(angle) * radius, y2 - radius + Math.cos(angle) * radius, 0).endVertex(); }
+        tessellator.draw(); GlStateManager.enableTexture2D(); GlStateManager.disableBlend(); GlStateManager.popMatrix();
+    }
+
+    public static void drawRoundedRect(float x, float y, float width, float height, float radius, int color) {
+        float x1 = x; float y1 = y; float x2 = x + width; float y2 = y + height;
+        float f = (color >> 24 & 255) / 255.0F; float f1 = (color >> 16 & 255) / 255.0F; float f2 = (color >> 8 & 255) / 255.0F; float f3 = (color & 255) / 255.0F;
+        GlStateManager.pushMatrix(); GlStateManager.enableBlend(); GlStateManager.disableTexture2D(); GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0); GlStateManager.color(f1, f2, f3, f);
+        drawCircleSector(x1 + radius, y1 + radius, radius, 180, 270); drawCircleSector(x2 - radius, y1 + radius, radius, 90, 180); drawCircleSector(x2 - radius, y2 - radius, radius, 0, 90); drawCircleSector(x1 + radius, y2 - radius, radius, 270, 360);
+        Tessellator tessellator = Tessellator.getInstance(); WorldRenderer worldrenderer = tessellator.getWorldRenderer();
+        worldrenderer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION);
+        worldrenderer.pos(x1 + radius, y2, 0.0D).endVertex(); worldrenderer.pos(x2 - radius, y2, 0.0D).endVertex(); worldrenderer.pos(x2 - radius, y1, 0.0D).endVertex(); worldrenderer.pos(x1 + radius, y1, 0.0D).endVertex();
+        worldrenderer.pos(x1, y2 - radius, 0.0D).endVertex(); worldrenderer.pos(x1 + radius, y2 - radius, 0.0D).endVertex(); worldrenderer.pos(x1 + radius, y1 + radius, 0.0D).endVertex(); worldrenderer.pos(x1, y1 + radius, 0.0D).endVertex();
+        worldrenderer.pos(x2 - radius, y2 - radius, 0.0D).endVertex(); worldrenderer.pos(x2, y2 - radius, 0.0D).endVertex(); worldrenderer.pos(x2, y1 + radius, 0.0D).endVertex(); worldrenderer.pos(x2 - radius, y1 + radius, 0.0D).endVertex();
+        tessellator.draw(); GlStateManager.enableTexture2D(); GlStateManager.disableBlend(); GlStateManager.popMatrix();
+    }
+
+    public static void drawCircleSector(float cx, float cy, float r, int startAngle, int endAngle) {
+        Tessellator tessellator = Tessellator.getInstance(); WorldRenderer worldrenderer = tessellator.getWorldRenderer();
+        worldrenderer.begin(GL11.GL_TRIANGLE_FAN, DefaultVertexFormats.POSITION);
+        worldrenderer.pos(cx, cy, 0.0D).endVertex();
+        for (int i = startAngle; i <= endAngle; i += 5) { double angle = Math.toRadians(i); worldrenderer.pos(cx + Math.sin(angle) * r, cy + Math.cos(angle) * r, 0.0D).endVertex(); }
+        tessellator.draw();
     }
 }
