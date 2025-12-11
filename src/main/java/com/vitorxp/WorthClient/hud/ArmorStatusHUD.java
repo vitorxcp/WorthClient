@@ -9,14 +9,12 @@ import java.util.List;
 
 public class ArmorStatusHUD extends HudElement {
 
-    // Altere para false para ter um layout horizontal
     private final boolean isVertical = true;
 
     public ArmorStatusHUD() {
         super("ArmorStatusHUD", 10, 70);
     }
 
-    // Este HUD precisa ser renderizado no evento "Post" para funcionar corretamente com os itens
     @Override
     public void renderPost(RenderGameOverlayEvent.Post event) {
         if (!shouldRender()) return;
@@ -28,7 +26,7 @@ public class ArmorStatusHUD extends HudElement {
 
         int currentX = this.x;
         int currentY = this.y;
-        int itemSize = 16; // Tamanho do ícone do item
+        int itemSize = 16;
 
         for (ItemStack itemStack : itemsToRender) {
             if (itemStack != null) {
@@ -56,6 +54,7 @@ public class ArmorStatusHUD extends HudElement {
 
     private List<ItemStack> getItems() {
         List<ItemStack> items = new ArrayList<>();
+        if (!com.vitorxp.WorthClient.WorthClient.ArmorsOverlays) return items;
         if (com.vitorxp.WorthClient.WorthClient.helmetHUDOverlay) items.add(mc.thePlayer.getCurrentArmor(3));
         if (com.vitorxp.WorthClient.WorthClient.chestplateHUDOverlay) items.add(mc.thePlayer.getCurrentArmor(2));
         if (com.vitorxp.WorthClient.WorthClient.leggingsHUDOverlay) items.add(mc.thePlayer.getCurrentArmor(1));
