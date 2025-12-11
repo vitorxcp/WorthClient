@@ -15,6 +15,8 @@ public class AnnounceMutante {
 
     @SubscribeEvent
     public void onChat(ClientChatReceivedEvent event) {
+        if (mc.thePlayer == null) return;
+
         String raw = event.message.getUnformattedText();
 
         if (announceZealot && raw.equals("[The End] Um Enderman Mutante apareceu!")) {
@@ -29,6 +31,8 @@ public class AnnounceMutante {
 
     @SubscribeEvent
     public void onRender(RenderGameOverlayEvent.Text event) {
+        if (mc.thePlayer == null) return;
+
         if (displayMessage && System.currentTimeMillis() <= displayUntilMU) {
             String message = "§c§lMUTANTE APARECEU!";
             int width = mc.fontRendererObj.getStringWidth(message);
