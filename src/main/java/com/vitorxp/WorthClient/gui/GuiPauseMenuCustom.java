@@ -22,12 +22,20 @@ public class GuiPauseMenuCustom extends GuiScreen {
 
     private long animationStartTime;
     private boolean isOpening, isClosing;
-    private final int ANIMATION_DURATION_MS = 1000;
+    private final int ANIMATION_DURATION_MS = 300;
     private GuiScreen nextScreen = null;
     private boolean shouldResumeGame = false;
 
     @Override
     public void initGui() {
+        if (!mc.entityRenderer.isShaderActive()) {
+            try {
+                mc.entityRenderer.loadShader(new ResourceLocation("shaders/post/blur.json"));
+            } catch (Exception e) {
+                System.out.println("[WorthClient] Erro ao carregar Blur: " + e.getMessage());
+            }
+        }
+
         this.buttonList.clear();
         int buttonY = this.height / 2 - 50;
         int buttonSpacing = 30;
@@ -39,6 +47,8 @@ public class GuiPauseMenuCustom extends GuiScreen {
         this.isOpening = true;
         this.isClosing = false;
         this.animationStartTime = System.currentTimeMillis();
+
+        super.initGui();
     }
 
     void triggerExitAnimation(GuiScreen screenToOpen) {
@@ -99,14 +109,15 @@ public class GuiPauseMenuCustom extends GuiScreen {
         if (isClosing || isOpening) return;
 
         switch (button.id) {
-            case 0: // Voltar ao Jogo
+            case 0:
                 this.shouldResumeGame = true;
                 triggerExitAnimation(null);
                 break;
-            case 1: // Servidores
-                triggerExitAnimation(new GuiMultiplayerCustom(this));
+            case 1:
+                    button.enabled = false;
+                    this.mc.displayGuiScreen(new GuiMultiplayerCustom(new GuiClientMainMenu()));
                 break;
-            case 2: // Opções
+            case 2:
                 triggerExitAnimation(new GuiOptions(this, this.mc.gameSettings));
                 break;
             case 3:
@@ -139,13 +150,17 @@ public class GuiPauseMenuCustom extends GuiScreen {
     }
 
     public void drawCustomBackground() {
-        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-        this.mc.getTextureManager().bindTexture(BACKGROUND_BLUR);
-        drawModalRectWithCustomSizedTexture(0, 0, 0, 0, this.width, this.height, this.width, this.height);
-        drawRect(0, 0, this.width, this.height, new Color(10, 10, 15, 100).getRGB());
+        //GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+        //this.mc.getTextureManager().bindTexture(BACKGROUND_BLUR);
+        //drawModalRectWithCustomSizedTexture(0, 0, 0, 0, this.width, this.height, this.width, this.height);
+        //drawRect(0, 0, this.width, this.height, new Color(10, 10, 15, 100).getRGB());
+
+        int colorTop = new Color(10, 10, 15, 100).getRGB();
+        int colorBottom = new Color(10, 10, 15, 200).getRGB();
+
+        this.drawGradientRect(0, 0, this.width, this.height, colorTop, colorBottom);
     }
 
-    // --- Métodos de Animação (sem alterações) ---
     private void drawSlidingBarsTransition(float progress) {
         Tessellator tessellator = Tessellator.getInstance();
         WorldRenderer worldrenderer = tessellator.getWorldRenderer();
@@ -157,7 +172,6 @@ public class GuiPauseMenuCustom extends GuiScreen {
         Color goldLight = new Color(255, 215, 0, 255);
         float w = this.width;
         float h = this.height;
-        drawRect(0, 0, this.width, this.height, new Color(0, 0, 0, (int)(255 * progress)).getRGB());
         int numBars = 3;
         float barHeight = h / numBars;
         for (int i = 0; i < numBars; i++) {
@@ -180,5 +194,13 @@ public class GuiPauseMenuCustom extends GuiScreen {
 
     private void addVertexWithColor(WorldRenderer wr, float x, float y, Color c) {
         wr.pos(x, y, 0).color(c.getRed() / 255.0f, c.getGreen() / 255.0f, c.getBlue() / 255.0f, c.getAlpha() / 255.0f).endVertex();
+    }
+
+    public void onGuiClosed() {
+        if (mc.entityRenderer.isShaderActive()) {
+            mc.entityRenderer.stopUseShader();
+        }
+
+        super.onGuiClosed();
     }
 }
