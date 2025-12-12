@@ -11,6 +11,7 @@ import com.vitorxp.WorthClient.events.AnnounceMutanteEvent;
 import com.vitorxp.WorthClient.events.GuiMenuEvent;
 import com.vitorxp.WorthClient.gui.AdminGui;
 import com.vitorxp.WorthClient.gui.LoadingScreenHook;
+import com.vitorxp.WorthClient.gui.utils.NotificationRenderer;
 import com.vitorxp.WorthClient.handlers.PlayerInspectorHandler;
 import com.vitorxp.WorthClient.handlers.RadarInteractionHandler;
 import com.vitorxp.WorthClient.hud.*;
@@ -36,6 +37,7 @@ import net.minecraft.util.Session;
 import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.client.event.GuiScreenEvent;
+import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
@@ -275,6 +277,13 @@ public class WorthClient {
     }
 
     @SubscribeEvent
+    public void onRenderGameOverlay(RenderGameOverlayEvent.Post event) {
+        if (event.type == RenderGameOverlayEvent.ElementType.ALL) {
+            NotificationRenderer.render(Minecraft.getMinecraft());
+        }
+    }
+
+    @SubscribeEvent
     public void onActionPerformed(GuiScreenEvent.ActionPerformedEvent.Pre event) {
         if (event.gui instanceof GuiMultiplayer) {
             if (event.button.id == 1) {
@@ -327,12 +336,5 @@ public class WorthClient {
         InventoryLossLogger.saveToFile();
         HudPositionManager.save();
         ConfigManager.save();
-    }
-
-    private void reloadLanguage() {
-        Minecraft mc = Minecraft.getMinecraft();
-        mc.getLanguageManager().onResourceManagerReload(mc.getResourceManager());
-        mc.gameSettings.saveOptions();
-        System.out.println("[WorthClient] Sistema de tradução recarregado com sucesso!");
     }
 }
