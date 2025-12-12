@@ -9,10 +9,13 @@ import net.minecraft.client.gui.GuiScreen;
 import com.vitorxp.WorthClient.config.KeystrokesColors;
 import javax.swing.JColorChooser;
 import java.awt.Color;
+
+import net.minecraft.client.network.NetHandlerPlayClient;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.WorldRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ResourceLocation;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
@@ -490,9 +493,11 @@ public class GuiModMenu extends GuiScreen {
                     } else if (clickTog) {
                         mod.toggle();
                         ConfigManager.save();
+                        NotificationRenderer.send(NotificationRenderer.Type.SUCCESS, "Configurações salvas!");
                     } else {
                         mod.toggle();
                         ConfigManager.save();
+                        NotificationRenderer.send(NotificationRenderer.Type.SUCCESS, "Configurações salvas!");
                     }
                     return;
                 }
