@@ -4,17 +4,20 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.vitorxp.WorthClient.gui.button.GuiModernButton;
+import com.vitorxp.WorthClient.gui.utils.NotificationRenderer;
 import com.vitorxp.WorthClient.utils.SSLTrustBypasser;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.*;
 import net.minecraft.client.multiplayer.GuiConnecting;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.client.multiplayer.ServerList;
+import net.minecraft.client.network.NetHandlerPlayClient;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.WorldRenderer;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.ResourceLocation;
 import org.lwjgl.input.Keyboard;
@@ -54,7 +57,6 @@ public class GuiMultiplayerCustom extends GuiScreen {
 
     private ServerData currentServerData;
 
-    // Layout
     private int containerWidth;
     private int containerHeight;
     private int containerX;
@@ -101,7 +103,6 @@ public class GuiMultiplayerCustom extends GuiScreen {
         this.isDirectConnecting = false;
         this.isDeletingServer = false;
 
-        // Container Compacto (270px)
         this.containerWidth = 270;
         this.containerHeight = Math.min(400, this.height - 120);
         this.containerX = (this.width - this.containerWidth) / 2;
@@ -185,7 +186,6 @@ public class GuiMultiplayerCustom extends GuiScreen {
         this.btnSelectServer.enabled = hasSelection;
         this.btnEditServer.enabled = hasSelection;
 
-        // Bloqueio de Deletar Rede Worth
         if (hasSelection) {
             ServerData data = this.savedServerList.getServerData(this.selectedServer);
             this.btnDeleteServer.enabled = !data.serverIP.equalsIgnoreCase("redeworth.com");
@@ -371,7 +371,6 @@ public class GuiMultiplayerCustom extends GuiScreen {
             case 3:
                 if (this.selectedServer >= 0 && this.selectedServer < this.savedServerList.countServers()) {
                     String name = this.savedServerList.getServerData(this.selectedServer).serverName;
-                    // Proteção Extra no Clique do Botão
                     if (this.savedServerList.getServerData(this.selectedServer).serverIP.equalsIgnoreCase("redeworth.com")) return;
 
                     this.isDeletingServer = true;
@@ -394,12 +393,32 @@ public class GuiMultiplayerCustom extends GuiScreen {
         }
     }
 
+    private void prepareForConnection() {
+        if (this.mc.theWorld != null) {
+            NotificationRenderer.send(NotificationRenderer.Type.INFO, "Desconectando do servidor atual...");
+
+            NetHandlerPlayClient netHandler = this.mc.getNetHandler();
+            if (netHandler != null) {
+                netHandler.getNetworkManager().closeChannel(new ChatComponentText("Trocando de Servidor"));
+            }
+            this.mc.loadWorld(null);
+        } else {
+            NotificationRenderer.send(NotificationRenderer.Type.SUCCESS, "Conectando ao servidor...");
+        }
+    }
+
     @Override
     public void confirmClicked(boolean result, int id) {
         if (this.isDirectConnecting) {
             this.isDirectConnecting = false;
-            if (result) this.mc.displayGuiScreen(new GuiConnecting(this, this.mc, this.currentServerData));
-            else this.mc.displayGuiScreen(this);
+
+            if (result) {
+                prepareForConnection();
+
+                this.mc.displayGuiScreen(new GuiConnecting(this, this.mc, this.currentServerData));
+            } else {
+                this.mc.displayGuiScreen(this);
+            }
             return;
         }
         if (this.isAddingServer) {
@@ -431,6 +450,8 @@ public class GuiMultiplayerCustom extends GuiScreen {
 
     private void connectToSelected() {
         if (this.selectedServer >= 0 && this.selectedServer < this.savedServerList.countServers()) {
+            prepareForConnection();
+
             this.mc.displayGuiScreen(new GuiConnecting(this, this.mc, this.savedServerList.getServerData(this.selectedServer)));
         }
     }
@@ -461,33 +482,26 @@ public class GuiMultiplayerCustom extends GuiScreen {
         if (this.apiExecutor != null) this.apiExecutor.shutdownNow();
     }
 
-    // Importante para processar cliques
     @Override
     public void handleMouseInput() throws IOException {
         super.handleMouseInput();
         this.serverListSelector.handleMouseInput();
     }
 
-    // Método CRÍTICO: Redireciona o clique do mouse para a lista manualmente
     @Override
     protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
-        super.mouseClicked(mouseX, mouseY, mouseButton); // Clica nos botões
+        super.mouseClicked(mouseX, mouseY, mouseButton);
 
-        // Verifica se clicou dentro da caixa da lista e processa o clique manualmente
         if (mouseX >= containerX && mouseX <= containerX + containerWidth &&
                 mouseY >= containerY + 10 && mouseY <= containerY + containerHeight - 10) {
 
-            // Calcula qual slot foi clicado
             int scroll = this.serverListSelector.getAmountScrolled();
             int relY = mouseY - (containerY + 10) + scroll;
-            int slotHeight = 55; // Mesmo valor passado no construtor
+            int slotHeight = 55;
             int slotIdx = relY / slotHeight;
 
             if (slotIdx >= 0 && slotIdx < this.savedServerList.countServers()) {
                 this.serverListSelector.elementClicked(slotIdx, false, mouseX, mouseY);
-
-                // Simulação de Double Click
-                // Se clicou no mesmo servidor rapidamente -> conecta
             }
         }
     }
@@ -550,9 +564,8 @@ public class GuiMultiplayerCustom extends GuiScreen {
         protected void elementClicked(int slotIndex, boolean isDoubleClick, int mouseX, int mouseY) {
             if (slotIndex >= savedServerList.countServers()) return;
 
-            // Lógica de Duplo Clique Manual
             long now = System.currentTimeMillis();
-            if (slotIndex == lastClickedSlot && (now - lastClickTime) < 350) { // Aumentei para 350ms
+            if (slotIndex == lastClickedSlot && (now - lastClickTime) < 350) {
                 connectToSelected();
                 return;
             }
@@ -567,7 +580,6 @@ public class GuiMultiplayerCustom extends GuiScreen {
             int starWidth = 12;
 
             int scroll = this.getAmountScrolled();
-            // Correção no cálculo de Y do slot (removido header padding)
             int slotY = this.top + (slotIndex * this.slotHeight) - scroll;
 
             boolean validY = mouseY >= slotY && mouseY <= slotY + this.slotHeight;
