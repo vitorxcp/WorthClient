@@ -3,8 +3,6 @@ package com.vitorxp.WorthClient.gui.utils;
 import com.vitorxp.WorthClient.gui.GuiModMenu;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.renderer.GlStateManager;
-import java.util.Iterator;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class NotificationRenderer {
