@@ -3,6 +3,7 @@ package com.vitorxp.WorthClient.gui.utils;
 import com.vitorxp.WorthClient.gui.GuiModMenu;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.client.renderer.GlStateManager; // Importante
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class NotificationRenderer {
@@ -27,7 +28,14 @@ public class NotificationRenderer {
     public static void render(Minecraft mc) {
         if (notifications.isEmpty()) return;
 
+        GlStateManager.pushMatrix();
+        GlStateManager.disableDepth();
+        GlStateManager.disableLighting();
+
+        GlStateManager.translate(0, 0, 1000);
+
         int screenWidth = mc.displayWidth / mc.gameSettings.guiScale;
+        int screenHeight = mc.displayHeight / mc.gameSettings.guiScale;
         int y = 10;
 
         for (Notification notif : notifications) {
@@ -38,6 +46,9 @@ public class NotificationRenderer {
                 notifications.remove(notif);
             }
         }
+
+        GlStateManager.enableDepth();
+        GlStateManager.popMatrix();
     }
 
     static class Notification {
@@ -73,9 +84,7 @@ public class NotificationRenderer {
 
             GuiModMenu.drawRoundedRect(x, y, width, height, 4, 0xD0151515);
             GuiModMenu.drawRoundedRect(x, y + 2, 3, height - 4, 1, type.color);
-
             fr.drawStringWithShadow(type.title, x + 10, y + 5, type.color);
-
             fr.drawString(message, x + 10, y + 17, 0xDDDDDD);
         }
     }
