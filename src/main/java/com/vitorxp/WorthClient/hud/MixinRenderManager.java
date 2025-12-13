@@ -25,7 +25,8 @@ public class MixinRenderManager {
     @Inject(method = "cacheActiveRenderInfo", at = @At("RETURN"))
     private void onCacheActiveRenderInfo(World worldIn, FontRenderer textRendererIn, Entity livingPlayerIn, Entity pointedEntityIn, GameSettings optionsIn, float partialTicks, CallbackInfo ci) {
         if (PerspectiveMod.perspectiveToggled) {
-            this.playerViewY = PerspectiveMod.cameraYaw;
+            this.playerViewY = PerspectiveMod.cameraYaw + 180.0F;
+
             this.playerViewX = PerspectiveMod.cameraPitch;
         }
     }
