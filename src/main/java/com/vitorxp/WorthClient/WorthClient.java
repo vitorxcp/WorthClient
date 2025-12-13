@@ -243,8 +243,18 @@ public class WorthClient {
 
     @SubscribeEvent
     public void onRenderGameOverlay(RenderGameOverlayEvent.Post event) {
-        if (event.type == RenderGameOverlayEvent.ElementType.ALL) {
-            NotificationRenderer.render(Minecraft.getMinecraft());
+        if (event.type != RenderGameOverlayEvent.ElementType.ALL) return;
+
+        Minecraft mc = Minecraft.getMinecraft();
+
+        if (mc.displayWidth == 0 || mc.displayHeight == 0) return;
+
+        if (mc.thePlayer == null || mc.theWorld == null) return;
+
+        try {
+            NotificationRenderer.render(mc);
+        } catch (Exception e) {
+            System.err.println("[WorthClient] Erro ao renderizar notificação: " + e.getMessage());
         }
     }
 
