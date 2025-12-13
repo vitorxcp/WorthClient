@@ -27,7 +27,6 @@ public class Keybinds {
     public static KeyBinding screenshotKey;
     public static KeyBinding perspectiveM;
     public static KeyBinding ZoomM;
-    public static KeyBinding zoomKey;
     private static boolean keysInitialized = false;
     private boolean wasPressed = false;
 
@@ -69,7 +68,7 @@ public class Keybinds {
         Minecraft mc = Minecraft.getMinecraft();
         for (KeyBinding kb : mc.gameSettings.keyBindings) {
             if (kb.getKeyDescription().equals("of.key.zoom")) {
-                if (kb.getKeyCode() == zoomKey.getKeyCode() || kb.getKeyCode() == Keyboard.KEY_C) {
+                if (kb.getKeyCode() == ZoomM.getKeyCode() || kb.getKeyCode() == Keyboard.KEY_C) {
                     kb.setKeyCode(0);
                     KeyBinding.resetKeyBindingArrayAndHash();
                 }
