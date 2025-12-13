@@ -1,85 +1,81 @@
 package com.vitorxp.WorthClient.utils;
 
+import com.vitorxp.WorthClient.WorthClient;
 import com.vitorxp.WorthClient.keybinds.Keybinds;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.EntityViewRenderEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.input.Mouse;
+import org.lwjgl.opengl.Display;
 
 public class PerspectiveMod {
 
     private final Minecraft mc;
+    public static float cameraYaw = 0f;
+    public static float cameraPitch = 0f;
+    private boolean wasKeyDown = false;
+    private int previousThirdPersonView = 0;
 
     public PerspectiveMod() {
         this.mc = Minecraft.getMinecraft();
     }
 
-    private boolean enabled = false;
-    private boolean wasKeyDown = false;
-
-    private float cameraYaw = 0f;
-    private float cameraPitch = 0f;
-
-    private int previousThirdPersonView = 0;
-
-    private void enable() {
-        if (enabled) return;
-        enabled = true;
+    public void enable() {
+        if (WorthClient.PerspectiveModToggle) return;
 
         previousThirdPersonView = mc.gameSettings.thirdPersonView;
-        mc.gameSettings.thirdPersonView = 2;
+        mc.gameSettings.thirdPersonView = 1;
 
         if (mc.thePlayer != null) {
-            cameraYaw = mc.thePlayer.rotationYaw;
-            cameraPitch = mc.thePlayer.rotationPitch;
-        }
-
-        if (mc.renderGlobal != null) {
-            assert mc.thePlayer != null;
-            mc.renderGlobal.markBlockRangeForRenderUpdate(
-                    (int) mc.thePlayer.posX - 512, 0, (int) mc.thePlayer.posZ - 512,
-                    (int) mc.thePlayer.posX + 512, 256, (int) mc.thePlayer.posZ + 512
-            );
+            if (WorthClient.PerspectiveStartFront) {
+                cameraYaw = mc.thePlayer.rotationYaw + 180f;
+                cameraPitch = mc.thePlayer.rotationPitch;
+            } else {
+                cameraYaw = mc.thePlayer.rotationYaw;
+                cameraPitch = mc.thePlayer.rotationPitch;
+            }
         }
     }
 
-    private void disable() {
-        if (!enabled) return;
-        enabled = false;
+    public void disable() {
+        if (!WorthClient.PerspectiveModToggle) return;
         mc.gameSettings.thirdPersonView = previousThirdPersonView;
     }
 
     @SubscribeEvent
     public void onClientTick(TickEvent.ClientTickEvent event) {
-        boolean toggleMode = com.vitorxp.WorthClient.WorthClient.PerspectiveModToggle;
-
+        if (event.phase != TickEvent.Phase.START) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
+
+        boolean toggleMode = com.vitorxp.WorthClient.WorthClient.PerspectiveModToggle;
         boolean keyDown = Keybinds.perspectiveM.isKeyDown();
 
         if (toggleMode) {
             if (keyDown && !wasKeyDown) {
-                if (enabled) disable(); else enable();
+                if (WorthClient.PerspectiveModToggle) disable(); else enable();
             }
         } else {
-            if (keyDown && !enabled) enable();
-            if (!keyDown && enabled) disable();
+            if (keyDown && !WorthClient.PerspectiveModToggle) enable();
+            if (!keyDown && WorthClient.PerspectiveModToggle) disable();
         }
-
         wasKeyDown = keyDown;
+
+        if (WorthClient.PerspectiveModToggle && mc.gameSettings.thirdPersonView != 1) {
+            mc.gameSettings.thirdPersonView = 1;
+        }
     }
 
     @SubscribeEvent
     public void onRenderTick(TickEvent.RenderTickEvent event) {
         if (event.phase != TickEvent.Phase.START) return;
-        if (!enabled) return;
 
-        if (!mc.inGameHasFocus) return;
-
-        handleMouseMovement();
+        if (WorthClient.PerspectiveModToggle && mc.inGameHasFocus && Display.isActive()) {
+            handleMouseMovement();
+        }
     }
 
-    private void handleMouseMovement() {
+    public void handleMouseMovement() {
         float f = mc.gameSettings.mouseSensitivity * 0.6F + 0.2F;
         float mul = f * f * f * 8.0F;
 
@@ -87,37 +83,25 @@ public class PerspectiveMod {
         float dy = Mouse.getDY() * mul * 0.15F;
 
         cameraYaw += dx;
-        cameraPitch -= dy;
+
+        if (mc.gameSettings.invertMouse) {
+            cameraPitch += dy;
+        } else {
+            cameraPitch -= dy;
+        }
 
         if (cameraPitch > 90F) cameraPitch = 90F;
         if (cameraPitch < -90F) cameraPitch = -90F;
 
         if (cameraYaw <= -180F) cameraYaw += 360F;
         if (cameraYaw > 180F) cameraYaw -= 360F;
-
-        mc.renderGlobal.markBlockRangeForRenderUpdate(
-                (int) mc.thePlayer.posX - 512, 0, (int) mc.thePlayer.posZ - 512,
-                (int) mc.thePlayer.posX + 512, 256, (int) mc.thePlayer.posZ + 512
-        );
     }
 
     @SubscribeEvent
     public void onCameraSetup(EntityViewRenderEvent.CameraSetup event) {
-        if (!enabled) return;
-
-        try {
-            mc.renderGlobal.markBlockRangeForRenderUpdate(
-                    (int) mc.thePlayer.posX - 512, 0, (int) mc.thePlayer.posZ - 512,
-                    (int) mc.thePlayer.posX + 512, 256, (int) mc.thePlayer.posZ + 512
-            );
+        if (WorthClient.PerspectiveModToggle) {
             event.yaw = cameraYaw;
             event.pitch = cameraPitch;
-        } catch (NoSuchFieldError | NoSuchMethodError ex) {
-            try {
-                event.getClass().getMethod("setYaw", float.class).invoke(event, cameraYaw);
-                event.getClass().getMethod("setPitch", float.class).invoke(event, cameraYaw);
-            } catch (Exception ignored) {
-            }
         }
     }
 }
