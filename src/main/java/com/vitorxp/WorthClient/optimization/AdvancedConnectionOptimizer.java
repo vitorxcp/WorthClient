@@ -113,10 +113,4 @@ public class AdvancedConnectionOptimizer {
             return -1;
         }
     }
-
-    public static String getPingStatus() {
-        long ping = lastPingTime.get();
-        if(ping <= MAX_ACCEPTABLE_PING) return "Ping OK: " + ping + "ms";
-        return "Ping Alto: " + ping + "ms - Otimizando conexão...";
-    }
 }
