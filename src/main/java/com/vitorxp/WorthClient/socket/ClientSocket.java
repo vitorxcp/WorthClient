@@ -64,9 +64,4 @@ public class ClientSocket {
             }
         }).start();
     }
-
-    public static boolean isUserOnClient(String username) {
-        if (usersUsingClient == null || username == null) return false;
-        return usersUsingClient.contains(username.toLowerCase());
-    }
 }
