@@ -62,6 +62,7 @@ public class WorthClient {
     public static boolean WailaMod = false;
     public static boolean enableToggleZoom = false;
     public static int KeyZoom = Keyboard.KEY_C;
+    public static boolean PerspectiveStartFront = false;
     private final SessionManager sessionManager = new SessionManager();
     private static ServerData lastServerAttempted;
     public static boolean blockPetMessages = true;
