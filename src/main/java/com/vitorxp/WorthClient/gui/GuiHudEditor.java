@@ -97,7 +97,7 @@ public class GuiHudEditor extends GuiScreen {
         if (hoverReset) {
             String tooltip = "Reinicia todas as posições";
             int tw = fontRendererObj.getStringWidth(tooltip);
-            drawRect(mouseX + 5, mouseY - 15, mouseX + 5 + tw + 4, mouseY - 2, 0xCC000000); // Fundo tooltip
+            drawRect(mouseX + 5, mouseY - 15, mouseX + 5 + tw + 4, mouseY - 2, 0xCC000000);
             fontRendererObj.drawStringWithShadow(tooltip, mouseX + 7, mouseY - 13, 0xFFFFAA00);
         }
 
