@@ -5,10 +5,9 @@
   "compatibilityLevel": "JAVA_8",
   "refmap": "worthclient.refmap.json",
   "mixins": [
-    "MixinLoadingScreenRenderer",
+    "MixinMinecraft",
     "MixinGuiPlayerTabOverlay",
     "MixinEnumChatFormatting",
-    "MixinMinecraft",
     "MixinRenderItem",
     "MixinMathHelper",
     "MixinModelLoader",
