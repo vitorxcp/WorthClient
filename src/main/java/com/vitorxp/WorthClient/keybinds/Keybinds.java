@@ -26,8 +26,8 @@ public class Keybinds {
     public static KeyBinding openConfigHud;
     public static KeyBinding screenshotKey;
     public static KeyBinding perspectiveM;
+    public static KeyBinding ZoomM;
     public static KeyBinding zoomKey;
-    public static KeyBinding toggleRadarKey;
     private static boolean keysInitialized = false;
     private boolean wasPressed = false;
 
@@ -47,13 +47,20 @@ public class Keybinds {
         perspectiveM = new KeyBinding("Perspective Mod", WorthClient.KeyPerspective, "WorthClient");
         ClientRegistry.registerKeyBinding(perspectiveM);
 
-        zoomKey = new KeyBinding("Botão de Zoom", Keyboard.KEY_C, "WorthClient");
-        ClientRegistry.registerKeyBinding(zoomKey);
+        ZoomM = new KeyBinding("Botão do Zoom", WorthClient.KeyZoom, "WorthClient");
+        ClientRegistry.registerKeyBinding(ZoomM);
     }
 
     public static void updatePerspectiveKey(int newKeyCode) {
         if (perspectiveM != null) {
             perspectiveM.setKeyCode(newKeyCode);
+            KeyBinding.resetKeyBindingArrayAndHash();
+        }
+    }
+
+    public static void updateZoomKey(int newKeyCode) {
+        if (ZoomM != null) {
+            ZoomM.setKeyCode(newKeyCode);
             KeyBinding.resetKeyBindingArrayAndHash();
         }
     }
@@ -94,6 +101,10 @@ public class Keybinds {
         if (!keysInitialized) {
             if (perspectiveM != null) {
                 perspectiveM.setKeyCode(WorthClient.KeyPerspective);
+            }
+
+            if (ZoomM != null) {
+                ZoomM.setKeyCode(WorthClient.KeyZoom);
             }
 
             disableOptifineZoom();
