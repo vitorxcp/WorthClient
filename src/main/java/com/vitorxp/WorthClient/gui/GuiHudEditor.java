@@ -13,7 +13,6 @@ import java.io.IOException;
 public class GuiHudEditor extends GuiScreen {
 
     private final Color themeColor = new Color(158, 96, 32);
-    // Cores de Seleção
     private final int selectionBorder = 0xFFFFAA00;
     private final int selectionFill = 0x40FFAA00;
     private static final int PADDING = 2;
@@ -22,8 +21,8 @@ public class GuiHudEditor extends GuiScreen {
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         drawGradientRect(0, 0, width, height, 0xCC000000, 0xCC150500);
 
-        drawRect(width / 2 - 1, 0, width / 2 + 1, height, 0x40FFFFFF);
-        drawRect(0, height / 2 - 1, width, height / 2 + 1, 0x40FFFFFF);
+        drawRect(width / 2 - 1, 0, width / 2 + 1, height, 0x15FFFFFF);
+        drawRect(0, height / 2 - 1, width, height / 2 + 1, 0x15FFFFFF);
 
         drawCenteredString(fontRendererObj, "EDITOR DE HUD", width / 2, 20, themeColor.getRGB());
         drawCenteredString(fontRendererObj, "Arraste para mover", width / 2, 35, 0xFFAAAAAA);
@@ -41,12 +40,12 @@ public class GuiHudEditor extends GuiScreen {
             int elemW = element.getWidth();
             int elemH = element.getHeight();
 
-            boolean hovered = isMouseOver(mouseX, mouseY, elemX - PADDING, elemY - PADDING, elemW + PADDING*2, elemH + PADDING*2);
+            boolean hovered = isMouseOver(mouseX, mouseY, elemX - PADDING, elemY - PADDING, elemW + PADDING * 2, elemH + PADDING * 2);
             boolean dragging = element.dragging;
 
             if (hovered || dragging) {
-                GuiModMenu.drawRoundedRect(elemX - PADDING, elemY - PADDING, elemW + PADDING*2, elemH + PADDING*2, 4, selectionFill);
-                GuiModMenu.drawRoundedOutline(elemX - PADDING, elemY - PADDING, elemW + PADDING*2, elemH + PADDING*2, 4, 1.5f, selectionBorder);
+                GuiModMenu.drawRoundedRect(elemX - PADDING, elemY - PADDING, elemW + PADDING * 2, elemH + PADDING * 2, 4, selectionFill);
+                GuiModMenu.drawRoundedOutline(elemX - PADDING, elemY - PADDING, elemW + PADDING * 2, elemH + PADDING * 2, 4, 1.5f, selectionBorder);
 
                 if (dragging) {
                     String coords = "X: " + elemX + " Y: " + elemY;
@@ -54,11 +53,13 @@ public class GuiHudEditor extends GuiScreen {
                     drawRect(elemX, elemY - 12, elemX + strW + 4, elemY, 0x80000000);
                     fontRendererObj.drawString(coords, elemX + 2, elemY - 10, 0xFFFFFFFF);
 
-                    if (Math.abs(elemX + elemW/2 - width/2) < 5) drawRect(elemX + elemW/2, 0, elemX + elemW/2 + 1, height, 0xFFFF0000);
-                    if (Math.abs(elemY + elemH/2 - height/2) < 5) drawRect(0, elemY + elemH/2, width, elemY + elemH/2 + 1, 0xFFFF0000);
+                    if (Math.abs(elemX + elemW / 2 - width / 2) < 5)
+                        drawRect(elemX + elemW / 2, 0, elemX + elemW / 2 + 1, height, 0xFFFF0000);
+                    if (Math.abs(elemY + elemH / 2 - height / 2) < 5)
+                        drawRect(0, elemY + elemH / 2, width, elemY + elemH / 2 + 1, 0xFFFF0000);
                 }
             } else {
-                GuiModMenu.drawRoundedOutline(elemX - PADDING, elemY - PADDING, elemW + PADDING*2, elemH + PADDING*2, 4, 1.0f, 0x40FFFFFF);
+                GuiModMenu.drawRoundedOutline(elemX - PADDING, elemY - PADDING, elemW + PADDING * 2, elemH + PADDING * 2, 4, 1.0f, 0x40FFFFFF);
             }
         }
 
@@ -72,13 +73,33 @@ public class GuiHudEditor extends GuiScreen {
         int modsBtnY = height / 2 - modsBtnH / 2;
 
         boolean hoverMods = mouseX >= modsBtnX && mouseX <= modsBtnX + modsBtnW && mouseY >= modsBtnY && mouseY <= modsBtnY + modsBtnH;
-
         int modsBg = hoverMods ? 0xFF555555 : 0xFF333333;
         int modsBorder = hoverMods ? 0xFFFFFFFF : 0xFFAAAAAA;
 
         GuiModMenu.drawRoundedRect(modsBtnX, modsBtnY, modsBtnW, modsBtnH, 6, modsBg);
         GuiModMenu.drawRoundedOutline(modsBtnX, modsBtnY, modsBtnW, modsBtnH, 6, 1.5f, modsBorder);
         drawCenteredString(fontRendererObj, "MODS", width / 2, modsBtnY + 9, 0xFFFFFFFF);
+
+        int resetBtnSize = 25;
+        int resetBtnX = modsBtnX + modsBtnW + 5;
+        int resetBtnY = modsBtnY;
+
+        boolean hoverReset = mouseX >= resetBtnX && mouseX <= resetBtnX + resetBtnSize && mouseY >= resetBtnY && mouseY <= resetBtnY + resetBtnSize;
+        int resetBg = hoverReset ? 0xFFFF5555 : 0xFF333333;
+        int resetBorder = hoverReset ? 0xFFFFFFFF : 0xFFAAAAAA;
+
+        GuiModMenu.drawRoundedRect(resetBtnX, resetBtnY, resetBtnSize, resetBtnSize, 6, resetBg);
+        GuiModMenu.drawRoundedOutline(resetBtnX, resetBtnY, resetBtnSize, resetBtnSize, 6, 1.5f, resetBorder);
+
+        String icon = "\u21BB";
+        drawCenteredString(fontRendererObj, icon, resetBtnX + resetBtnSize / 2, resetBtnY + 8, 0xFFFFFFFF);
+
+        if (hoverReset) {
+            String tooltip = "Reinicia todas as posições";
+            int tw = fontRendererObj.getStringWidth(tooltip);
+            drawRect(mouseX + 5, mouseY - 15, mouseX + 5 + tw + 4, mouseY - 2, 0xCC000000); // Fundo tooltip
+            fontRendererObj.drawStringWithShadow(tooltip, mouseX + 7, mouseY - 13, 0xFFFFAA00);
+        }
 
         GlStateManager.popMatrix();
 
@@ -98,11 +119,26 @@ public class GuiHudEditor extends GuiScreen {
             return;
         }
 
+        int resetBtnSize = 25;
+        int resetBtnX = modsBtnX + modsBtnW + 5;
+        int resetBtnY = modsBtnY;
+
+        if (mouseButton == 0 && mouseX >= resetBtnX && mouseX <= resetBtnX + resetBtnSize && mouseY >= resetBtnY && mouseY <= resetBtnY + resetBtnSize) {
+            mc.getSoundHandler().playSound(net.minecraft.client.audio.PositionedSoundRecord.create(new ResourceLocation("gui.button.press"), 1.0F));
+
+            for (HudElement element : WorthClient.hudManager.getElements()) {
+                element.x = 2;
+                element.y = 2;
+                HudPositionManager.savePosition(element);
+            }
+            return;
+        }
+
         for (HudElement element : WorthClient.hudManager.getElements()) {
             int w = element.getWidth();
             int h = element.getHeight();
 
-            if (isMouseOver(mouseX, mouseY, element.x - PADDING, element.y - PADDING, w + PADDING*2, h + PADDING*2)) {
+            if (isMouseOver(mouseX, mouseY, element.x - PADDING, element.y - PADDING, w + PADDING * 2, h + PADDING * 2)) {
                 element.dragging = true;
                 element.dragOffsetX = mouseX - element.x;
                 element.dragOffsetY = mouseY - element.y;
@@ -120,11 +156,11 @@ public class GuiHudEditor extends GuiScreen {
                 element.x = mouseX - element.dragOffsetX;
                 element.y = mouseY - element.dragOffsetY;
 
-                if (Math.abs(element.x + element.getWidth()/2 - width/2) < 8) {
-                    element.x = width/2 - element.getWidth()/2;
+                if (Math.abs(element.x + element.getWidth() / 2 - width / 2) < 8) {
+                    element.x = width / 2 - element.getWidth() / 2;
                 }
-                if (Math.abs(element.y + element.getHeight()/2 - height/2) < 8) {
-                    element.y = height/2 - element.getHeight()/2;
+                if (Math.abs(element.y + element.getHeight() / 2 - height / 2) < 8) {
+                    element.y = height / 2 - element.getHeight() / 2;
                 }
             }
         }
