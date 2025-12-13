@@ -19,7 +19,6 @@ public class ZoomHandler {
     private boolean wasKeyDown = false;
     private boolean running = false;
     private float originalFov = 70.0F;
-    private float targetFov = 70.0F;
     private float scrollOffset = 0.0F;
     private float originalSensitivity = 1.0F;
     private boolean originalSmoothCamera = false;
@@ -135,7 +134,7 @@ public class ZoomHandler {
 
             if (percentage <= 1 && !active) return;
 
-            String text = "Zoom: \u00A7a" + percentage + "%";
+            String text = "Zoom: §a" + percentage + "%";
 
             int width = sr.getScaledWidth();
             int height = sr.getScaledHeight();
