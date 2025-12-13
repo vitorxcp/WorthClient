@@ -62,7 +62,6 @@ public class WorthClient {
     public static boolean WailaMod = false;
     private final SessionManager sessionManager = new SessionManager();
     private static ServerData lastServerAttempted;
-
     public static boolean blockPetMessages = true;
     public static boolean blockInventoryMessages = true;
     public static boolean announceZealot = true;
@@ -72,38 +71,24 @@ public class WorthClient {
     public static boolean pingOverlay = true;
     public static boolean fpsOverlay = true;
     public static boolean RadarOverlay = false;
-
     public static boolean mainHandHUDOverlay = true;
     public static boolean helmetHUDOverlay = true;
     public static boolean chestplateHUDOverlay = true;
     public static boolean leggingsHUDOverlay = true;
     public static boolean bootsHUDOverlay = true;
     public static boolean PerspectiveModToggle = false;
-
     public static boolean petDisplayViewOff = false;
     public static boolean viewsPetAll = false;
     public static boolean showTime = false;
     public static boolean enableCopy = false;
     public static boolean keystrokesOverlay = false;
-
-    public static boolean guiEditorArmor = false;
-    public static boolean guiEditorPet = false;
-    public static boolean guiEditorChat = false;
-    public static boolean GuiKeyEditor = false;
-    public static boolean GuiOverlay = false;
     public static boolean GuiPerspective = false;
     public static boolean GuiAdminPainel = false;
-
     public static boolean pendingOpenMenu = false;
     public static boolean pendingOpenMenuHud = false;
-
     public static boolean perspective = false;
-
-    public static boolean modoOfflineAtivo = false;
-
     public static HudManager hudManager;
     public static KeystrokesManager keystrokesManager;
-
     public static boolean guiEditorAdmin = false;
     public static boolean GuiAdminazw = false;
     public static String nameArsAdmin;
@@ -140,15 +125,11 @@ public class WorthClient {
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent e) {
         MinecraftForge.EVENT_BUS.register(new com.vitorxp.WorthClient.WindowUtils());
-
         LoadingScreenHook.inject();
         MinecraftForge.EVENT_BUS.register(LoadingScreenHook.INSTANCE);
-
         SSLTrustBypasser.install();
         SSLTrustManager.initialize();
-
         PerfConfig.load(e.getSuggestedConfigurationFile());
-
         File configFile = e.getSuggestedConfigurationFile();
         VoidLagFixConfig.syncConfig(configFile);
     }
@@ -157,22 +138,16 @@ public class WorthClient {
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
-
         System.out.println("WorthClient ativando...");
-
         AccountManager.loadAccounts();
-
         String clientId = "1325483160011804754";
         DiscordRPC.start(clientId);
-
         ActivationManager.init();
         ConfigManager.load();
         HudPositionManager.load();
         Keybinds.init();
         KeystrokesColors.loadColors();
-
         MinecraftForge.EVENT_BUS.register(this);
-
         MinecraftForge.EVENT_BUS.register(new com.vitorxp.WorthClient.gui.TerrainLoadingHook());
         MinecraftForge.EVENT_BUS.register(new VoidBlockLagFix());
         MinecraftForge.EVENT_BUS.register(new ParticleLimiter());
@@ -182,10 +157,8 @@ public class WorthClient {
         MinecraftForge.EVENT_BUS.register(new MinecraftOptimizer());
         MinecraftForge.EVENT_BUS.register(new ZoomHandler());
         MinecraftForge.EVENT_BUS.register(new PerspectiveMod());
-
         HudPositionManager.load();
         hudManager = new HudManager();
-
         hudManager.register(
                 new FPSHUD(),
                 new PingHUD(),
@@ -197,7 +170,6 @@ public class WorthClient {
                 new ArmorStatusHUD(),
                 new LookAtHUD()
         );
-
         ClientCommandHandler.instance.registerCommand(new CommandBase() {
             public String getCommandName() { return "chatsettings"; }
             public String getCommandUsage(ICommandSender sender) { return "/chatsettings"; }
@@ -206,13 +178,10 @@ public class WorthClient {
                 WorthClient.openGuiChat = true;
             }
         });
-
         MinecraftForge.EVENT_BUS.register(hudManager);
         MinecraftForge.EVENT_BUS.register(new TracerLineRenderer());
-
         keystrokesManager = new KeystrokesManager();
         MinecraftForge.EVENT_BUS.register(keystrokesManager);
-
         MinecraftForge.EVENT_BUS.register(new AnnounceMutante());
         MinecraftForge.EVENT_BUS.register(new AnnounceMutanteEvent());
         MinecraftForge.EVENT_BUS.register(new DestroyBlock());
@@ -231,7 +200,6 @@ public class WorthClient {
         MinecraftForge.EVENT_BUS.register(new Keybinds());
         MinecraftForge.EVENT_BUS.register(new RadarInteractionHandler());
         MinecraftForge.EVENT_BUS.register(new PlayerInspectorHandler());
-
         ClientCommandHandler.instance.registerCommand(new CommandPetMaxBlock());
         ClientCommandHandler.instance.registerCommand(new CommandInventoryBlock());
         ClientCommandHandler.instance.registerCommand(new CommandMutanteAnnounce());
@@ -244,28 +212,22 @@ public class WorthClient {
         ClientCommandHandler.instance.registerCommand(new ECTPCOmmand());
         ClientCommandHandler.instance.registerCommand(new PainelAdminCommand());
         ClientCommandHandler.instance.registerCommand(new CommandAntiCheatLogs());
-
         com.vitorxp.WorthClient.socket.ClientSocket.connect();
-
         GameSettings settings = Minecraft.getMinecraft().gameSettings;
         settings.fboEnable = true;
         settings.useVbo = true;
         settings.ambientOcclusion = 0;
         settings.clouds = 0;
-
         try {
             settings.mipmapLevels = 4;
         } catch (Exception ignored) {}
-
         Minecraft.getMinecraft().renderGlobal.loadRenderers();
-
         System.out.println("WorthClient carregado e otimizações aplicadas!");
     }
 
-
     @Mod.EventHandler
     public void postInit(FMLPostInitializationEvent e) {
-
+        // nd aq, ent ignora ;3
     }
 
     @SubscribeEvent
