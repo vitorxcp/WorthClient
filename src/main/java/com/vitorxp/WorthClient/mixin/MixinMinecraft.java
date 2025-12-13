@@ -99,7 +99,7 @@ public abstract class MixinMinecraft {
             if (visualProgress > 0.60) step = "Processando Texturas...";
             if (visualProgress > 0.75) step = "Renderizando Modelos...";
             if (visualProgress > 0.85) step = "Finalizando...";
-            if (visualProgress > 0.92) step = "Bem-vindo!";
+            if (visualProgress > 1.00) step = "Iniciando...";
 
             updateBar(step, visualProgress);
         }
