@@ -1,18 +1,24 @@
 package com.vitorxp.WorthClient.gui;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
+import java.awt.Color;
 
-import java.awt.*;
+public class WorthLoadingGUI extends Gui {
 
-public class WorthLoadingGUI extends GuiScreen {
-
+    private final Minecraft mc;
     private static final ResourceLocation LOGO = new ResourceLocation("worthclient", "textures/gui/logo_main.png");
-    private static final ResourceLocation BACKGROUND = new ResourceLocation("worthclient", "textures/gui/Background_3.png");
 
-    public String text = "Carregando...";
+    // Configurações de cores (Estilo Lunar)
+    private static final int BG_COLOR = new Color(20, 20, 20).getRGB(); // Fundo quase preto
+    private static final int BAR_BG_COLOR = new Color(40, 40, 40).getRGB(); // Fundo da barra
+    private static final int GRADIENT_START = new Color(0, 205, 255).getRGB(); // Azul Ciano
+    private static final int GRADIENT_END = new Color(0, 122, 255).getRGB();   // Azul Royal
+
+    public String text = "Iniciando...";
     public float progress = 0f;
 
     public WorthLoadingGUI(Minecraft mc) {
@@ -24,62 +30,91 @@ public class WorthLoadingGUI extends GuiScreen {
         this.progress = newProgress;
     }
 
-    @Override
-    public void drawScreen(int mouseX, int mouseY, float partialTicks) {
-        float alpha = 1.0f;
+    // Recebe largura e altura escaladas (ScaledResolution)
+    public void drawScreen(int width, int height) {
 
-        drawRect(0, 0, width, height, 0xFF101010);
+        // 1. FUNDO SÓLIDO (Limpo)
+        drawRect(0, 0, width, height, BG_COLOR);
 
-        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+        // 2. LOGO PULSANTE (BREATHING)
+        drawAnimatedLogo(width, height);
 
-        try {
-            mc.getTextureManager().bindTexture(BACKGROUND);
-            drawModalRectWithCustomSizedTexture(0, 0, 0, 0, width, height, width, height);
-        } catch (Exception ignored) {}
+        // 3. BARRA DE PROGRESSO (Estilo Lunar: Fina no rodapé)
+        drawProgressBar(width, height);
 
-        drawRect(0, 0, width, height, new Color(0, 0, 0, 100).getRGB());
-
-        drawLogo();
-        drawProgressBar(alpha);
-        drawLoadingText(alpha);
+        // 4. TEXTO E MEMÓRIA
+        drawTextInfo(width, height);
     }
 
-    private void drawLogo() {
+    private void drawAnimatedLogo(int w, int h) {
         GlStateManager.pushMatrix();
         GlStateManager.enableBlend();
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
 
+        // Animação de Pulsar (Breathing)
+        double time = System.currentTimeMillis() / 1000.0;
+        float scale = 1.0f + (float) Math.sin(time * 2.0) * 0.05f; // Oscila 5%
+
+        int imgW = 128; // Tamanho da logo
+        int imgH = 128;
+
+        // Centraliza e aplica zoom
+        GlStateManager.translate(w / 2.0f, h / 2.0f - 20, 0); // -20 para subir um pouco
+        GlStateManager.scale(scale, scale, 1.0f);
+        GlStateManager.translate(-imgW / 2.0f, -imgH / 2.0f, 0);
+
         try {
             mc.getTextureManager().bindTexture(LOGO);
-            int w = 340 / 2;
-            int h = 300 / 2;
-            int x = width / 2 - w / 2;
-            int y = height / 2 - 80;
-            drawModalRectWithCustomSizedTexture(x, y, 0, 0, w, h, w, h);
+            drawModalRectWithCustomSizedTexture(0, 0, 0, 0, imgW, imgH, imgW, imgH);
         } catch (Exception e) {
-            drawRect(width/2 - 50, height/2 - 50, width/2 + 50, height/2 + 50, -1);
+            // Se não tiver logo, desenha texto placeholder
+            GlStateManager.popMatrix(); // Reseta matrix antes de desenhar texto
+            drawCenteredString(mc.fontRendererObj, "WORTH CLIENT", w/2, h/2 - 20, -1);
+            return;
         }
-
         GlStateManager.popMatrix();
     }
 
-    private void drawLoadingText(float alpha) {
-        int c = new Color(220, 220, 220, 255).getRGB();
-        String drawTxt = (text == null) ? "Carregando..." : text;
-        drawCenteredString(fontRendererObj, drawTxt, width / 2, height / 2 + 70, c);
+    private void drawProgressBar(int w, int h) {
+        int barHeight = 6; // Barra fina
+        int barY = h - 40; // Um pouco acima do fim da tela
+        int barWidth = w - 100; // Margem de 50px de cada lado
+        int barX = 50;
+
+        // Fundo da barra (Cinza Escuro)
+        drawRect(barX, barY, barX + barWidth, barY + barHeight, BAR_BG_COLOR);
+
+        // Preenchimento com Degradê
+        int fillWidth = (int) (barWidth * progress);
+        if (fillWidth > 0) {
+            drawGradientRect(barX, barY, barX + fillWidth, barY + barHeight, GRADIENT_START, GRADIENT_END);
+        }
     }
 
-    private void drawProgressBar(float alpha) {
-        int barWidth = 250;
-        int barHeight = 10;
-        int x = width / 2 - barWidth / 2;
-        int y = height / 2 + 50;
+    private void drawTextInfo(int w, int h) {
+        if (mc.fontRendererObj == null) return;
 
-        drawRect(x, y, x + barWidth, y + barHeight, new Color(40, 40, 50, 255).getRGB());
+        int barY = h - 40;
+        int barX = 50;
 
-        int fill = (int) (barWidth * progress);
+        // Texto "Iniciando..." acima da barra
+        mc.fontRendererObj.drawStringWithShadow(text, barX, barY - 12, 0xFFFFFF);
 
-        Color neon = new Color(0, 170, 255, 255);
-        drawRect(x, y, x + fill, y + barHeight, neon.getRGB());
+        // Porcentagem na direita
+        String pct = (int)(progress * 100) + "%";
+        int pctW = mc.fontRendererObj.getStringWidth(pct);
+        mc.fontRendererObj.drawStringWithShadow(pct, w - 50 - pctW, barY - 12, 0xAAAAAA);
+
+        // Info de Memória (Pequeno no canto inferior direito)
+        long maxMem = Runtime.getRuntime().maxMemory();
+        long totalMem = Runtime.getRuntime().totalMemory();
+        long freeMem = Runtime.getRuntime().freeMemory();
+        long usedMem = totalMem - freeMem;
+
+        String ram = "RAM: " + (usedMem / 1024L / 1024L) + "MB / " + (maxMem / 1024L / 1024L) + "MB";
+        int ramW = mc.fontRendererObj.getStringWidth(ram);
+
+        // Desenha bem no cantinho
+        mc.fontRendererObj.drawStringWithShadow(ram, w - ramW - 5, h - 12, 0x555555);
     }
 }
