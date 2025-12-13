@@ -237,6 +237,13 @@ public class GuiModMenu extends GuiScreen {
                             com.vitorxp.WorthClient.manager.ConfigManager.save();
                         }
                 ));
+                settings.add(new BooleanSetting("Iniciar de Frente",
+                        () -> WorthClient.PerspectiveStartFront,
+                        () -> {
+                            WorthClient.PerspectiveStartFront = !WorthClient.PerspectiveStartFront;
+                            com.vitorxp.WorthClient.manager.ConfigManager.save();
+                        }
+                ));
             }
         });
 
