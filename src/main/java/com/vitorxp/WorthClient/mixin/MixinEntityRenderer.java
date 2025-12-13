@@ -1,6 +1,5 @@
 package com.vitorxp.WorthClient.mixin;
 
-import com.vitorxp.WorthClient.WorthClient;
 import com.vitorxp.WorthClient.utils.PerspectiveMod;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.EntityRenderer;
@@ -22,7 +21,6 @@ public class MixinEntityRenderer {
     private float originalPrevYaw;
     private float originalPitch;
     private float originalPrevPitch;
-
     private float originalHeadYaw;
     private float originalPrevHeadYaw;
     private float originalRenderYawOffset;
@@ -30,11 +28,11 @@ public class MixinEntityRenderer {
 
     /**
      * @author vitorxp
-     * @reason Correção RIGOROSA de X-Ray: Alinha corpo, cabeça e visão para o RayTrace bater na parede.
+     * @reason Correção RIGOROSA de X-Ray e Colisão
      */
     @Inject(method = "orientCamera", at = @At("HEAD"))
     private void onOrientCameraHead(float partialTicks, CallbackInfo ci) {
-        if (WorthClient.PerspectiveModToggle && mc.getRenderViewEntity() instanceof EntityLivingBase) {
+        if (PerspectiveMod.perspectiveToggled && mc.getRenderViewEntity() instanceof EntityLivingBase) {
             EntityLivingBase entity = (EntityLivingBase) mc.getRenderViewEntity();
 
             originalYaw = entity.rotationYaw;
@@ -64,7 +62,7 @@ public class MixinEntityRenderer {
 
     @Inject(method = "orientCamera", at = @At("RETURN"))
     private void onOrientCameraReturn(float partialTicks, CallbackInfo ci) {
-        if (WorthClient.PerspectiveModToggle && mc.getRenderViewEntity() instanceof EntityLivingBase) {
+        if (PerspectiveMod.perspectiveToggled && mc.getRenderViewEntity() instanceof EntityLivingBase) {
             EntityLivingBase entity = (EntityLivingBase) mc.getRenderViewEntity();
 
             entity.rotationYaw = originalYaw;
@@ -85,7 +83,7 @@ public class MixinEntityRenderer {
             require = 0
     )
     public int getDX() {
-        return WorthClient.PerspectiveModToggle ? 0 : Mouse.getDX();
+        return PerspectiveMod.perspectiveToggled ? 0 : Mouse.getDX();
     }
 
     @Redirect(
@@ -94,6 +92,6 @@ public class MixinEntityRenderer {
             require = 0
     )
     public int getDY() {
-        return WorthClient.PerspectiveModToggle ? 0 : Mouse.getDY();
+        return PerspectiveMod.perspectiveToggled ? 0 : Mouse.getDY();
     }
 }
