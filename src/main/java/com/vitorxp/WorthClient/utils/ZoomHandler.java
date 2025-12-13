@@ -40,7 +40,7 @@ public class ZoomHandler {
     public void onRenderTick(TickEvent.RenderTickEvent event) {
         if (event.phase != TickEvent.Phase.START) return;
 
-        boolean isKeyDown = Keybinds.zoomKey.isKeyDown();
+        boolean isKeyDown = Keybinds.ZoomM.isKeyDown();
 
         if (com.vitorxp.WorthClient.WorthClient.enableToggleZoom) {
             if (isKeyDown && !wasKeyDown) {
