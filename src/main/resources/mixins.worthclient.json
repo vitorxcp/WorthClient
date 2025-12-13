@@ -6,7 +6,14 @@
   "refmap": "worthclient.refmap.json",
   "mixins": [
     "MixinLoadingScreenRenderer",
-    "MixinGuiPlayerTabOverlay"
+    "MixinGuiPlayerTabOverlay",
+    "MixinEnumChatFormatting",
+    "MixinMinecraft",
+    "MixinRenderItem",
+    "MixinMathHelper",
+    "MixinModelLoader",
+    "MixinEntityRenderer",
+    "MixinNetworkManager"
   ],
   "client": [],
   "injectors": {
