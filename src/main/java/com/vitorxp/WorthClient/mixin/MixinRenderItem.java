@@ -13,7 +13,7 @@ public class MixinRenderItem {
 
     @Inject(method = "renderItem(Lnet/minecraft/item/ItemStack;Lnet/minecraft/client/resources/model/IBakedModel;)V", at = @At("HEAD"), cancellable = true)
     public void limitItemRendering(ItemStack stack, IBakedModel model, CallbackInfo ci) {
-        if (stack == null || stack.getItem() == null) {
+        if (stack == null || stack.getItem() == null || model == null) {
             ci.cancel();
         }
     }
