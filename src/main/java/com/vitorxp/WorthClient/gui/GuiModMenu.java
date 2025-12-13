@@ -535,6 +535,7 @@ public class GuiModMenu extends GuiScreen {
                     for (Setting s : selectedMod.settings) {
                         if (s.mouseClicked(adjMouseX, setY, adjMouseX, adjMouseY, mouseButton)) {
                             ConfigManager.save();
+                            NotificationRenderer.send(NotificationRenderer.Type.SUCCESS, "Configurações salvas!");
                             return;
                         }
                         setY += (settingHeight + 5);
