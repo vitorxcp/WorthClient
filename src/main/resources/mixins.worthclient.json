@@ -13,7 +13,8 @@
     "MixinModelLoader",
     "MixinEntityRenderer",
     "MixinNetworkManager",
-    "MixinRenderGlobal"
+    "MixinRenderGlobal",
+    "MixinRenderManager"
   ],
   "client": [],
   "injectors": {
