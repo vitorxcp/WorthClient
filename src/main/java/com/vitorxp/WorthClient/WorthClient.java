@@ -60,6 +60,8 @@ public class WorthClient {
     public static boolean ArmorsOverlays = false;
     public static int KeyPerspective = Keyboard.KEY_LMENU;
     public static boolean WailaMod = false;
+    public static boolean enableToggleZoom = false;
+    public static int KeyZoom = Keyboard.KEY_C;
     private final SessionManager sessionManager = new SessionManager();
     private static ServerData lastServerAttempted;
     public static boolean blockPetMessages = true;
