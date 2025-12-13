@@ -89,7 +89,7 @@ public abstract class MixinMinecraft {
                 visualProgress = 0.6f + (rawProgress - 0.5f) * 0.5f;
             }
 
-            if (visualProgress > 0.95f) visualProgress = 0.95f;
+            if (visualProgress > 0.99f) visualProgress = 0.99f;
 
             String step = "Iniciando...";
             if (visualProgress > 0.05) step = "Lendo Configurações...";
@@ -99,7 +99,7 @@ public abstract class MixinMinecraft {
             if (visualProgress > 0.60) step = "Processando Texturas...";
             if (visualProgress > 0.75) step = "Renderizando Modelos...";
             if (visualProgress > 0.85) step = "Finalizando...";
-            if (visualProgress > 1.00) step = "Iniciando...";
+            if (visualProgress > 0.98) step = "Iniciando...";
 
             updateBar(step, visualProgress);
         }
