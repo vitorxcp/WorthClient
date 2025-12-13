@@ -1,6 +1,5 @@
 package com.vitorxp.WorthClient.mixin;
 
-import com.vitorxp.WorthClient.WorthClient;
 import com.vitorxp.WorthClient.utils.PerspectiveMod;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderGlobal;
@@ -17,22 +16,37 @@ public class MixinRenderGlobal {
 
     @Shadow private Minecraft mc;
 
+    private float originalYaw;
+    private float originalPitch;
+    private float originalPrevYaw;
+    private float originalPrevPitch;
+
     /**
      * @author vitorxp
-     * @reason Animação?
+     * @reason Corrige o "Frustum Culling" (Chunks sumindo) sem mexer a cabeça do player.
      */
     @Inject(method = "setupTerrain", at = @At("HEAD"))
     private void setupTerrain(Entity viewEntity, double partialTicks, ICamera camera, int frameCount, boolean playerSpectator, CallbackInfo ci) {
-        if (WorthClient.PerspectiveModToggle && viewEntity == mc.getRenderViewEntity()) {
-            //viewEntity.rotationYaw = PerspectiveMod.cameraYaw;
-            //viewEntity.rotationPitch = PerspectiveMod.cameraPitch;
-            //viewEntity.prevRotationYaw = PerspectiveMod.cameraYaw;
-            //viewEntity.prevRotationPitch = PerspectiveMod.cameraPitch;
+        if (PerspectiveMod.perspectiveToggled && viewEntity == mc.getRenderViewEntity()) {
+            originalYaw = viewEntity.rotationYaw;
+            originalPitch = viewEntity.rotationPitch;
+            originalPrevYaw = viewEntity.prevRotationYaw;
+            originalPrevPitch = viewEntity.prevRotationPitch;
+
+            viewEntity.rotationYaw = PerspectiveMod.cameraYaw;
+            viewEntity.rotationPitch = PerspectiveMod.cameraPitch;
+            viewEntity.prevRotationYaw = PerspectiveMod.cameraYaw;
+            viewEntity.prevRotationPitch = PerspectiveMod.cameraPitch;
         }
     }
 
     @Inject(method = "setupTerrain", at = @At("RETURN"))
     private void setupTerrainReturn(Entity viewEntity, double partialTicks, ICamera camera, int frameCount, boolean playerSpectator, CallbackInfo ci) {
-        if (WorthClient.PerspectiveModToggle && viewEntity == mc.getRenderViewEntity()) {}
+        if (PerspectiveMod.perspectiveToggled && viewEntity == mc.getRenderViewEntity()) {
+            viewEntity.rotationYaw = originalYaw;
+            viewEntity.rotationPitch = originalPitch;
+            viewEntity.prevRotationYaw = originalPrevYaw;
+            viewEntity.prevRotationPitch = originalPrevPitch;
+        }
     }
 }
