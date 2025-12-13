@@ -2,6 +2,7 @@ package com.vitorxp.WorthClient.mixin;
 
 import com.vitorxp.WorthClient.gui.WorthLoadingGUI;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiMainMenu;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
@@ -21,6 +22,8 @@ public abstract class MixinMinecraft {
     @Shadow public abstract void updateDisplay();
     @Shadow public int displayWidth;
     @Shadow public int displayHeight;
+    @Shadow public GuiScreen currentScreen;
+    @Shadow public net.minecraft.client.multiplayer.WorldClient theWorld;
 
     private static WorthLoadingGUI startupGui;
     private static long startTime = System.currentTimeMillis();
@@ -39,6 +42,11 @@ public abstract class MixinMinecraft {
     }
 
     private void updateBar(String text, float progress) {
+        if (this.theWorld != null || (this.currentScreen != null && !(this.currentScreen instanceof WorthLoadingGUI))) {
+            startupGui = null;
+            return;
+        }
+
         if (startupGui == null) return;
 
         ScaledResolution res = new ScaledResolution(Minecraft.getMinecraft());
@@ -72,13 +80,16 @@ public abstract class MixinMinecraft {
         GlStateManager.enableAlpha();
 
         this.updateDisplay();
-        Thread.yield();
     }
 
     @Inject(method = "checkGLError", at = @At("HEAD"))
     private void onCheckGLError(String message, CallbackInfo ci) {
-        if (startupGui != null && Minecraft.getMinecraft().currentScreen == null) {
+        if (this.theWorld != null || this.currentScreen instanceof GuiMainMenu) {
+            startupGui = null;
+            return;
+        }
 
+        if (startupGui != null) {
             long now = System.currentTimeMillis();
             float rawProgress = (now - startTime) / 10000f;
 
@@ -92,14 +103,10 @@ public abstract class MixinMinecraft {
             if (visualProgress > 0.99f) visualProgress = 0.99f;
 
             String step = "Iniciando...";
-            if (visualProgress > 0.05) step = "Lendo Configurações...";
-            if (visualProgress > 0.15) step = "Carregando Bibliotecas...";
-            if (visualProgress > 0.30) step = "Verificando Assets...";
-            if (visualProgress > 0.45) step = "Construindo Itens...";
-            if (visualProgress > 0.60) step = "Processando Texturas...";
-            if (visualProgress > 0.75) step = "Renderizando Modelos...";
-            if (visualProgress > 0.85) step = "Finalizando...";
-            if (visualProgress > 0.98) step = "Iniciando...";
+            if (visualProgress > 0.10) step = "Lendo Configurações...";
+            if (visualProgress > 0.30) step = "Carregando Assets...";
+            if (visualProgress > 0.60) step = "Renderizando...";
+            if (visualProgress > 0.90) step = "Finalizando...";
 
             updateBar(step, visualProgress);
         }
@@ -111,10 +118,4 @@ public abstract class MixinMinecraft {
             startupGui = null;
         }
     }
-
-    @Redirect(method = { "startGame", "func_71384_a", "refreshResources", "func_147115_a" }, at = @At(value = "INVOKE", target = "Ljava/lang/System;gc()V"), require = 0)
-    private void cancelForcedGC() {}
-
-    @Redirect(method = {"runGameLoop", "func_71411_J"}, at = @At(value = "INVOKE", target = "Ljava/lang/Thread;yield()V"), require = 0)
-    private void removeThreadYield() {}
 }
