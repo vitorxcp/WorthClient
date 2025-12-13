@@ -34,8 +34,9 @@ public class ConfigManager {
         obj.addProperty("RadarOverlay", WorthClient.RadarOverlay);
         obj.addProperty("KeyPerspective", WorthClient.KeyPerspective);
         obj.addProperty("WailaMod", WorthClient.WailaMod);
-        obj.addProperty("KeyZoom", com.vitorxp.WorthClient.WorthClient.KeyZoom);
-        obj.addProperty("enableToggleZoom", com.vitorxp.WorthClient.WorthClient.enableToggleZoom);
+        obj.addProperty("KeyZoom", WorthClient.KeyZoom);
+        obj.addProperty("enableToggleZoom", WorthClient.enableToggleZoom);
+        obj.addProperty("PerspectiveStartFront", WorthClient.PerspectiveStartFront);
 
         try (FileWriter writer = new FileWriter(FILE)) {
             new Gson().toJson(obj, writer);
@@ -73,6 +74,7 @@ public class ConfigManager {
             if (obj.has("WailaMod")) WorthClient.WailaMod = obj.get("WailaMod").getAsBoolean();
             if (obj.has("KeyZoom")) WorthClient.KeyZoom = obj.get("KeyZoom").getAsInt();
             if (obj.has("enableToggleZoom")) WorthClient.enableToggleZoom = obj.get("enableToggleZoom").getAsBoolean();
+            if (obj.has("PerspectiveStartFront")) WorthClient.PerspectiveStartFront = obj.get("PerspectiveStartFront").getAsBoolean();
 
         } catch (Exception e) {
             e.printStackTrace();
