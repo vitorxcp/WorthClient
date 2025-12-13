@@ -220,7 +220,6 @@ public class GuiModMenu extends GuiScreen {
         });
 
         allModules.add(new ModCard("Perspective", "Visão 360", "360", Category.WORLD) {
-            @Override public boolean isEnabled() { return WorthClient.GuiPerspective; }
             @Override public boolean isMenuOnly() { return true; }
             @Override public void initSettings() {
                 settings.add(new KeybindSetting("Tecla do Perspective",
@@ -235,6 +234,27 @@ public class GuiModMenu extends GuiScreen {
                         () -> com.vitorxp.WorthClient.WorthClient.PerspectiveModToggle,
                         () -> {
                             WorthClient.PerspectiveModToggle = !WorthClient.PerspectiveModToggle;
+                            com.vitorxp.WorthClient.manager.ConfigManager.save();
+                        }
+                ));
+            }
+        });
+
+        allModules.add(new ModCard("Zoom", "Amplifique com o Zoom", "Z", Category.WORLD) {
+            @Override public boolean isMenuOnly() { return true; }
+            @Override public void initSettings() {
+                settings.add(new KeybindSetting("Tecla do Zoom",
+                        () -> WorthClient.KeyZoom,
+                        (val) -> {
+                            WorthClient.KeyZoom = val;
+                            com.vitorxp.WorthClient.keybinds.Keybinds.updateZoomKey(val);
+                            com.vitorxp.WorthClient.manager.ConfigManager.save();
+                        }
+                ));
+                settings.add(new BooleanSetting("Modo Toggle (Ativar/Desativar)",
+                        () -> WorthClient.enableToggleZoom,
+                        () -> {
+                            WorthClient.enableToggleZoom = !WorthClient.enableToggleZoom;
                             com.vitorxp.WorthClient.manager.ConfigManager.save();
                         }
                 ));
