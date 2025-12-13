@@ -12,6 +12,7 @@ import org.lwjgl.opengl.Display;
 public class PerspectiveMod {
 
     private final Minecraft mc;
+    public static boolean perspectiveToggled = false;
     public static float cameraYaw = 0f;
     public static float cameraPitch = 0f;
     private boolean wasKeyDown = false;
@@ -22,9 +23,11 @@ public class PerspectiveMod {
     }
 
     public void enable() {
-        if (WorthClient.PerspectiveModToggle) return;
+        if (perspectiveToggled) return;
+        perspectiveToggled = true;
 
         previousThirdPersonView = mc.gameSettings.thirdPersonView;
+
         mc.gameSettings.thirdPersonView = 1;
 
         if (mc.thePlayer != null) {
@@ -39,7 +42,9 @@ public class PerspectiveMod {
     }
 
     public void disable() {
-        if (!WorthClient.PerspectiveModToggle) return;
+        if (!perspectiveToggled) return;
+        perspectiveToggled = false;
+
         mc.gameSettings.thirdPersonView = previousThirdPersonView;
     }
 
@@ -53,15 +58,15 @@ public class PerspectiveMod {
 
         if (toggleMode) {
             if (keyDown && !wasKeyDown) {
-                if (WorthClient.PerspectiveModToggle) disable(); else enable();
+                if (perspectiveToggled) disable(); else enable();
             }
         } else {
-            if (keyDown && !WorthClient.PerspectiveModToggle) enable();
-            if (!keyDown && WorthClient.PerspectiveModToggle) disable();
+            if (keyDown && !perspectiveToggled) enable();
+            if (!keyDown && perspectiveToggled) disable();
         }
         wasKeyDown = keyDown;
 
-        if (WorthClient.PerspectiveModToggle && mc.gameSettings.thirdPersonView != 1) {
+        if (perspectiveToggled && mc.gameSettings.thirdPersonView != 1) {
             mc.gameSettings.thirdPersonView = 1;
         }
     }
@@ -70,7 +75,7 @@ public class PerspectiveMod {
     public void onRenderTick(TickEvent.RenderTickEvent event) {
         if (event.phase != TickEvent.Phase.START) return;
 
-        if (WorthClient.PerspectiveModToggle && mc.inGameHasFocus && Display.isActive()) {
+        if (perspectiveToggled && mc.inGameHasFocus && Display.isActive()) {
             handleMouseMovement();
         }
     }
@@ -99,7 +104,7 @@ public class PerspectiveMod {
 
     @SubscribeEvent
     public void onCameraSetup(EntityViewRenderEvent.CameraSetup event) {
-        if (WorthClient.PerspectiveModToggle) {
+        if (perspectiveToggled) {
             event.yaw = cameraYaw;
             event.pitch = cameraPitch;
         }
