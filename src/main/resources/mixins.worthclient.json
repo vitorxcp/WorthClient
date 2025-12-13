@@ -12,7 +12,8 @@
     "MixinMathHelper",
     "MixinModelLoader",
     "MixinEntityRenderer",
-    "MixinNetworkManager"
+    "MixinNetworkManager",
+    "MixinRenderGlobal"
   ],
   "client": [],
   "injectors": {
