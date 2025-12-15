@@ -21,10 +21,7 @@ import com.vitorxp.WorthClient.manager.*;
 import com.vitorxp.WorthClient.optimization.*;
 
 import com.vitorxp.WorthClient.rpc.DiscordRPC;
-import com.vitorxp.WorthClient.utils.PerspectiveMod;
-import com.vitorxp.WorthClient.utils.SSLTrustBypasser;
-import com.vitorxp.WorthClient.utils.SSLTrustManager;
-import com.vitorxp.WorthClient.utils.ZoomHandler;
+import com.vitorxp.WorthClient.utils.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.*;
 import net.minecraft.client.multiplayer.GuiConnecting;
@@ -63,6 +60,7 @@ public class WorthClient {
     public static boolean enableToggleZoom = false;
     public static int KeyZoom = Keyboard.KEY_C;
     public static boolean PerspectiveStartFront = false;
+    public static boolean AutoLoginEnabled = true;
     private final SessionManager sessionManager = new SessionManager();
     private static ServerData lastServerAttempted;
     public static boolean blockPetMessages = true;
@@ -159,8 +157,10 @@ public class WorthClient {
         MinecraftForge.EVENT_BUS.register(new LightOptimizer());
         MinecraftForge.EVENT_BUS.register(new MinecraftOptimizer());
         MinecraftForge.EVENT_BUS.register(new ZoomHandler());
+        MinecraftForge.EVENT_BUS.register(new AutoTextHandler());
         MinecraftForge.EVENT_BUS.register(new PerspectiveMod());
         HudPositionManager.load();
+        AutoTextManager.load();
         hudManager = new HudManager();
         hudManager.register(
                 new FPSHUD(),
@@ -203,6 +203,7 @@ public class WorthClient {
         MinecraftForge.EVENT_BUS.register(new Keybinds());
         MinecraftForge.EVENT_BUS.register(new RadarInteractionHandler());
         MinecraftForge.EVENT_BUS.register(new PlayerInspectorHandler());
+        MinecraftForge.EVENT_BUS.register(new AutoLoginHandler());
         ClientCommandHandler.instance.registerCommand(new CommandPetMaxBlock());
         ClientCommandHandler.instance.registerCommand(new CommandInventoryBlock());
         ClientCommandHandler.instance.registerCommand(new CommandMutanteAnnounce());
@@ -221,6 +222,9 @@ public class WorthClient {
         settings.useVbo = true;
         settings.ambientOcclusion = 0;
         settings.clouds = 0;
+
+        AutoLoginManager.load();
+
         try {
             settings.mipmapLevels = 4;
         } catch (Exception ignored) {}
