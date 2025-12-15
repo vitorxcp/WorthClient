@@ -37,6 +37,7 @@ public class ConfigManager {
         obj.addProperty("KeyZoom", WorthClient.KeyZoom);
         obj.addProperty("enableToggleZoom", WorthClient.enableToggleZoom);
         obj.addProperty("PerspectiveStartFront", WorthClient.PerspectiveStartFront);
+        obj.addProperty(("AutoLoginEnabled"), WorthClient.AutoLoginEnabled);
 
         try (FileWriter writer = new FileWriter(FILE)) {
             new Gson().toJson(obj, writer);
@@ -75,6 +76,7 @@ public class ConfigManager {
             if (obj.has("KeyZoom")) WorthClient.KeyZoom = obj.get("KeyZoom").getAsInt();
             if (obj.has("enableToggleZoom")) WorthClient.enableToggleZoom = obj.get("enableToggleZoom").getAsBoolean();
             if (obj.has("PerspectiveStartFront")) WorthClient.PerspectiveStartFront = obj.get("PerspectiveStartFront").getAsBoolean();
+            if(obj.has("AutoLoginEnabled")) WorthClient.AutoLoginEnabled = obj.get("AutoLoginEnabled").getAsBoolean();
 
         } catch (Exception e) {
             e.printStackTrace();
