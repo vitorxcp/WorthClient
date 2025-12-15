@@ -10,12 +10,10 @@ import com.vitorxp.WorthClient.config.KeystrokesColors;
 import javax.swing.JColorChooser;
 import java.awt.Color;
 
-import net.minecraft.client.network.NetHandlerPlayClient;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.WorldRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ResourceLocation;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
@@ -201,6 +199,43 @@ public class GuiModMenu extends GuiScreen {
                 settings.add(new BooleanSetting("Mostrar Botas",
                         () -> WorthClient.bootsHUDOverlay,
                         () -> WorthClient.bootsHUDOverlay = !WorthClient.bootsHUDOverlay
+                ));
+            }
+        });
+
+        allModules.add(new ModCard("AutoLogin", "Login Automático (Pirata)", "key", Category.WORLD) {
+            @Override public boolean isEnabled() { return WorthClient.AutoLoginEnabled; }
+            @Override public void toggle() { WorthClient.AutoLoginEnabled = !WorthClient.AutoLoginEnabled; }
+            @Override public void initSettings() {
+                settings.add(new BooleanSetting("Habilitar AutoLogin",
+                        () -> WorthClient.AutoLoginEnabled,
+                        () -> {
+                            WorthClient.AutoLoginEnabled = !WorthClient.AutoLoginEnabled;
+                            com.vitorxp.WorthClient.manager.ConfigManager.save();
+                        }
+                ));
+
+                settings.add(new BooleanSetting("Configurar Contas/Servidores",
+                        () -> false,
+                        () -> {
+                            net.minecraft.client.Minecraft.getMinecraft().displayGuiScreen(
+                                    new GuiAutoLoginServers(net.minecraft.client.Minecraft.getMinecraft().currentScreen)
+                            );
+                        }
+                ));
+            }
+        });
+
+        allModules.add(new ModCard("AutoText", "Macros de Texto", "chat", Category.PLAYER) {
+            @Override public boolean isMenuOnly() { return true; }
+            @Override public void initSettings() {
+                settings.add(new BooleanSetting("Configurar Macros",
+                        () -> false,
+                        () -> {
+                            net.minecraft.client.Minecraft.getMinecraft().displayGuiScreen(
+                                    new com.vitorxp.WorthClient.gui.GuiAutoText(net.minecraft.client.Minecraft.getMinecraft().currentScreen)
+                            );
+                        }
                 ));
             }
         });
