@@ -3,6 +3,7 @@ package com.vitorxp.WorthClient.manager;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.vitorxp.WorthClient.WorthClient;
+import com.vitorxp.WorthClient.hud.ScoreboardHUD;
 
 import java.io.*;
 
@@ -38,6 +39,13 @@ public class ConfigManager {
         obj.addProperty("enableToggleZoom", WorthClient.enableToggleZoom);
         obj.addProperty("PerspectiveStartFront", WorthClient.PerspectiveStartFront);
         obj.addProperty(("AutoLoginEnabled"), WorthClient.AutoLoginEnabled);
+        obj.addProperty("toggleScoreBoard", ScoreboardHUD.toggled);
+        obj.addProperty("showNumbersScoreBoard", ScoreboardHUD.showNumbers);
+        obj.addProperty("backgroundScoreBoard", ScoreboardHUD.background);
+        obj.addProperty("backgroundColorScoreBoard", ScoreboardHUD.backgroundColor);
+        obj.addProperty("borderScoreBoard", ScoreboardHUD.border);
+        obj.addProperty("borderColorScoreBoard", ScoreboardHUD.borderColor);
+        obj.addProperty("scaleScoreBoard", ScoreboardHUD.scale);
 
         try (FileWriter writer = new FileWriter(FILE)) {
             new Gson().toJson(obj, writer);
@@ -76,7 +84,14 @@ public class ConfigManager {
             if (obj.has("KeyZoom")) WorthClient.KeyZoom = obj.get("KeyZoom").getAsInt();
             if (obj.has("enableToggleZoom")) WorthClient.enableToggleZoom = obj.get("enableToggleZoom").getAsBoolean();
             if (obj.has("PerspectiveStartFront")) WorthClient.PerspectiveStartFront = obj.get("PerspectiveStartFront").getAsBoolean();
-            if(obj.has("AutoLoginEnabled")) WorthClient.AutoLoginEnabled = obj.get("AutoLoginEnabled").getAsBoolean();
+            if (obj.has("AutoLoginEnabled")) WorthClient.AutoLoginEnabled = obj.get("AutoLoginEnabled").getAsBoolean();
+            if (obj.has("toggleScoreBoard")) ScoreboardHUD.toggled  = obj.get("toggleScoreBoard").getAsBoolean();
+            if (obj.has("showNumbersScoreBoard")) ScoreboardHUD.showNumbers  = obj.get("showNumbersScoreBoard").getAsBoolean();
+            if (obj.has("backgroundScoreBoard")) ScoreboardHUD.background  = obj.get("backgroundScoreBoard").getAsBoolean();
+            if (obj.has("backgroundColorScoreBoard")) ScoreboardHUD.backgroundColor  = obj.get("backgroundColorScoreBoard").getAsInt();
+            if (obj.has("borderScoreBoard")) ScoreboardHUD.border  = obj.get("borderScoreBoard").getAsBoolean();
+            if (obj.has("borderColorScoreBoard")) ScoreboardHUD.borderColor  = obj.get("borderColorScoreBoard").getAsInt();
+            if (obj.has("scaleScoreBoard")) ScoreboardHUD.scale  = obj.get("scaleScoreBoard").getAsInt();
 
         } catch (Exception e) {
             e.printStackTrace();
