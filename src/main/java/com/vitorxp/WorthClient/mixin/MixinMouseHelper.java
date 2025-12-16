@@ -28,7 +28,7 @@ public class MixinMouseHelper {
         if (PerspectiveMod.perspectiveToggled) {
             Minecraft mc = Minecraft.getMinecraft();
 
-            float sensitivity = mc.gameSettings.mouseSensitivity * 0.6F + 0.1F;
+            float sensitivity = mc.gameSettings.mouseSensitivity * 0.6F;
             float multiplier = sensitivity * sensitivity * sensitivity * 8.0F;
 
             float moveX = (float) this.deltaX * multiplier;
