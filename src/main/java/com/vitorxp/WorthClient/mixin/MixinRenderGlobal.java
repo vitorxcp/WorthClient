@@ -28,10 +28,8 @@ public class MixinRenderGlobal {
             originalPitch = viewEntity.rotationPitch;
             originalPrevYaw = viewEntity.prevRotationYaw;
             originalPrevPitch = viewEntity.prevRotationPitch;
-
             viewEntity.rotationYaw = PerspectiveMod.cameraYaw;
             viewEntity.rotationPitch = PerspectiveMod.cameraPitch;
-
             viewEntity.prevRotationYaw = PerspectiveMod.prevCameraYaw;
             viewEntity.prevRotationPitch = PerspectiveMod.prevCameraPitch;
         }
