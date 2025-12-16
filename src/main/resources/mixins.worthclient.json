@@ -18,7 +18,9 @@
     "MixinMouseHelper",
     "MixinMathHelper",
     "MixinSkinManager",
-    "MixinEntityRendererOpt"
+    "MixinEntityRendererOpt",
+    "MixinGuiIngame",
+    "MixinGuiNewChat"
   ],
   "client": [],
   "injectors": {
