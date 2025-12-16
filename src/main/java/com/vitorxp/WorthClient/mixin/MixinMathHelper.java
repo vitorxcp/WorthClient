@@ -7,21 +7,18 @@ import org.spongepowered.asm.mixin.Overwrite;
 @Mixin(MathHelper.class)
 public class MixinMathHelper {
 
-    private static final float[] SIN_TABLE_FAST = new float[65536];
-
-    static {
-        for (int i = 0; i < 65536; ++i) {
-            SIN_TABLE_FAST[i] = (float) Math.sin((double) i * Math.PI * 2.0D / 65536.0D);
-        }
-    }
-
+    /**
+     * @author vitorxp
+     * @reason Substitui a tabela lenta do Minecraft por instruções nativas da CPU.
+     * Melhora a performance matemática sem quebrar a direção (WASD).
+     */
     @Overwrite
     public static float sin(float value) {
-        return SIN_TABLE_FAST[(int) (value * 10430.378F) & 65535];
+        return (float) Math.sin(value);
     }
 
     @Overwrite
     public static float cos(float value) {
-        return SIN_TABLE_FAST[(int) (value * 10430.378F + 16384.0F) & 65535];
+        return (float) Math.cos(value);
     }
 }
