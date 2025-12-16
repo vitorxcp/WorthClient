@@ -147,7 +147,6 @@ public class WorthClient {
         Keybinds.init();
         KeystrokesColors.loadColors();
         MinecraftForge.EVENT_BUS.register(this);
-        MinecraftForge.EVENT_BUS.register(new com.vitorxp.WorthClient.gui.TerrainLoadingHook());
         MinecraftForge.EVENT_BUS.register(new VoidBlockLagFix());
         MinecraftForge.EVENT_BUS.register(new ParticleLimiter());
         MinecraftForge.EVENT_BUS.register(new EntityCull());
