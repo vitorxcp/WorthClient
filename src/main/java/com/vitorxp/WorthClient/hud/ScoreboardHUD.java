@@ -26,7 +26,7 @@ public class ScoreboardHUD extends HudElement {
     public static int backgroundColor = 0x50000000;
     public static int borderColor = 0xFF000000;
     public static float scale = 1.0f;
-    private static final int pad = 5;
+    private static final int padding = 4;
     private int cachedWidth = 0;
     private int cachedHeight = 0;
 
@@ -89,8 +89,7 @@ public class ScoreboardHUD extends HudElement {
         int lineHeight = mc.fontRendererObj.FONT_HEIGHT;
         int listHeight = collection.size() * lineHeight;
         int titleHeight = lineHeight + 2;
-
-        int totalContentWidth = maxWidth + (pad * 2);
+        int totalContentWidth = maxWidth + (padding * 2);
 
         this.cachedWidth = (int) (totalContentWidth * scale);
         this.cachedHeight = (int) ((listHeight + titleHeight) * scale);
@@ -124,10 +123,10 @@ public class ScoreboardHUD extends HudElement {
 
             int lineY = j1 + (collection.size() - i - 1) * lineHeight;
 
-            mc.fontRendererObj.drawString(text, l1 + pad, lineY, 0xFFFFFFFF);
+            mc.fontRendererObj.drawString(text, l1 + padding, lineY, 0xFFFFFFFF);
 
             if (showNumbers) {
-                mc.fontRendererObj.drawString(points, l1 + totalContentWidth - pad - mc.fontRendererObj.getStringWidth(points), lineY, 0xFFFFFFFF);
+                mc.fontRendererObj.drawString(points, l1 + totalContentWidth - padding - mc.fontRendererObj.getStringWidth(points), lineY, 0xFFFFFFFF);
             }
 
             i++;
