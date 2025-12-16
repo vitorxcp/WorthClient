@@ -8,18 +8,16 @@
     "MixinMinecraft",
     "MixinGuiPlayerTabOverlay",
     "MixinEnumChatFormatting",
-    "MixinRenderItem",
     "MixinModelLoader",
     "MixinEntityRenderer",
     "MixinNetworkManager",
     "MixinRenderGlobal",
     "MixinModelPlayer",
     "MixinMouseHelper",
-    "MixinMathHelper",
-    "MixinSkinManager",
-    "MixinEntityRendererOpt",
     "MixinGuiIngame",
-    "MixinRendererLivingEntity"
+    "MixinGuiDisconnected",
+    "MixinRendererLivingEntity",
+    "MixinSoundSystem"
   ],
   "client": [],
   "injectors": {
