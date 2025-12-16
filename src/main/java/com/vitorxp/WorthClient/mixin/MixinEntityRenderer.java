@@ -4,64 +4,33 @@ import com.vitorxp.WorthClient.utils.PerspectiveMod;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.EntityRenderer;
 import net.minecraft.entity.Entity;
-import org.lwjgl.input.Mouse;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(EntityRenderer.class)
 public class MixinEntityRenderer {
 
     @Shadow private Minecraft mc;
 
-    private float originalYaw;
-    private float originalPrevYaw;
-    private float originalPitch;
-    private float originalPrevPitch;
-
-    /**
-     * @author vitorxp
-     * @reason Correção de Câmera/X-Ray sem quebrar cabeças/capas
-     */
-    @Inject(method = "orientCamera", at = @At("HEAD"))
-    private void onOrientCameraHead(float partialTicks, CallbackInfo ci) {
-        if (PerspectiveMod.perspectiveToggled && mc.getRenderViewEntity() != null) {
-            Entity entity = mc.getRenderViewEntity();
-
-            originalYaw = entity.rotationYaw;
-            originalPrevYaw = entity.prevRotationYaw;
-            originalPitch = entity.rotationPitch;
-            originalPrevPitch = entity.prevRotationPitch;
-
-            entity.rotationYaw = PerspectiveMod.cameraYaw;
-            entity.prevRotationYaw = PerspectiveMod.cameraYaw;
-            entity.rotationPitch = PerspectiveMod.cameraPitch;
-            entity.prevRotationPitch = PerspectiveMod.cameraPitch;
-        }
+    @Redirect(method = "orientCamera", at = @At(value = "FIELD", target = "Lnet/minecraft/entity/Entity;rotationYaw:F"))
+    public float getRotationYaw(Entity entity) {
+        return (PerspectiveMod.perspectiveToggled && entity == mc.thePlayer) ? PerspectiveMod.cameraYaw : entity.rotationYaw;
     }
 
-    @Inject(method = "orientCamera", at = @At("RETURN"))
-    private void onOrientCameraReturn(float partialTicks, CallbackInfo ci) {
-        if (PerspectiveMod.perspectiveToggled && mc.getRenderViewEntity() != null) {
-            Entity entity = mc.getRenderViewEntity();
-
-            entity.rotationYaw = originalYaw;
-            entity.prevRotationYaw = originalPrevYaw;
-            entity.rotationPitch = originalPitch;
-            entity.prevRotationPitch = originalPrevPitch;
-        }
+    @Redirect(method = "orientCamera", at = @At(value = "FIELD", target = "Lnet/minecraft/entity/Entity;prevRotationYaw:F"))
+    public float getPrevRotationYaw(Entity entity) {
+        return (PerspectiveMod.perspectiveToggled && entity == mc.thePlayer) ? PerspectiveMod.cameraYaw : entity.prevRotationYaw;
     }
 
-    @Redirect(method = {"updateCameraAndRender", "func_78480_b"}, at = @At(value = "INVOKE", target = "Lorg/lwjgl/input/Mouse;getDX()I"), require = 0)
-    public int getDX() {
-        return PerspectiveMod.perspectiveToggled ? 0 : Mouse.getDX();
+    @Redirect(method = "orientCamera", at = @At(value = "FIELD", target = "Lnet/minecraft/entity/Entity;rotationPitch:F"))
+    public float getRotationPitch(Entity entity) {
+        return (PerspectiveMod.perspectiveToggled && entity == mc.thePlayer) ? PerspectiveMod.cameraPitch : entity.rotationPitch;
     }
 
-    @Redirect(method = {"updateCameraAndRender", "func_78480_b"}, at = @At(value = "INVOKE", target = "Lorg/lwjgl/input/Mouse;getDY()I"), require = 0)
-    public int getDY() {
-        return PerspectiveMod.perspectiveToggled ? 0 : Mouse.getDY();
+    @Redirect(method = "orientCamera", at = @At(value = "FIELD", target = "Lnet/minecraft/entity/Entity;prevRotationPitch:F"))
+    public float getPrevRotationPitch(Entity entity) {
+        return (PerspectiveMod.perspectiveToggled && entity == mc.thePlayer) ? PerspectiveMod.cameraPitch : entity.prevRotationPitch;
     }
 }
