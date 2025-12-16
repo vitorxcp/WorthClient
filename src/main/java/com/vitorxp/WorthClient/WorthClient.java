@@ -10,7 +10,6 @@ import com.vitorxp.WorthClient.config.VoidLagFixConfig;
 import com.vitorxp.WorthClient.events.AnnounceMutanteEvent;
 import com.vitorxp.WorthClient.events.GuiMenuEvent;
 import com.vitorxp.WorthClient.gui.AdminGui;
-import com.vitorxp.WorthClient.gui.LoadingScreenHook;
 import com.vitorxp.WorthClient.gui.utils.NotificationRenderer;
 import com.vitorxp.WorthClient.handlers.PlayerInspectorHandler;
 import com.vitorxp.WorthClient.handlers.RadarInteractionHandler;
@@ -19,7 +18,6 @@ import com.vitorxp.WorthClient.keybinds.Keybinds;
 import com.vitorxp.WorthClient.logger.InventoryLossLogger;
 import com.vitorxp.WorthClient.manager.*;
 import com.vitorxp.WorthClient.optimization.*;
-
 import com.vitorxp.WorthClient.rpc.DiscordRPC;
 import com.vitorxp.WorthClient.utils.*;
 import net.minecraft.client.Minecraft;
@@ -42,8 +40,9 @@ import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.event.FMLServerStoppedEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.common.network.FMLNetworkEvent;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.lwjgl.input.Keyboard;
 
 import java.io.File;
@@ -53,6 +52,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Mod(modid = "worthclient", name = "WorthClient", version = "1.0.1-alpha", dependencies = "after:optifine", clientSideOnly = true)
 public class WorthClient {
+
+    public static final Logger logger = LogManager.getLogger("WorthClient");
+
     public static boolean openGuiChat = false;
     public static boolean ArmorsOverlays = false;
     public static int KeyPerspective = Keyboard.KEY_LMENU;
@@ -123,29 +125,40 @@ public class WorthClient {
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent e) {
-        MinecraftForge.EVENT_BUS.register(new com.vitorxp.WorthClient.WindowUtils());
-        LoadingScreenHook.inject();
-        MinecraftForge.EVENT_BUS.register(LoadingScreenHook.INSTANCE);
-        SSLTrustBypasser.install();
-        SSLTrustManager.initialize();
+        logger.info("==========================================");
+        logger.info("Iniciando WorthClient (Pré-Inicialização)");
+        logger.info("Carregando configurações de performance...");
         PerfConfig.load(e.getSuggestedConfigurationFile());
+        logger.info("Sincronizando configurações do VoidLagFix...");
         File configFile = e.getSuggestedConfigurationFile();
         VoidLagFixConfig.syncConfig(configFile);
+        logger.info("Instalando utilitários de janela e SSL...");
+        MinecraftForge.EVENT_BUS.register(new com.vitorxp.WorthClient.WindowUtils());
+        SSLTrustBypasser.install();
+        SSLTrustManager.initialize();
+        logger.info("Pré-inicialização concluída.");
     }
 
     public static final Map<String, String> pendingPlayersTP = new ConcurrentHashMap<>();
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
-        System.out.println("WorthClient ativando...");
+        logger.info("==========================================");
+        logger.info("Iniciando WorthClient (Carregamento Principal)");
+        logger.info("Carregando Gerenciador de Contas...");
         AccountManager.loadAccounts();
+        logger.info("Iniciando Discord Rich Presence...");
         String clientId = "1325483160011804754";
         DiscordRPC.start(clientId);
+        logger.info("Carregando Gerenciadores (Config, Hud, Keys)...");
         ActivationManager.init();
         ConfigManager.load();
         HudPositionManager.load();
         Keybinds.init();
         KeystrokesColors.loadColors();
+        AutoTextManager.load();
+        AutoLoginManager.load();
+        logger.info("Registrando Eventos e Otimizações...");
         MinecraftForge.EVENT_BUS.register(this);
         MinecraftForge.EVENT_BUS.register(new VoidBlockLagFix());
         MinecraftForge.EVENT_BUS.register(new ParticleLimiter());
@@ -156,8 +169,7 @@ public class WorthClient {
         MinecraftForge.EVENT_BUS.register(new ZoomHandler());
         MinecraftForge.EVENT_BUS.register(new AutoTextHandler());
         MinecraftForge.EVENT_BUS.register(new PerspectiveMod());
-        HudPositionManager.load();
-        AutoTextManager.load();
+        logger.info("Registrando Elementos da HUD...");
         hudManager = new HudManager();
         hudManager.register(
                 new FPSHUD(),
@@ -171,6 +183,9 @@ public class WorthClient {
                 new LookAtHUD(),
                 new ScoreboardHUD()
         );
+        MinecraftForge.EVENT_BUS.register(hudManager);
+
+        logger.info("Registrando Comandos...");
         ClientCommandHandler.instance.registerCommand(new CommandBase() {
             public String getCommandName() { return "chatsettings"; }
             public String getCommandUsage(ICommandSender sender) { return "/chatsettings"; }
@@ -179,10 +194,21 @@ public class WorthClient {
                 WorthClient.openGuiChat = true;
             }
         });
+        ClientCommandHandler.instance.registerCommand(new CommandPetMaxBlock());
+        ClientCommandHandler.instance.registerCommand(new CommandInventoryBlock());
+        ClientCommandHandler.instance.registerCommand(new CommandMutanteAnnounce());
+        ClientCommandHandler.instance.registerCommand(new CommandOpenMenu());
+        ClientCommandHandler.instance.registerCommand(new CommandActivate());
+        ClientCommandHandler.instance.registerCommand(new CommandEditHud());
+        ClientCommandHandler.instance.registerCommand(new CommandTest());
+        ClientCommandHandler.instance.registerCommand(new CopyMessageCommand());
+        ClientCommandHandler.instance.registerCommand(new AdminCommandStaff());
+        ClientCommandHandler.instance.registerCommand(new ECTPCOmmand());
+        ClientCommandHandler.instance.registerCommand(new PainelAdminCommand());
+        ClientCommandHandler.instance.registerCommand(new CommandAntiCheatLogs());
 
+        logger.info("Registrando módulos extras (Keystrokes, Tracer, Anticheat)...");
         keystrokesManager = new KeystrokesManager();
-
-        MinecraftForge.EVENT_BUS.register(hudManager);
         MinecraftForge.EVENT_BUS.register(new TracerLineRenderer());
         MinecraftForge.EVENT_BUS.register(keystrokesManager);
         MinecraftForge.EVENT_BUS.register(new AnnounceMutante());
@@ -204,61 +230,46 @@ public class WorthClient {
         MinecraftForge.EVENT_BUS.register(new RadarInteractionHandler());
         MinecraftForge.EVENT_BUS.register(new PlayerInspectorHandler());
         MinecraftForge.EVENT_BUS.register(new AutoLoginHandler());
-        ClientCommandHandler.instance.registerCommand(new CommandPetMaxBlock());
-        ClientCommandHandler.instance.registerCommand(new CommandInventoryBlock());
-        ClientCommandHandler.instance.registerCommand(new CommandMutanteAnnounce());
-        ClientCommandHandler.instance.registerCommand(new CommandOpenMenu());
-        ClientCommandHandler.instance.registerCommand(new CommandActivate());
-        ClientCommandHandler.instance.registerCommand(new CommandEditHud());
-        ClientCommandHandler.instance.registerCommand(new CommandTest());
-        ClientCommandHandler.instance.registerCommand(new CopyMessageCommand());
-        ClientCommandHandler.instance.registerCommand(new AdminCommandStaff());
-        ClientCommandHandler.instance.registerCommand(new ECTPCOmmand());
-        ClientCommandHandler.instance.registerCommand(new PainelAdminCommand());
-        ClientCommandHandler.instance.registerCommand(new CommandAntiCheatLogs());
+        logger.info("Conectando ao Socket do Cliente...");
         com.vitorxp.WorthClient.socket.ClientSocket.connect();
+        logger.info("Aplicando configurações de renderização (FBO/VBO/Mipmap)...");
         GameSettings settings = Minecraft.getMinecraft().gameSettings;
         settings.fboEnable = true;
         settings.useVbo = true;
         settings.ambientOcclusion = 0;
         settings.clouds = 0;
-
-        AutoLoginManager.load();
-
         try {
             settings.mipmapLevels = 4;
         } catch (Exception ignored) {}
         Minecraft.getMinecraft().renderGlobal.loadRenderers();
-        System.out.println("WorthClient carregado e otimizações aplicadas!");
+        logger.info("WorthClient carregado e pronto!");
+        logger.info("==========================================");
     }
 
     @Mod.EventHandler
     public void postInit(FMLPostInitializationEvent e) {
-        // nd aq, ent ignora ;3
+        logger.info("[Post-Init] Verificando integridade dos módulos...");
     }
 
     @SubscribeEvent
     public void onClientConnectedToServer(FMLNetworkEvent.ClientConnectedToServerEvent event) {
+        logger.info("Conectado ao servidor. Salvando sessão...");
         Minecraft.getMinecraft().addScheduledTask(() -> {
-        Session currentSession = Minecraft.getMinecraft().getSession();
-        sessionManager.saveSession(currentSession);
+            Session currentSession = Minecraft.getMinecraft().getSession();
+            sessionManager.saveSession(currentSession);
         });
     }
 
     @SubscribeEvent
     public void onRenderGameOverlay(RenderGameOverlayEvent.Post event) {
         if (event.type != RenderGameOverlayEvent.ElementType.ALL) return;
-
         Minecraft mc = Minecraft.getMinecraft();
-
         if (mc.displayWidth == 0 || mc.displayHeight == 0) return;
-
         if (mc.thePlayer == null || mc.theWorld == null) return;
-
         try {
             NotificationRenderer.render(mc);
         } catch (Exception e) {
-            System.err.println("[WorthClient] Erro ao renderizar notificação: " + e.getMessage());
+            logger.error("Erro crítico ao renderizar notificação na HUD", e);
         }
     }
 
@@ -272,7 +283,7 @@ public class WorthClient {
                     selectedServerField.setAccessible(true);
                     lastServerAttempted = (ServerData) selectedServerField.get(multiplayerScreen);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    logger.error("Erro ao capturar dados do servidor na GuiMultiplayer", e);
                 }
             }
         }
@@ -283,7 +294,6 @@ public class WorthClient {
         if (event.gui instanceof GuiDisconnected) {
             GuiDisconnected disconnectedScreen = (GuiDisconnected) event.gui;
             String reason = "";
-
             try {
                 Field messageField;
                 try {
@@ -295,11 +305,12 @@ public class WorthClient {
                 IChatComponent messageComponent = (IChatComponent) messageField.get(disconnectedScreen);
                 reason = messageComponent.getUnformattedText();
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error("Erro ao ler motivo de desconexão", e);
                 return;
             }
 
             if (reason.toLowerCase().contains("authentication servers are currently down")) {
+                logger.warn("Falha na autenticação detectada. Tentando reconexão automática com sessão em cache...");
                 if (lastServerAttempted != null) {
                     sessionManager.applyCachedSession();
                     event.setCanceled(true);
@@ -311,9 +322,16 @@ public class WorthClient {
 
     @Mod.EventHandler
     public void onShutdown(FMLServerStoppedEvent event) {
+        logger.info("==========================================");
+        logger.info("Encerrando WorthClient...");
+        logger.info("Parando Discord RPC...");
         DiscordRPC.stop();
+        logger.info("Salvando logs de inventário...");
         InventoryLossLogger.saveToFile();
+        logger.info("Salvando posições da HUD e configurações...");
         HudPositionManager.save();
         ConfigManager.save();
+        logger.info("Cliente finalizado com sucesso.");
+        logger.info("==========================================");
     }
 }
