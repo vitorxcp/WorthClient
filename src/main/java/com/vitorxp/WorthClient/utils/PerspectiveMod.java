@@ -6,15 +6,17 @@ import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.EntityViewRenderEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
-import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 
 public class PerspectiveMod {
 
     private final Minecraft mc;
     public static boolean perspectiveToggled = false;
+
+    // Estas variáveis são modificadas diretamente pelo MixinMouseHelper agora!
     public static float cameraYaw = 0f;
     public static float cameraPitch = 0f;
+
     private boolean wasKeyDown = false;
     private int previousThirdPersonView = 0;
 
@@ -26,17 +28,20 @@ public class PerspectiveMod {
         if (perspectiveToggled) return;
         perspectiveToggled = true;
 
+        // Salva a visão anterior (primeira ou terceira pessoa)
         previousThirdPersonView = mc.gameSettings.thirdPersonView;
 
+        // Força terceira pessoa (Back)
         mc.gameSettings.thirdPersonView = 1;
 
         if (mc.thePlayer != null) {
+            // Sincroniza a câmera com a rotação atual do player para não dar "pulo"
+            cameraPitch = mc.thePlayer.rotationPitch;
+
             if (WorthClient.PerspectiveStartFront) {
                 cameraYaw = mc.thePlayer.rotationYaw + 180f;
-                cameraPitch = mc.thePlayer.rotationPitch;
             } else {
                 cameraYaw = mc.thePlayer.rotationYaw;
-                cameraPitch = mc.thePlayer.rotationPitch;
             }
         }
     }
@@ -45,6 +50,7 @@ public class PerspectiveMod {
         if (!perspectiveToggled) return;
         perspectiveToggled = false;
 
+        // Restaura a visão original
         mc.gameSettings.thirdPersonView = previousThirdPersonView;
     }
 
@@ -53,7 +59,8 @@ public class PerspectiveMod {
         if (event.phase != TickEvent.Phase.START) return;
         if (mc.thePlayer == null || mc.theWorld == null) return;
 
-        boolean toggleMode = com.vitorxp.WorthClient.WorthClient.PerspectiveModToggle;
+        // Lógica de Toggle (Segurar ou Apertar)
+        boolean toggleMode = WorthClient.PerspectiveModToggle;
         boolean keyDown = Keybinds.perspectiveM.isKeyDown();
 
         if (toggleMode) {
@@ -66,45 +73,20 @@ public class PerspectiveMod {
         }
         wasKeyDown = keyDown;
 
+        // Força a terceira pessoa enquanto o mod estiver ligado
         if (perspectiveToggled && mc.gameSettings.thirdPersonView != 1) {
             mc.gameSettings.thirdPersonView = 1;
         }
     }
 
-    @SubscribeEvent
-    public void onRenderTick(TickEvent.RenderTickEvent event) {
-        if (event.phase != TickEvent.Phase.START) return;
-
-        if (perspectiveToggled && mc.inGameHasFocus && Display.isActive()) {
-            handleMouseMovement();
-        }
-    }
-
-    public void handleMouseMovement() {
-        float f = mc.gameSettings.mouseSensitivity * 0.6F + 0.2F;
-        float mul = f * f * f * 8.0F;
-
-        float dx = Mouse.getDX() * mul * 0.15F;
-        float dy = Mouse.getDY() * mul * 0.15F;
-
-        cameraYaw += dx;
-
-        if (mc.gameSettings.invertMouse) {
-            cameraPitch += dy;
-        } else {
-            cameraPitch -= dy;
-        }
-
-        if (cameraPitch > 90F) cameraPitch = 90F;
-        if (cameraPitch < -90F) cameraPitch = -90F;
-
-        if (cameraYaw <= -180F) cameraYaw += 360F;
-        if (cameraYaw > 180F) cameraYaw -= 360F;
-    }
+    // REMOVIDO: onRenderTick e handleMouseMovement
+    // Motivo: Isso agora é feito no MixinMouseHelper para máxima performance e compatibilidade com OptiFine.
 
     @SubscribeEvent
     public void onCameraSetup(EntityViewRenderEvent.CameraSetup event) {
         if (perspectiveToggled) {
+            // Isso ajuda mods externos a saberem para onde estamos olhando,
+            // embora o MixinEntityRenderer já faça o trabalho visual principal.
             event.yaw = cameraYaw;
             event.pitch = cameraPitch;
         }
