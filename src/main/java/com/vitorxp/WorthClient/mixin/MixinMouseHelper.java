@@ -2,12 +2,12 @@ package com.vitorxp.WorthClient.mixin;
 
 import com.vitorxp.WorthClient.utils.PerspectiveMod;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.settings.GameSettings;
 import net.minecraft.util.MouseHelper;
-import org.lwjgl.input.Mouse;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(MouseHelper.class)
 public class MixinMouseHelper {
@@ -15,30 +15,52 @@ public class MixinMouseHelper {
     @Shadow public int deltaX;
     @Shadow public int deltaY;
 
-    /**
-     * @author
-     * @reason
-     */
-    @Overwrite
-    public void mouseXYChange() {
-        this.deltaX = Mouse.getDX();
-        this.deltaY = Mouse.getDY();
+    private float smoothCamFilterX;
+    private float smoothCamFilterY;
 
+    /**
+     * @author vitorxp
+     * @reason Move a câmera do Perspective Mod usando a EXATA mesma matemática do Minecraft Vanilla.
+     * Inclui suporte a Sensibilidade, Inverter Mouse e Smooth Camera (F8).
+     */
+    @Inject(method = "mouseXYChange", at = @At("RETURN"))
+    public void onMouseXYChange(CallbackInfo ci) {
         if (PerspectiveMod.perspectiveToggled) {
             Minecraft mc = Minecraft.getMinecraft();
-            if (mc.currentScreen != null) return;
 
-            GameSettings settings = mc.gameSettings;
-            float f = settings.mouseSensitivity * 0.6F + 0.2F;
-            float sensitivity = f * f * f * 8.0F;
+            float sensitivity = mc.gameSettings.mouseSensitivity * 0.6F + 0.1F;
+            float multiplier = sensitivity * sensitivity * sensitivity * 8.0F;
 
-            float dx = (float)this.deltaX * sensitivity;
-            float dy = (float)this.deltaY * sensitivity;
+            float moveX = (float) this.deltaX * multiplier;
+            float moveY = (float) this.deltaY * multiplier;
 
-            if (settings.invertMouse) dy = -dy;
+            if (mc.gameSettings.smoothCamera) {
+                float smoothFactor = multiplier * 0.5F;
+                float smoothX = (float) this.deltaX * smoothFactor;
+                float smoothY = (float) this.deltaY * smoothFactor;
 
-            PerspectiveMod.cameraYaw += dx * 0.15F;
-            PerspectiveMod.cameraPitch -= dy * 0.15F;
+                this.smoothCamFilterX += smoothX;
+                this.smoothCamFilterY += smoothY;
+
+                float dampX = this.smoothCamFilterX * 0.5F;
+                float dampY = this.smoothCamFilterY * 0.5F;
+
+                this.smoothCamFilterX -= dampX;
+                this.smoothCamFilterY -= dampY;
+
+                moveX = dampX;
+                moveY = dampY;
+            } else {
+                this.smoothCamFilterX = 0.0F;
+                this.smoothCamFilterY = 0.0F;
+            }
+
+            if (mc.gameSettings.invertMouse) {
+                moveY = -moveY;
+            }
+
+            PerspectiveMod.cameraYaw += moveX;
+            PerspectiveMod.cameraPitch += moveY;
 
             if (PerspectiveMod.cameraPitch > 90.0F) PerspectiveMod.cameraPitch = 90.0F;
             if (PerspectiveMod.cameraPitch < -90.0F) PerspectiveMod.cameraPitch = -90.0F;
