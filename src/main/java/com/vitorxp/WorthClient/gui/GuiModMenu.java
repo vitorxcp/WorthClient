@@ -2,6 +2,7 @@ package com.vitorxp.WorthClient.gui;
 
 import com.vitorxp.WorthClient.WorthClient;
 import com.vitorxp.WorthClient.gui.utils.NotificationRenderer;
+import com.vitorxp.WorthClient.hud.ScoreboardHUD;
 import com.vitorxp.WorthClient.manager.ActivationManager;
 import com.vitorxp.WorthClient.manager.ConfigManager;
 import net.minecraft.client.Minecraft;
@@ -122,29 +123,29 @@ public class GuiModMenu extends GuiScreen {
         allModules.add(new ModCard("Scoreboard", "Customiza a tabela lateral", "scoreboard", Category.HUD) {
             @Override
             public boolean isEnabled() {
-                return com.vitorxp.WorthClient.hud.ScoreboardHUD.toggled;
+                return ScoreboardHUD.toggled;
             }
 
             @Override
             public void toggle() {
-                com.vitorxp.WorthClient.hud.ScoreboardHUD.toggled = !com.vitorxp.WorthClient.hud.ScoreboardHUD.toggled;
+                ScoreboardHUD.toggled = !ScoreboardHUD.toggled;
             }
 
             @Override
             public void initSettings() {
                 settings.add(new BooleanSetting("Mostrar Números",
-                        () -> com.vitorxp.WorthClient.hud.ScoreboardHUD.showNumbers,
-                        () -> com.vitorxp.WorthClient.hud.ScoreboardHUD.showNumbers = !com.vitorxp.WorthClient.hud.ScoreboardHUD.showNumbers
+                        () -> ScoreboardHUD.showNumbers,
+                        () -> ScoreboardHUD.showNumbers = !ScoreboardHUD.showNumbers
                 ));
 
                 settings.add(new BooleanSetting("Fundo",
-                        () -> com.vitorxp.WorthClient.hud.ScoreboardHUD.background,
-                        () -> com.vitorxp.WorthClient.hud.ScoreboardHUD.background = !com.vitorxp.WorthClient.hud.ScoreboardHUD.background
+                        () -> ScoreboardHUD.background,
+                        () -> ScoreboardHUD.background = !ScoreboardHUD.background
                 ));
 
                 settings.add(new BooleanSetting("Borda",
-                        () -> com.vitorxp.WorthClient.hud.ScoreboardHUD.border,
-                        () -> com.vitorxp.WorthClient.hud.ScoreboardHUD.border = !com.vitorxp.WorthClient.hud.ScoreboardHUD.border
+                        () -> ScoreboardHUD.border,
+                        () -> ScoreboardHUD.border = !ScoreboardHUD.border
                 ));
 
                 settings.add(new ModeSetting("Tamanho", "Normal", Arrays.asList("Pequeno", "Normal", "Grande", "Gigante")) {
@@ -152,10 +153,10 @@ public class GuiModMenu extends GuiScreen {
                     boolean mouseClicked(int x, int y, int mouseX, int mouseY, int mouseButton) {
                         if (super.mouseClicked(x, y, mouseX, mouseY, mouseButton)) {
                             switch (this.currentValue) {
-                                case "Pequeno": com.vitorxp.WorthClient.hud.ScoreboardHUD.scale = 0.75f; break;
-                                case "Normal":  com.vitorxp.WorthClient.hud.ScoreboardHUD.scale = 1.0f; break;
-                                case "Grande":  com.vitorxp.WorthClient.hud.ScoreboardHUD.scale = 1.25f; break;
-                                case "Gigante": com.vitorxp.WorthClient.hud.ScoreboardHUD.scale = 1.5f; break;
+                                case "Pequeno": ScoreboardHUD.scale = 0.75f; break;
+                                case "Normal":  ScoreboardHUD.scale = 1.0f; break;
+                                case "Grande":  ScoreboardHUD.scale = 1.25f; break;
+                                case "Gigante": ScoreboardHUD.scale = 1.5f; break;
                             }
                             return true;
                         }
@@ -164,23 +165,23 @@ public class GuiModMenu extends GuiScreen {
                 });
 
                 settings.add(new ColorSetting("Cor do Fundo",
-                        () -> new java.awt.Color(com.vitorxp.WorthClient.hud.ScoreboardHUD.backgroundColor, true),
-                        (c) -> com.vitorxp.WorthClient.hud.ScoreboardHUD.backgroundColor = c.getRGB()
+                        () -> new java.awt.Color(ScoreboardHUD.backgroundColor, true),
+                        (c) -> ScoreboardHUD.backgroundColor = c.getRGB()
                 ));
 
                 settings.add(new ColorSetting("Cor da Borda",
-                        () -> new java.awt.Color(com.vitorxp.WorthClient.hud.ScoreboardHUD.borderColor, true),
-                        (c) -> com.vitorxp.WorthClient.hud.ScoreboardHUD.borderColor = c.getRGB()
+                        () -> new java.awt.Color(ScoreboardHUD.borderColor, true),
+                        (c) -> ScoreboardHUD.borderColor = c.getRGB()
                 ));
 
                 settings.add(new ActionSetting("Resetar (Padrão Vanilla)", () -> {
-                    com.vitorxp.WorthClient.hud.ScoreboardHUD.backgroundColor = 0x50000000;
-                    com.vitorxp.WorthClient.hud.ScoreboardHUD.borderColor = 0xFF000000;
-                    com.vitorxp.WorthClient.hud.ScoreboardHUD.background = true;
-                    com.vitorxp.WorthClient.hud.ScoreboardHUD.showNumbers = true;
-                    com.vitorxp.WorthClient.hud.ScoreboardHUD.border = false;
-                    com.vitorxp.WorthClient.hud.ScoreboardHUD.scale = 1.0f;
-                    com.vitorxp.WorthClient.gui.utils.NotificationRenderer.send(com.vitorxp.WorthClient.gui.utils.NotificationRenderer.Type.SUCCESS, "Scoreboard Resetada!");
+                    ScoreboardHUD.backgroundColor = 0x50000000;
+                    ScoreboardHUD.borderColor = 0xFF000000;
+                    ScoreboardHUD.background = true;
+                    ScoreboardHUD.showNumbers = true;
+                    ScoreboardHUD.border = false;
+                    ScoreboardHUD.scale = 1.0f;
+                    NotificationRenderer.send(com.vitorxp.WorthClient.gui.utils.NotificationRenderer.Type.SUCCESS, "Scoreboard Resetada!");
                 }));
             }
         });
