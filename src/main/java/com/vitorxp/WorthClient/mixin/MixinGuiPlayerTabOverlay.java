@@ -110,7 +110,7 @@ public abstract class MixinGuiPlayerTabOverlay extends Gui {
 
     private boolean checkMatch(String cleanDisplay, String myNick) {
         if (cleanDisplay.isEmpty()) return false;
-
+        if (cleanDisplay.contains(cleanString("Perfil: "+ myNick))) return false;
         if (cleanDisplay.contains(cleanString(myNick))) return true;
 
         if (ClientSocket.usersUsingClient != null) {
