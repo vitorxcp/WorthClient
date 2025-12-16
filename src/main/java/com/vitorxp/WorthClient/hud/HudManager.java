@@ -17,8 +17,8 @@ public class HudManager {
     private int lastHeight = -1;
     private final Map<HudElement, Integer> prevWidths = new HashMap<>();
     private final Map<HudElement, Integer> prevHeights = new HashMap<>();
-    private final Map<HudElement, Integer> anchorRight = new HashMap<>();
-    private final Map<HudElement, Integer> anchorBottom = new HashMap<>();
+    private final Map<HudElement, Integer> targetXMap = new HashMap<>();
+    private final Map<HudElement, Integer> targetYMap = new HashMap<>();
 
     public void register(HudElement... elementsToAdd) {
         for (HudElement element : elementsToAdd) {
@@ -35,15 +35,20 @@ public class HudManager {
         int curWidth = event.resolution.getScaledWidth();
         int curHeight = event.resolution.getScaledHeight();
 
+        for (HudElement element : elements.values()) {
+            if (!targetXMap.containsKey(element)) targetXMap.put(element, element.x);
+            if (!targetYMap.containsKey(element)) targetYMap.put(element, element.y);
+        }
+
         if (lastWidth != -1 && lastHeight != -1 && (curWidth != lastWidth || curHeight != lastHeight)) {
             float ratioX = (float) curWidth / lastWidth;
             float ratioY = (float) curHeight / lastHeight;
 
             for (HudElement element : elements.values()) {
-                element.x = Math.round(element.x * ratioX);
-                element.y = Math.round(element.y * ratioY);
-                anchorRight.remove(element);
-                anchorBottom.remove(element);
+                int newX = Math.round(targetXMap.get(element) * ratioX);
+                int newY = Math.round(targetYMap.get(element) * ratioY);
+                targetXMap.put(element, newX);
+                targetYMap.put(element, newY);
             }
         }
         lastWidth = curWidth;
@@ -55,57 +60,38 @@ public class HudManager {
             int w = element.getWidth();
             int h = element.getHeight();
 
+            int targetX = targetXMap.get(element);
+            int targetY = targetYMap.get(element);
+
+            if (element.dragging) {
+                targetX = element.x;
+                targetY = element.y;
+                targetXMap.put(element, targetX);
+                targetYMap.put(element, targetY);
+            }
+
             int prevW = prevWidths.getOrDefault(element, w);
             int prevH = prevHeights.getOrDefault(element, h);
 
             if (w != prevW) {
-                if (anchorRight.containsKey(element)) {
-                    int dist = anchorRight.get(element);
-                    element.x = curWidth - w - dist;
-                } else if (element.x + (prevW / 2) > curWidth / 2) {
-                    element.x += (prevW - w);
+                if (targetX + (prevW / 2) > curWidth / 2) {
+                    targetX += (prevW - w);
+                    targetXMap.put(element, targetX);
                 }
                 prevWidths.put(element, w);
-            } else {
-                if (element.x >= 0 && element.x + w <= curWidth) {
-                    if (element.x + (w / 2) > curWidth / 2) {
-                        anchorRight.put(element, curWidth - (element.x + w));
-                    } else {
-                        anchorRight.remove(element);
-                    }
-                }
             }
 
             if (h != prevH) {
-                if (anchorBottom.containsKey(element)) {
-                    int dist = anchorBottom.get(element);
-                    element.y = curHeight - h - dist;
-                } else if (element.y + (prevH / 2) > curHeight / 2) {
-                    element.y += (prevH - h);
+                if (targetY + (prevH / 2) > curHeight / 2) {
+                    targetY += (prevH - h);
+                    targetYMap.put(element, targetY);
                 }
                 prevHeights.put(element, h);
-            } else {
-                if (element.y >= 0 && element.y + h <= curHeight) {
-                    if (element.y + (h / 2) > curHeight / 2) {
-                        anchorBottom.put(element, curHeight - (element.y + h));
-                    } else {
-                        anchorBottom.remove(element);
-                    }
-                }
             }
 
-            validatePosition(element, curWidth, curHeight);
+            element.x = Math.max(0, Math.min(curWidth - w, targetX));
+            element.y = Math.max(0, Math.min(curHeight - h, targetY));
         }
-    }
-
-    private void validatePosition(HudElement element, int screenWidth, int screenHeight) {
-        int w = element.getWidth();
-        int h = element.getHeight();
-
-        if (element.x + w > screenWidth) element.x = screenWidth - w;
-        if (element.y + h > screenHeight) element.y = screenHeight - h;
-        if (element.x < 0) element.x = 0;
-        if (element.y < 0) element.y = 0;
     }
 
     @SubscribeEvent public void onRenderPost(RenderGameOverlayEvent.Post event) { for (HudElement e : elements.values()) e.renderPost(event); }
