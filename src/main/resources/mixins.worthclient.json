@@ -9,12 +9,16 @@
     "MixinGuiPlayerTabOverlay",
     "MixinEnumChatFormatting",
     "MixinRenderItem",
-    "MixinMathHelper",
     "MixinModelLoader",
     "MixinEntityRenderer",
     "MixinNetworkManager",
     "MixinRenderGlobal",
-    "MixinRenderManager"
+    "MixinTextureManager",
+    "MixinModelPlayer",
+    "MixinMouseHelper",
+    "MixinMathHelper",
+    "MixinSkinManager",
+    "MixinEntityRendererOpt"
   ],
   "client": [],
   "injectors": {
