@@ -83,14 +83,12 @@ public class WorthClient {
     public static boolean showTime = false;
     public static boolean enableCopy = false;
     public static boolean keystrokesOverlay = false;
-    public static boolean GuiPerspective = false;
     public static boolean GuiAdminPainel = false;
     public static boolean pendingOpenMenu = false;
     public static boolean pendingOpenMenuHud = false;
     public static boolean perspective = false;
     public static HudManager hudManager;
     public static KeystrokesManager keystrokesManager;
-    public static boolean guiEditorAdmin = false;
     public static boolean GuiAdminazw = false;
     public static String nameArsAdmin;
 
@@ -171,7 +169,8 @@ public class WorthClient {
                 new KeystrokesLmbHud(),
                 new KeystrokesRmbHud(),
                 new ArmorStatusHUD(),
-                new LookAtHUD()
+                new LookAtHUD(),
+                new ScoreboardHUD()
         );
         ClientCommandHandler.instance.registerCommand(new CommandBase() {
             public String getCommandName() { return "chatsettings"; }
@@ -181,9 +180,11 @@ public class WorthClient {
                 WorthClient.openGuiChat = true;
             }
         });
+
+        keystrokesManager = new KeystrokesManager();
+
         MinecraftForge.EVENT_BUS.register(hudManager);
         MinecraftForge.EVENT_BUS.register(new TracerLineRenderer());
-        keystrokesManager = new KeystrokesManager();
         MinecraftForge.EVENT_BUS.register(keystrokesManager);
         MinecraftForge.EVENT_BUS.register(new AnnounceMutante());
         MinecraftForge.EVENT_BUS.register(new AnnounceMutanteEvent());
