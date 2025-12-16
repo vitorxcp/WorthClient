@@ -16,6 +16,7 @@ public class MixinRenderGlobal {
 
     @Shadow private Minecraft mc;
 
+    // Backup das variáveis
     private float originalYaw;
     private float originalPitch;
     private float originalPrevYaw;
@@ -23,10 +24,11 @@ public class MixinRenderGlobal {
 
     /**
      * @author vitorxp
-     * @reason Corrige o "Frustum Culling" (Chunks sumindo) sem mexer a cabeça do player.
+     * @reason Versão Estável - Baseada no código original que você tinha.
+     * Altera a rotação apenas durante o Culling e restaura logo em seguida.
      */
     @Inject(method = "setupTerrain", at = @At("HEAD"))
-    private void setupTerrain(Entity viewEntity, double partialTicks, ICamera camera, int frameCount, boolean playerSpectator, CallbackInfo ci) {
+    private void setupTerrainHead(Entity viewEntity, double partialTicks, ICamera camera, int frameCount, boolean playerSpectator, CallbackInfo ci) {
         if (PerspectiveMod.perspectiveToggled && viewEntity == mc.getRenderViewEntity()) {
             originalYaw = viewEntity.rotationYaw;
             originalPitch = viewEntity.rotationPitch;
