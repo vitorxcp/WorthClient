@@ -90,12 +90,23 @@ public class ScoreboardHUD extends HudElement {
         int listHeight = collection.size() * lineHeight;
         int titleHeight = lineHeight + 2;
         int totalContentWidth = maxWidth + (padding * 2);
+        int totalContentHeight = listHeight + titleHeight;
 
         this.cachedWidth = (int) (totalContentWidth * scale);
-        this.cachedHeight = (int) ((listHeight + titleHeight) * scale);
+        this.cachedHeight = (int) (totalContentHeight * scale);
 
         int l1 = this.x;
         int j1 = this.y;
+
+        if (l1 == 0 && j1 == 0) {
+            ScaledResolution scaledRes = new ScaledResolution(mc);
+            int screenWidth = scaledRes.getScaledWidth();
+            int screenHeight = scaledRes.getScaledHeight();
+
+            l1 = screenWidth - totalContentWidth - 3;
+
+            j1 = (screenHeight / 2) - (totalContentHeight / 2);
+        }
 
         GlStateManager.pushMatrix();
         GlStateManager.translate(l1, j1, 0);
