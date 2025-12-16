@@ -26,44 +26,41 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 
 public class GuiClientMainMenu extends GuiScreen {
 
-    // --- Resources ---
     private static final ResourceLocation BACKGROUND_BLUR = new ResourceLocation("worthclient", "textures/gui/Background_3.png");
     private static final ResourceLocation MAIN_LOGO = new ResourceLocation("worthclient", "textures/gui/logo_main.png");
-
-    // Ícones
     private static final ResourceLocation ICON_DISCORD = new ResourceLocation("worthclient", "textures/icons/discord.png");
-    private static final ResourceLocation ICON_SETTINGS = new ResourceLocation("worthclient", "textures/icons/settings.png");
+    private static final ResourceLocation ICON_THEME = new ResourceLocation("worthclient", "textures/icons/theme.png");
     private static final ResourceLocation ICON_RELOAD = new ResourceLocation("worthclient", "textures/icons/reload.png");
     private static final ResourceLocation ICON_CLOSE = new ResourceLocation("worthclient", "textures/icons/close.png");
-
-    // --- Animation & State ---
     private long animationStartTime;
     private boolean isOpening, isClosing;
-    private final int ANIMATION_DURATION_MS = 600; // Um pouco mais lento para suavidade
+    private final int ANIMATION_DURATION_MS = 600;
     private GuiScreen nextScreen = null;
+    private GuiIconButton discordButton;
+    private GuiIconButton themeButton;
+    private GuiIconButton reloadButton;
+    private GuiIconButton closeButton;
 
-    // Theme Selector Animation
     private boolean showThemeSelector = false;
-    private float themeSelectorAlpha = 0.0f; // Para fade in/out do menu de temas
+    private float themeSelectorAlpha = 0.0f;
 
-    // --- Server Data ---
     private String serverMotd = "Carregando informações...";
     private final String SERVER_STATUS_API = "https://api.mcstatus.io/v2/status/java/redeworth.com";
 
-    // --- Theme System ---
     public enum Theme {
-        DARK("Dark", new Color(15, 15, 15, 230), new Color(255, 255, 255), new Color(255, 170, 0)),
-        STANDARD("Worth", new Color(30, 20, 10, 210), new Color(255, 220, 50), new Color(255, 215, 0)),
-        LIGHT("Light", new Color(245, 245, 245, 230), new Color(40, 40, 40), new Color(255, 140, 0));
+        DARK("Dark", new Color(15, 15, 15, 140), new Color(255, 255, 255), new Color(255, 170, 0)),
+        STANDARD("Worth", new Color(30, 20, 10, 130), new Color(255, 220, 50), new Color(255, 215, 0)),
+        LIGHT("Light", new Color(245, 245, 245, 160), new Color(40, 40, 40), new Color(255, 140, 0));
 
         String name;
         Color overlayColor;
         Color textColor;
-        Color accentColor; // Cor de destaque (botões, hover)
+        Color accentColor;
 
         Theme(String name, Color overlay, Color text, Color accent) {
             this.name = name;
@@ -73,7 +70,7 @@ public class GuiClientMainMenu extends GuiScreen {
         }
     }
 
-    public static Theme currentTheme = Theme.STANDARD;
+    public static Theme currentTheme = Theme.DARK;
 
     @Override
     public void initGui() {
@@ -86,25 +83,29 @@ public class GuiClientMainMenu extends GuiScreen {
         int spacing = 32;
         int startY = centerY - 15;
 
-        this.buttonList.add(new GuiIconButton(3, this.width - 40, 20, 24, 24, ICON_CLOSE));
+        this.closeButton = new GuiIconButton(3, this.width - 35, 10, 24, 24, ICON_CLOSE);
+        this.buttonList.add(this.closeButton);
         this.buttonList.add(new GuiModernButton(0, centerX - (btnWidth / 2), startY, btnWidth, btnHeight, "Singleplayer", 500L));
         this.buttonList.add(new GuiModernButton(1, centerX - (btnWidth / 2), startY + spacing, btnWidth, btnHeight, "Multiplayer", 600L));
         this.buttonList.add(new GuiModernButton(2, centerX - (btnWidth / 2), startY + spacing * 2, btnWidth, btnHeight, "Opções", 700L));
 
         int iconSize = 24;
         int iconSpacing = 20;
-        int bottomY = this.height - 60;
-
+        int bottomY = this.height - 45
+;
         int totalGroupWidth = (iconSize * 3) + (iconSpacing * 2);
         int currentX = centerX - (totalGroupWidth / 2);
 
-        this.buttonList.add(new GuiIconButton(4, currentX, bottomY, iconSize, iconSize, ICON_RELOAD));
+        this.reloadButton = new GuiIconButton(4, currentX, bottomY, iconSize, iconSize, ICON_RELOAD);
+        this.buttonList.add(this.reloadButton);
         currentX += iconSize + iconSpacing;
 
-        this.buttonList.add(new GuiIconButton(5, currentX, bottomY, iconSize, iconSize, ICON_DISCORD));
+        this.discordButton = new GuiIconButton(5, currentX, bottomY, iconSize, iconSize, ICON_DISCORD);
+        this.buttonList.add(this.discordButton);
         currentX += iconSize + iconSpacing;
 
-        this.buttonList.add(new GuiIconButton(7, currentX, bottomY, iconSize, iconSize, ICON_SETTINGS));
+        this.themeButton = new GuiIconButton(7, currentX, bottomY, iconSize, iconSize, ICON_THEME);
+        this.buttonList.add(this.themeButton);
 
         if (serverMotd.equals("Carregando informações...")) {
             fetchServerMotd();
@@ -144,7 +145,9 @@ public class GuiClientMainMenu extends GuiScreen {
         drawMotd(uiAlpha);
 
         for (GuiButton button : this.buttonList) {
-            if (showThemeSelector && themeSelectorAlpha > 0.8f) { if (button.id != 7) { } }
+            if (showThemeSelector && themeSelectorAlpha > 0.8f) {
+                // Lógica de bloqueio se necessário
+            }
 
             if (button instanceof GuiModernButton) {
                 ((GuiModernButton) button).drawButton(this.mc, mouseX, mouseY, uiAlpha);
@@ -157,7 +160,29 @@ public class GuiClientMainMenu extends GuiScreen {
             }
         }
 
-        this.drawCenteredString(this.fontRendererObj, "WorthClient © 2025 - Developed by vitorxp", this.width / 2, this.height - 20, new Color(150, 150, 150, (int)(255 * uiAlpha)).getRGB());
+        this.drawCenteredString(this.fontRendererObj, "WorthClient © 2025 - Developed by vitorxp", this.width / 2, this.height - 15, new Color(150, 150, 150, (int)(255 * uiAlpha)).getRGB());
+
+        if (uiAlpha > 0.9f && (!showThemeSelector || themeSelectorAlpha < 0.1f)) {
+            for (GuiButton button : this.buttonList) {
+                boolean isHovered = mouseX >= button.xPosition && mouseY >= button.yPosition &&
+                        mouseX < button.xPosition + button.width && mouseY < button.yPosition + button.height;
+
+                if (isHovered) {
+                    if (button.id == 3) {
+                        this.drawHoveringText(Collections.singletonList("Sair do Jogo"), mouseX, mouseY);
+                    }
+                    if (button.id == 4) {
+                        this.drawHoveringText(Collections.singletonList("Reiniciar Texturas"), mouseX, mouseY);
+                    }
+                    if (button.id == 5) {
+                        this.drawHoveringText(Collections.singletonList("Entrar no Discord"), mouseX, mouseY);
+                    }
+                    if (button.id == 7) {
+                        this.drawHoveringText(Collections.singletonList("Selecionar Tema"), mouseX, mouseY);
+                    }
+                }
+            }
+        }
 
         float targetThemeAlpha = showThemeSelector ? 1.0f : 0.0f;
         themeSelectorAlpha = themeSelectorAlpha + (targetThemeAlpha - themeSelectorAlpha) * 0.2f;
@@ -166,7 +191,6 @@ public class GuiClientMainMenu extends GuiScreen {
             drawThemeSelector(mouseX, mouseY, themeSelectorAlpha);
         }
 
-        // Efeito de Transião (Cortinas)
         if (isOpening || isClosing) {
             float transitionEffectProgress = isOpening ? 1.0f - easedProgress : easedProgress;
             drawSlidingBarsTransition(transitionEffectProgress);
@@ -305,7 +329,7 @@ public class GuiClientMainMenu extends GuiScreen {
         if (serverMotd != null && !serverMotd.isEmpty()) {
             int logoHeight = 48;
             int logoY = (this.height / 3) - logoHeight - 10;
-            int motdY = logoY + logoHeight + 25;
+            int motdY = logoY + logoHeight + 10;
 
             String[] lines = serverMotd.split("\n");
 
@@ -517,7 +541,6 @@ public class GuiClientMainMenu extends GuiScreen {
                 GlStateManager.scale(hoverScale, hoverScale, 1.0f);
                 GlStateManager.translate(-centerX, -centerY, 0);
 
-                // Cor do ícone
                 if (hovered) {
                     GlStateManager.color(accent.getRed()/255f, accent.getGreen()/255f, accent.getBlue()/255f, 1.0f);
                     GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f);
