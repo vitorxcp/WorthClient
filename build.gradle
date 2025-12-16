@@ -35,6 +35,15 @@ minecraft {
     // clientJvmArgs += "-Dfml.coreMods.load=com.vitorxp.WorthClient.mixin.MixinLoader"
 }
 
+configurations {
+    all {
+        resolutionStrategy {
+            force 'javax.vecmath:vecmath:1.5.2'
+        }
+        exclude group: 'javax.vecmath', module: 'vecmath'
+    }
+}
+
 repositories {
     mavenCentral()
     maven {
