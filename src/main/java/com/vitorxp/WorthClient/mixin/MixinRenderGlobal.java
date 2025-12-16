@@ -16,17 +16,11 @@ public class MixinRenderGlobal {
 
     @Shadow private Minecraft mc;
 
-    // Backup das variáveis
     private float originalYaw;
     private float originalPitch;
     private float originalPrevYaw;
     private float originalPrevPitch;
 
-    /**
-     * @author vitorxp
-     * @reason Versão Estável - Baseada no código original que você tinha.
-     * Altera a rotação apenas durante o Culling e restaura logo em seguida.
-     */
     @Inject(method = "setupTerrain", at = @At("HEAD"))
     private void setupTerrainHead(Entity viewEntity, double partialTicks, ICamera camera, int frameCount, boolean playerSpectator, CallbackInfo ci) {
         if (PerspectiveMod.perspectiveToggled && viewEntity == mc.getRenderViewEntity()) {
@@ -37,8 +31,9 @@ public class MixinRenderGlobal {
 
             viewEntity.rotationYaw = PerspectiveMod.cameraYaw;
             viewEntity.rotationPitch = PerspectiveMod.cameraPitch;
-            viewEntity.prevRotationYaw = PerspectiveMod.cameraYaw;
-            viewEntity.prevRotationPitch = PerspectiveMod.cameraPitch;
+
+            viewEntity.prevRotationYaw = PerspectiveMod.prevCameraYaw;
+            viewEntity.prevRotationPitch = PerspectiveMod.prevCameraPitch;
         }
     }
 
