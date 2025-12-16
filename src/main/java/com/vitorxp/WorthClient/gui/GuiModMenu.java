@@ -119,24 +119,94 @@ public class GuiModMenu extends GuiScreen {
             @Override public void toggle() { WorthClient.pingOverlay = !WorthClient.pingOverlay; }
         });
 
+        allModules.add(new ModCard("Scoreboard", "Customiza a tabela lateral", "scoreboard", Category.HUD) {
+            @Override
+            public boolean isEnabled() {
+                return com.vitorxp.WorthClient.hud.ScoreboardHUD.toggled;
+            }
+
+            @Override
+            public void toggle() {
+                com.vitorxp.WorthClient.hud.ScoreboardHUD.toggled = !com.vitorxp.WorthClient.hud.ScoreboardHUD.toggled;
+            }
+
+            @Override
+            public void initSettings() {
+                settings.add(new BooleanSetting("Mostrar Números",
+                        () -> com.vitorxp.WorthClient.hud.ScoreboardHUD.showNumbers,
+                        () -> com.vitorxp.WorthClient.hud.ScoreboardHUD.showNumbers = !com.vitorxp.WorthClient.hud.ScoreboardHUD.showNumbers
+                ));
+
+                settings.add(new BooleanSetting("Fundo",
+                        () -> com.vitorxp.WorthClient.hud.ScoreboardHUD.background,
+                        () -> com.vitorxp.WorthClient.hud.ScoreboardHUD.background = !com.vitorxp.WorthClient.hud.ScoreboardHUD.background
+                ));
+
+                settings.add(new BooleanSetting("Borda",
+                        () -> com.vitorxp.WorthClient.hud.ScoreboardHUD.border,
+                        () -> com.vitorxp.WorthClient.hud.ScoreboardHUD.border = !com.vitorxp.WorthClient.hud.ScoreboardHUD.border
+                ));
+
+                settings.add(new ModeSetting("Tamanho", "Normal", Arrays.asList("Pequeno", "Normal", "Grande", "Gigante")) {
+                    @Override
+                    boolean mouseClicked(int x, int y, int mouseX, int mouseY, int mouseButton) {
+                        if (super.mouseClicked(x, y, mouseX, mouseY, mouseButton)) {
+                            switch (this.currentValue) {
+                                case "Pequeno": com.vitorxp.WorthClient.hud.ScoreboardHUD.scale = 0.75f; break;
+                                case "Normal":  com.vitorxp.WorthClient.hud.ScoreboardHUD.scale = 1.0f; break;
+                                case "Grande":  com.vitorxp.WorthClient.hud.ScoreboardHUD.scale = 1.25f; break;
+                                case "Gigante": com.vitorxp.WorthClient.hud.ScoreboardHUD.scale = 1.5f; break;
+                            }
+                            return true;
+                        }
+                        return false;
+                    }
+                });
+
+                settings.add(new ColorSetting("Cor do Fundo",
+                        () -> new java.awt.Color(com.vitorxp.WorthClient.hud.ScoreboardHUD.backgroundColor, true),
+                        (c) -> com.vitorxp.WorthClient.hud.ScoreboardHUD.backgroundColor = c.getRGB()
+                ));
+
+                settings.add(new ColorSetting("Cor da Borda",
+                        () -> new java.awt.Color(com.vitorxp.WorthClient.hud.ScoreboardHUD.borderColor, true),
+                        (c) -> com.vitorxp.WorthClient.hud.ScoreboardHUD.borderColor = c.getRGB()
+                ));
+
+                settings.add(new ActionSetting("Resetar (Padrão Vanilla)", () -> {
+                    com.vitorxp.WorthClient.hud.ScoreboardHUD.backgroundColor = 0x50000000;
+                    com.vitorxp.WorthClient.hud.ScoreboardHUD.borderColor = 0xFF000000;
+                    com.vitorxp.WorthClient.hud.ScoreboardHUD.background = true;
+                    com.vitorxp.WorthClient.hud.ScoreboardHUD.showNumbers = true;
+                    com.vitorxp.WorthClient.hud.ScoreboardHUD.border = false;
+                    com.vitorxp.WorthClient.hud.ScoreboardHUD.scale = 1.0f;
+                    com.vitorxp.WorthClient.gui.utils.NotificationRenderer.send(com.vitorxp.WorthClient.gui.utils.NotificationRenderer.Type.SUCCESS, "Scoreboard Resetada!");
+                }));
+            }
+        });
+
         allModules.add(new ModCard("Keystrokes", "Mostra teclas", "keys", Category.HUD) {
             @Override public boolean isEnabled() { return WorthClient.keystrokesOverlay; }
             @Override public void toggle() { WorthClient.keystrokesOverlay = !WorthClient.keystrokesOverlay; }
             @Override public void initSettings() {
-                settings.add(new ActionSetting("Cor: Fundo Padrão",
-                        () -> changeColor("Fundo Padrão", KeystrokesColors.backgroundDefault, KeystrokesColors::setBackgroundDefault)
+                settings.add(new ColorSetting("Cor: Fundo Padrão",
+                        () -> KeystrokesColors.backgroundDefault, KeystrokesColors::setBackgroundDefault
                 ));
-                settings.add(new ActionSetting("Cor: Fundo Press",
-                        () -> changeColor("Fundo Pressionado", KeystrokesColors.backgroundPressed, KeystrokesColors::setBackgroundPressed)
+
+                settings.add(new ColorSetting("Cor: Fundo Press",
+                        () -> KeystrokesColors.backgroundPressed, KeystrokesColors::setBackgroundPressed
                 ));
-                settings.add(new ActionSetting("Cor: Borda",
-                        () -> changeColor("Cor da Borda", KeystrokesColors.border, KeystrokesColors::setBorder)
+
+                settings.add(new ColorSetting("Cor: Borda",
+                        () -> KeystrokesColors.border, KeystrokesColors::setBorder
                 ));
-                settings.add(new ActionSetting("Cor: Texto",
-                        () -> changeColor("Cor do Texto", KeystrokesColors.text, KeystrokesColors::setText)
+
+                settings.add(new ColorSetting("Cor: Texto",
+                        () -> KeystrokesColors.text, KeystrokesColors::setText
                 ));
-                settings.add(new ActionSetting("Cor: Texto CPS",
-                        () -> changeColor("Cor do CPS", KeystrokesColors.cpsText, KeystrokesColors::setCpsText)
+
+                settings.add(new ColorSetting("Cor: Texto CPS",
+                        () -> KeystrokesColors.cpsText, KeystrokesColors::setCpsText
                 ));
 
                 settings.add(new BooleanSetting("Rainbow Fundo", KeystrokesColors.chromaBackground) {
@@ -203,7 +273,7 @@ public class GuiModMenu extends GuiScreen {
             }
         });
 
-        allModules.add(new ModCard("AutoLogin", "Login Automático (Pirata)", "key", Category.WORLD) {
+        allModules.add(new ModCard("AutoLogin", "Login Automático (Pirata)", "key", Category.PLAYER) {
             @Override public boolean isEnabled() { return WorthClient.AutoLoginEnabled; }
             @Override public void toggle() { WorthClient.AutoLoginEnabled = !WorthClient.AutoLoginEnabled; }
             @Override public void initSettings() {
@@ -215,28 +285,22 @@ public class GuiModMenu extends GuiScreen {
                         }
                 ));
 
-                settings.add(new BooleanSetting("Configurar Contas/Servidores",
-                        () -> false,
-                        () -> {
-                            net.minecraft.client.Minecraft.getMinecraft().displayGuiScreen(
-                                    new GuiAutoLoginServers(net.minecraft.client.Minecraft.getMinecraft().currentScreen)
-                            );
-                        }
-                ));
+                settings.add(new ActionSetting("Abrir Editor de Configurações", () -> {
+                    Minecraft.getMinecraft().displayGuiScreen(
+                            new GuiAutoLoginServers(Minecraft.getMinecraft().currentScreen)
+                    );
+                }));
             }
         });
 
         allModules.add(new ModCard("AutoText", "Macros de Texto", "chat", Category.PLAYER) {
             @Override public boolean isMenuOnly() { return true; }
             @Override public void initSettings() {
-                settings.add(new BooleanSetting("Configurar Macros",
-                        () -> false,
-                        () -> {
-                            net.minecraft.client.Minecraft.getMinecraft().displayGuiScreen(
-                                    new com.vitorxp.WorthClient.gui.GuiAutoText(net.minecraft.client.Minecraft.getMinecraft().currentScreen)
-                            );
-                        }
-                ));
+                settings.add(new ActionSetting("Abrir Editor de Macros", () -> {
+                    Minecraft.getMinecraft().displayGuiScreen(
+                            new GuiAutoText(Minecraft.getMinecraft().currentScreen)
+                    );
+                }));
             }
         });
 
@@ -340,9 +404,75 @@ public class GuiModMenu extends GuiScreen {
         }
     }
 
-    private void changeColor(String t, Color c, java.util.function.Consumer<Color> s) {
-        Color n = JColorChooser.showDialog(null, t, c);
-        if(n!=null) s.accept(n);
+    class ColorSetting extends Setting {
+        Supplier<Color> getter;
+        java.util.function.Consumer<Color> setter;
+
+        public ColorSetting(String name, Supplier<Color> getter, java.util.function.Consumer<Color> setter) {
+            super(name);
+            this.getter = getter;
+            this.setter = setter;
+        }
+
+        @Override
+        void draw(Minecraft mc, int x, int y, int mouseX, int mouseY) {
+            boolean hover = mouseX >= x && mouseX <= x + settingWidth && mouseY >= y && mouseY <= y + settingHeight;
+            drawRoundedRect(x, y, settingWidth, settingHeight, 6, 0xFF222222);
+
+            mc.fontRendererObj.drawString(name, x + 15, y + (settingHeight / 2) - 4, 0xFFAAAAAA);
+
+            int previewSize = 20;
+            int previewX = x + settingWidth - previewSize - 10;
+            int previewY = y + (settingHeight - previewSize) / 2;
+            Color c = getter.get();
+
+            drawRoundedRect(previewX, previewY, previewSize, previewSize, 4, c.getRGB() | 0xFF000000);
+            drawRoundedOutline(previewX, previewY, previewSize, previewSize, 4, 1.0f, hover ? 0xFFFFFFFF : 0xFF888888);
+        }
+
+        @Override
+        boolean mouseClicked(int x, int y, int mouseX, int mouseY, int mouseButton) {
+            if (mouseX >= x && mouseX <= x + settingWidth && mouseY >= y && mouseY <= y + settingHeight) {
+                mc.getSoundHandler().playSound(net.minecraft.client.audio.PositionedSoundRecord.create(new ResourceLocation("gui.button.press"), 1.0F));
+
+                mc.displayGuiScreen(new GuiColorPicker(
+                        GuiModMenu.this,
+                        name,
+                        getter.get(),
+                        (newColor) -> setter.accept(newColor)
+                ));
+                return true;
+            }
+            return false;
+        }
+    }
+
+    public static void drawGradientRoundedRectVertical(float x, float y, float width, float height, int startColor, int endColor) {
+        float f = (float)(startColor >> 24 & 255) / 255.0F;
+        float f1 = (float)(startColor >> 16 & 255) / 255.0F;
+        float f2 = (float)(startColor >> 8 & 255) / 255.0F;
+        float f3 = (float)(startColor & 255) / 255.0F;
+        float f4 = (float)(endColor >> 24 & 255) / 255.0F;
+        float f5 = (float)(endColor >> 16 & 255) / 255.0F;
+        float f6 = (float)(endColor >> 8 & 255) / 255.0F;
+        float f7 = (float)(endColor & 255) / 255.0F;
+        GlStateManager.disableTexture2D();
+        GlStateManager.enableBlend();
+        GlStateManager.disableAlpha();
+        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+        GlStateManager.shadeModel(7425);
+        Tessellator tessellator = Tessellator.getInstance();
+        WorldRenderer worldrenderer = tessellator.getWorldRenderer();
+        worldrenderer.begin(7, DefaultVertexFormats.POSITION_COLOR);
+        worldrenderer.pos(x + width, y, 0).color(f1, f2, f3, f).endVertex();
+        worldrenderer.pos(x, y, 0).color(f1, f2, f3, f).endVertex();
+        worldrenderer.pos(x, y + height, 0).color(f5, f6, f7, f4).endVertex();
+        worldrenderer.pos(x + width, y + height, 0).color(f5, f6, f7, f4).endVertex();
+        tessellator.draw();
+        GlStateManager.shadeModel(7424);
+        GlStateManager.disableBlend();
+        GlStateManager.enableAlpha();
+        GlStateManager.enableTexture2D();
     }
 
     private void filterModules() {
@@ -457,10 +587,10 @@ public class GuiModMenu extends GuiScreen {
 
         drawRect(guiLeft + 20, guiTop + 55, guiLeft + guiWidth - 20, guiTop + 56, 0x40FFFFFF);
 
-        int settingsHeight = selectedMod.settings.size() * (settingHeight + 5);
+        int totalSettingsHeight = selectedMod.settings.size() * (settingHeight + 5);
         int viewHeight = guiHeight - 80;
 
-        this.maxScroll = Math.max(0, settingsHeight - viewHeight + 20);
+        this.maxScroll = Math.max(0, totalSettingsHeight - viewHeight + 20);
         clampScroll();
 
         int scaleFactor = new net.minecraft.client.gui.ScaledResolution(mc).getScaleFactor();
@@ -482,10 +612,12 @@ public class GuiModMenu extends GuiScreen {
             fontRendererObj.drawString("Nenhuma configuração disponível.", setX, setY, 0xFFAAAAAA);
         } else {
             for (Setting s : selectedMod.settings) {
-                if (setY > guiTop + 50 && setY < guiTop + guiHeight) {
+                int currentHeight = settingHeight + 5;
+
+                if (setY + currentHeight > guiTop + 50 && setY < guiTop + guiHeight) {
                     s.draw(mc, setX, setY, mouseX, mouseY);
                 }
-                setY += (settingHeight + 5);
+                setY += currentHeight;
             }
         }
 
@@ -494,10 +626,10 @@ public class GuiModMenu extends GuiScreen {
         }
 
         if (maxScroll > 0) {
-            int scrollHarH = (int) ((float) viewHeight / settingsHeight * viewHeight);
-            if (scrollHarH < 30) scrollHarH = 30;
-            int scrollBarY = guiTop + 80 + (int)((-scrollOffset / maxScroll) * (viewHeight - scrollHarH));
-            drawRoundedRect(guiLeft + guiWidth - 15, scrollBarY, 5, scrollHarH, 2, 0x80FFFFFF);
+            int scrollBarH = (int) ((float) viewHeight / totalSettingsHeight * viewHeight);
+            if (scrollBarH < 30) scrollBarH = 30;
+            int scrollBarY = guiTop + 80 + (int)((-scrollOffset / maxScroll) * (viewHeight - scrollBarH));
+            drawRoundedRect(guiLeft + guiWidth - 15, scrollBarY, 5, scrollBarH, 2, 0x80FFFFFF);
         }
     }
 
@@ -573,14 +705,20 @@ public class GuiModMenu extends GuiScreen {
             if (selectedMod != null) {
                 int setX = guiLeft + 60;
                 int setY = (int) (guiTop + 80 + scrollOffset);
+
                 if (adjMouseY > guiTop + 55 && adjMouseY < guiTop + guiHeight - 10) {
                     for (Setting s : selectedMod.settings) {
+                        int currentHeight = settingHeight + 5;
+
                         if (s.mouseClicked(adjMouseX, setY, adjMouseX, adjMouseY, mouseButton)) {
-                            ConfigManager.save();
-                            NotificationRenderer.send(NotificationRenderer.Type.SUCCESS, "Configurações salvas!");
+                            if (!(s instanceof ColorSetting)) {
+                                ConfigManager.save();
+                                KeystrokesColors.saveColors();
+                                NotificationRenderer.send(NotificationRenderer.Type.SUCCESS, "Configurações salvas!");
+                            }
                             return;
                         }
-                        setY += (settingHeight + 5);
+                        setY += currentHeight;
                     }
                 }
             }
