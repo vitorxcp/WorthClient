@@ -22,6 +22,7 @@ public abstract class MixinMinecraft {
     @Shadow public abstract void updateDisplay();
     @Shadow public int displayWidth;
     @Shadow public int displayHeight;
+    @Shadow private int leftClickCounter; // Variável nativa do delay
     @Shadow public GuiScreen currentScreen;
     @Shadow public net.minecraft.client.multiplayer.WorldClient theWorld;
 
@@ -112,10 +113,20 @@ public abstract class MixinMinecraft {
         }
     }
 
+    @Redirect(method = {"freeMemory", "shutdown"}, at = @At(value = "INVOKE", target = "Ljava/lang/System;gc()V"))
+    private void disableSystemGC() {
+        // Não faz nada. Deixe a JVM (G1GC ou ZGC) cuidar disso.
+    }
+
     @Inject(method = "displayGuiScreen", at = @At("HEAD"))
     private void onDisplayGuiScreen(GuiScreen guiScreenIn, CallbackInfo ci) {
         if (startupGui != null && guiScreenIn != null) {
             startupGui = null;
         }
+    }
+
+    @Inject(method = "clickMouse", at = @At("HEAD"))
+    private void onClickMouse(CallbackInfo ci) {
+        this.leftClickCounter = 0;
     }
 }
