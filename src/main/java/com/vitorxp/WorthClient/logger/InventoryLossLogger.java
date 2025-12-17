@@ -78,7 +78,7 @@ public class InventoryLossLogger {
             String screen = mc.currentScreen != null ? mc.currentScreen.getClass().getSimpleName() : "Ingame";
             String lastCommand = ChatCommandTracker.getLastCommand() != null ? ChatCommandTracker.getLastCommand() : "Nenhum";
             String time = TIME_FORMAT.format(new Date());
-
+            
             String logLine = String.format("[%s] [%s] Item: %s (x%d) | Slot: %d | Tela: %s | Loc: %s | Cmd: %s",
                     time, type, itemName, amount, slot, screen, location, lastCommand);
 
