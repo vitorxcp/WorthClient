@@ -77,7 +77,7 @@ public class GuiWorthPackList extends GuiListExtended {
         int i = this.getSize();
         for (int j = 0; j < i; ++j) {
             int k = y + j * this.slotHeight + this.headerPadding;
-            int l = this.slotHeight; // Altura total
+            int l = this.slotHeight;
             if (k > this.bottom || k + l < this.top) {
                 this.func_178040_a(j, x, k);
                 continue;
