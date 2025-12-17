@@ -43,7 +43,7 @@ public class ClientSocket {
                     }
                 } catch (Exception ignored) {}
 
-                options.query = "nick=" + myNick + "&uuid=" + uuid + "&status=online";
+                options.query = "nick=" + myNick + "&uuid=" + uuid;
 
                 socket = IO.socket("http://elgae-sp1-b001.elgaehost.com.br:9099", options);
 
