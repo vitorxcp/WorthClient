@@ -17,7 +17,9 @@
     "MixinGuiIngame",
     "MixinGuiDisconnected",
     "MixinRendererLivingEntity",
-    "MixinSoundSystem"
+    "MixinSoundSystem",
+    "MixinResourcePackRepository",
+    "MixinGuiOptions"
   ],
   "client": [],
   "injectors": {
