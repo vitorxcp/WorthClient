@@ -62,7 +62,6 @@ public class GuiScreenWorthPacks extends GuiScreen {
             panelWidth = 300;
             sideMargin = (this.width - (panelWidth * 2) - middleGap) / 2;
         }
-        int panelHeight = this.height - topMargin - bottomMargin;
 
         this.availableList = new GuiWorthPackList(this.mc, panelWidth, this.height, topMargin, this.height - bottomMargin, 42);
         this.availableList.setSlotXBoundsFromLeft(sideMargin);
@@ -111,6 +110,18 @@ public class GuiScreenWorthPacks extends GuiScreen {
                 }
             }
         } catch (Exception e) { }
+        return null;
+    }
+
+    private File getFileFromEntry(ResourcePackRepository.Entry entry) {
+        try {
+            for (Field f : ResourcePackRepository.Entry.class.getDeclaredFields()) {
+                if (f.getType().equals(File.class)) {
+                    f.setAccessible(true);
+                    return (File) f.get(entry);
+                }
+            }
+        } catch (Exception e) { e.printStackTrace(); }
         return null;
     }
 
@@ -163,9 +174,16 @@ public class GuiScreenWorthPacks extends GuiScreen {
 
     private void applyChangesWithLoading() {
         this.mc.gameSettings.resourcePacks.clear();
+
         for (ResourcePackRepository.Entry entry : this.packRepository.getRepositoryEntries()) {
-            this.mc.gameSettings.resourcePacks.add(entry.getResourcePackName());
+            File file = getFileFromEntry(entry);
+            if (file != null) {
+                this.mc.gameSettings.resourcePacks.add(file.getName());
+            } else {
+                this.mc.gameSettings.resourcePacks.add(entry.getResourcePackName());
+            }
         }
+
         this.mc.gameSettings.saveOptions();
 
         ScaledResolution sr = new ScaledResolution(mc);
