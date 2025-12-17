@@ -5,7 +5,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
-import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.scoreboard.Score;
 import net.minecraft.scoreboard.ScoreObjective;
@@ -98,16 +97,6 @@ public class ScoreboardHUD extends HudElement {
         int l1 = this.x;
         int j1 = this.y;
 
-        if (l1 == 0 && j1 == 0) {
-            ScaledResolution scaledRes = new ScaledResolution(mc);
-            int screenWidth = scaledRes.getScaledWidth();
-            int screenHeight = scaledRes.getScaledHeight();
-
-            l1 = screenWidth - totalContentWidth - 3;
-
-            j1 = (screenHeight / 2) - (totalContentHeight / 2);
-        }
-
         GlStateManager.pushMatrix();
         GlStateManager.translate(l1, j1, 0);
         GlStateManager.scale(scale, scale, 1.0f);
@@ -116,15 +105,15 @@ public class ScoreboardHUD extends HudElement {
         String title = objective.getDisplayName();
 
         if (background) {
-            Gui.drawRect(l1, j1 - titleHeight, l1 + totalContentWidth, j1 + listHeight, backgroundColor);
+            Gui.drawRect(l1, j1, l1 + totalContentWidth, j1 + listHeight + titleHeight, backgroundColor);
 
             if (border) {
-                drawHollowRect(l1, j1 - titleHeight, l1 + totalContentWidth, j1 + listHeight, borderColor);
+                drawHollowRect(l1, j1, l1 + totalContentWidth, j1 + listHeight + titleHeight, borderColor);
             }
         }
 
         int titleX = l1 + (totalContentWidth / 2) - (mc.fontRendererObj.getStringWidth(title) / 2);
-        mc.fontRendererObj.drawString(title, titleX, j1 - lineHeight, 0xFFFFFFFF);
+        mc.fontRendererObj.drawString(title, titleX, j1 + 2, 0xFFFFFFFF);
 
         int i = 0;
         for (Score score : collection) {
@@ -132,7 +121,7 @@ public class ScoreboardHUD extends HudElement {
             String text = ScorePlayerTeam.formatPlayerName(scoreplayerteam, score.getPlayerName());
             String points = EnumChatFormatting.RED + "" + score.getScorePoints();
 
-            int lineY = j1 + (collection.size() - i - 1) * lineHeight;
+            int lineY = j1 + titleHeight + (i * lineHeight);
 
             mc.fontRendererObj.drawString(text, l1 + padding, lineY, 0xFFFFFFFF);
 
