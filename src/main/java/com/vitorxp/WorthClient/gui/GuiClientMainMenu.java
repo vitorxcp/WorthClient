@@ -17,7 +17,6 @@ import net.minecraft.util.ResourceLocation;
 import org.apache.commons.io.IOUtils;
 import org.lwjgl.opengl.GL11;
 
-import javax.net.ssl.HttpsURLConnection;
 import java.awt.*;
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,6 +26,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class GuiClientMainMenu extends GuiScreen {
@@ -91,8 +91,7 @@ public class GuiClientMainMenu extends GuiScreen {
 
         int iconSize = 24;
         int iconSpacing = 20;
-        int bottomY = this.height - 45
-;
+        int bottomY = this.height - 45;
         int totalGroupWidth = (iconSize * 3) + (iconSpacing * 2);
         int currentX = centerX - (totalGroupWidth / 2);
 
@@ -145,10 +144,6 @@ public class GuiClientMainMenu extends GuiScreen {
         drawMotd(uiAlpha);
 
         for (GuiButton button : this.buttonList) {
-            if (showThemeSelector && themeSelectorAlpha > 0.8f) {
-                // Lógica de bloqueio se necessário
-            }
-
             if (button instanceof GuiModernButton) {
                 ((GuiModernButton) button).drawButton(this.mc, mouseX, mouseY, uiAlpha);
             } else {
@@ -161,28 +156,6 @@ public class GuiClientMainMenu extends GuiScreen {
         }
 
         this.drawCenteredString(this.fontRendererObj, "WorthClient © 2025 - Developed by vitorxp", this.width / 2, this.height - 15, new Color(150, 150, 150, (int)(255 * uiAlpha)).getRGB());
-
-        if (uiAlpha > 0.9f && (!showThemeSelector || themeSelectorAlpha < 0.1f)) {
-            for (GuiButton button : this.buttonList) {
-                boolean isHovered = mouseX >= button.xPosition && mouseY >= button.yPosition &&
-                        mouseX < button.xPosition + button.width && mouseY < button.yPosition + button.height;
-
-                if (isHovered) {
-                    if (button.id == 3) {
-                        this.drawHoveringText(Collections.singletonList("Sair do Jogo"), mouseX, mouseY);
-                    }
-                    if (button.id == 4) {
-                        this.drawHoveringText(Collections.singletonList("Reiniciar Texturas"), mouseX, mouseY);
-                    }
-                    if (button.id == 5) {
-                        this.drawHoveringText(Collections.singletonList("Entrar no Discord"), mouseX, mouseY);
-                    }
-                    if (button.id == 7) {
-                        this.drawHoveringText(Collections.singletonList("Selecionar Tema"), mouseX, mouseY);
-                    }
-                }
-            }
-        }
 
         float targetThemeAlpha = showThemeSelector ? 1.0f : 0.0f;
         themeSelectorAlpha = themeSelectorAlpha + (targetThemeAlpha - themeSelectorAlpha) * 0.2f;
@@ -201,6 +174,26 @@ public class GuiClientMainMenu extends GuiScreen {
                     if (this.nextScreen == null) this.mc.shutdown();
                     else this.mc.displayGuiScreen(this.nextScreen);
                 }
+            }
+        }
+
+        if (uiAlpha > 0.9f && (!showThemeSelector || themeSelectorAlpha < 0.1f)) {
+            List<String> tooltip = null;
+            for (GuiButton button : this.buttonList) {
+                if (button.isMouseOver()) {
+                    if (button.id == 3) tooltip = Collections.singletonList("Sair do Jogo");
+                    if (button.id == 4) tooltip = Collections.singletonList("Reiniciar Texturas");
+                    if (button.id == 5) tooltip = Collections.singletonList("Entrar no Discord");
+                    if (button.id == 7) tooltip = Collections.singletonList("Selecionar Tema");
+                }
+            }
+
+            if (tooltip != null) {
+                GlStateManager.pushMatrix();
+                this.drawHoveringText(tooltip, mouseX, mouseY);
+                GlStateManager.popMatrix();
+                GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+                GlStateManager.disableLighting();
             }
         }
     }
@@ -222,9 +215,6 @@ public class GuiClientMainMenu extends GuiScreen {
         int y = (this.height / 2) - (h / 2);
 
         int menuBgColor = currentTheme == Theme.LIGHT ? 0xFFF0F0F0 : 0xFF181818;
-        int menuBorderColor = currentTheme == Theme.LIGHT ? 0xFFAAAAAA : 0xFF333333;
-
-        int alphaInt = (int)(255 * alpha);
 
         drawRoundedRect(x, y, w, h, 12, menuBgColor);
         drawRoundedOutline(x, y, w, h, 12, 1.0f, currentTheme.accentColor.getRGB());
@@ -543,7 +533,6 @@ public class GuiClientMainMenu extends GuiScreen {
 
                 if (hovered) {
                     GlStateManager.color(accent.getRed()/255f, accent.getGreen()/255f, accent.getBlue()/255f, 1.0f);
-                    GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f);
                 } else {
                     GlStateManager.color(0.8f, 0.8f, 0.8f, 0.7f);
                 }
