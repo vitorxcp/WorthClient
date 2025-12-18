@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.vitorxp.WorthClient.gui.button.GuiModernButton;
 import com.vitorxp.WorthClient.interfaces.IResourcePackRepository;
 import com.vitorxp.WorthClient.utils.FolderResourcePack;
+import com.vitorxp.WorthClient.utils.WorthPackSaver;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
@@ -17,11 +18,10 @@ import net.minecraft.client.resources.ResourcePackRepository;
 import net.minecraft.util.ResourceLocation;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
-
-import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -83,7 +83,6 @@ public class GuiScreenWorthPacks extends GuiScreen {
     public void refreshLists() {
         this.availableList.clear();
         this.selectedList.clear();
-
         List<ResourcePackRepository.Entry> all = this.packRepository.getRepositoryEntriesAll();
         List<ResourcePackRepository.Entry> selected = this.packRepository.getRepositoryEntries();
         List<ResourcePackRepository.Entry> available = Lists.newArrayList(all);
@@ -121,12 +120,11 @@ public class GuiScreenWorthPacks extends GuiScreen {
                     return (File) f.get(entry);
                 }
             }
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) { }
         return null;
     }
 
     private boolean isFolder(ResourcePackRepository.Entry entry) { return getPackFromEntry(entry) instanceof FolderResourcePack; }
-
     private boolean isBack(ResourcePackRepository.Entry entry) {
         IResourcePack pack = getPackFromEntry(entry);
         return pack instanceof FolderResourcePack && ((FolderResourcePack) pack).getPackName().contains("Voltar");
@@ -156,7 +154,9 @@ public class GuiScreenWorthPacks extends GuiScreen {
 
     private void updateMinecraftList() {
         List<ResourcePackRepository.Entry> newSelected = Lists.newArrayList();
-        for (WorthPackEntry we : this.selectedList.getEntries()) newSelected.add(we.getRepoEntry());
+        for (WorthPackEntry we : this.selectedList.getEntries()) {
+            newSelected.add(we.getRepoEntry());
+        }
         this.packRepository.setRepositories(newSelected);
     }
 
@@ -173,26 +173,46 @@ public class GuiScreenWorthPacks extends GuiScreen {
     }
 
     private void applyChangesWithLoading() {
+        updateProgress("Salvando configurações...", 0.1f);
+        WorthPackSaver.savePackList(this.selectedList.getEntries());
         this.mc.gameSettings.resourcePacks.clear();
 
-        for (ResourcePackRepository.Entry entry : this.packRepository.getRepositoryEntries()) {
+        List<String> packsToSave = new ArrayList<>();
+        for (WorthPackEntry we : this.selectedList.getEntries()) {
+            ResourcePackRepository.Entry entry = we.getRepoEntry();
+            if (isFolder(entry)) continue;
+            String saveName;
             File file = getFileFromEntry(entry);
-            if (file != null) {
-                this.mc.gameSettings.resourcePacks.add(file.getName());
-            } else {
-                this.mc.gameSettings.resourcePacks.add(entry.getResourcePackName());
+            if (file != null) saveName = file.getName();
+            else saveName = entry.getResourcePackName();
+
+            if (!saveName.equals("Default") && !saveName.equalsIgnoreCase("default")) {
+                packsToSave.add(saveName);
             }
         }
-
+        this.mc.gameSettings.resourcePacks.addAll(packsToSave);
         this.mc.gameSettings.saveOptions();
 
+        updateProgress("Limpando memória...", 0.4f);
+        System.gc();
+        try { Thread.sleep(50); } catch (InterruptedException ignored) {}
+        updateProgress("Recarregando Texturas (Aguarde)...", 1.0f);
+        Display.update();
+        this.mc.refreshResources();
+
+        System.gc();
+    }
+
+    private void updateProgress(String status, float progress) {
         ScaledResolution sr = new ScaledResolution(mc);
+
         drawRect(0, 0, this.width, this.height, 0xFF101010);
         this.mc.getTextureManager().bindTexture(BACKGROUND_BLUR);
         GlStateManager.color(0.4F, 0.4F, 0.4F, 1.0F);
         Gui.drawModalRectWithCustomSizedTexture(0, 0, 0, 0, this.width, this.height, this.width, this.height);
 
-        int boxW = 220; int boxH = 70;
+        int boxW = 220;
+        int boxH = 80;
         int boxX = (this.width - boxW) / 2;
         int boxY = (this.height - boxH) / 2;
 
@@ -203,17 +223,25 @@ public class GuiScreenWorthPacks extends GuiScreen {
         this.drawCenteredString(this.fontRendererObj, "Aplicando Alterações", (int)(this.width / 2 / 1.2), (int)((boxY + 15) / 1.2), 0xFFFFFF);
         GlStateManager.popMatrix();
 
-        this.drawCenteredString(this.fontRendererObj, "Recarregando recursos...", this.width / 2, boxY + 40, 0xAAAAAA);
-        this.drawCenteredString(this.fontRendererObj, "Por favor aguarde.", this.width / 2, boxY + 52, 0x888888);
+        this.drawCenteredString(this.fontRendererObj, status, this.width / 2, boxY + 35, 0xAAAAAA);
+
+        int barWidth = 180;
+        int barHeight = 6;
+        int barX = (this.width - barWidth) / 2;
+        int barY = boxY + 55;
+        drawRoundedRect(barX, barY, barWidth, barHeight, 3, 0xFF303030);
+
+        int filledWidth = (int) (barWidth * progress);
+        if (filledWidth > 0) {
+            drawRoundedRect(barX, barY, filledWidth, barHeight, 3, 0xFF4CAF50);
+        }
 
         Display.update();
-        this.mc.refreshResources();
     }
 
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         drawDefaultBackground();
-
         GlStateManager.pushMatrix();
         GlStateManager.scale(2.0, 2.0, 2.0);
         this.drawCenteredString(this.fontRendererObj, "Worth Packs", (int)(this.width / 2 / 2.0f), 10, 0xFFFFFF);
