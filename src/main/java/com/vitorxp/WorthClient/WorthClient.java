@@ -55,7 +55,6 @@ public class WorthClient {
 
     public static final Logger logger = LogManager.getLogger("WorthClient");
 
-    private static boolean hasLoadedTextures = false;
     public static boolean openGuiChat = false;
     public static boolean ArmorsOverlays = false;
     public static int KeyPerspective = Keyboard.KEY_LMENU;
@@ -250,6 +249,10 @@ public class WorthClient {
     @Mod.EventHandler
     public void postInit(FMLPostInitializationEvent e) {
         logger.info("[Post-Init] Verificando integridade dos módulos...");
+        logger.info("[Post-Init] Carregando texturas salvas...");
+        System.gc();
+        WorthPackLoader.reloadSavedPacks();
+        System.gc();
     }
 
     @SubscribeEvent
@@ -292,14 +295,6 @@ public class WorthClient {
 
     @SubscribeEvent
     public void onGuiOpen(GuiOpenEvent event) {
-        if (!hasLoadedTextures && event.gui instanceof GuiMainMenu) {
-            hasLoadedTextures = true;
-            logger.info("[WorthClient] Menu Principal detectado! Otimizando memória antes de carregar...");
-            System.gc();
-            WorthPackLoader.reloadSavedPacks();
-            System.gc();
-        }
-
         if (event.gui instanceof GuiDisconnected) {
             GuiDisconnected disconnectedScreen = (GuiDisconnected) event.gui;
             String reason = "";
