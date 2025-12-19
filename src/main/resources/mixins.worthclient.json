@@ -19,7 +19,8 @@
     "MixinRendererLivingEntity",
     "MixinSoundSystem",
     "MixinResourcePackRepository",
-    "MixinGuiOptions"
+    "MixinGuiOptions",
+    "MixinAbstractClientPlayer"
   ],
   "client": [],
   "injectors": {
