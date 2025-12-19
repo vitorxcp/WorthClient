@@ -27,6 +27,7 @@ public abstract class MixinGuiPlayerTabOverlay extends Gui {
 
     private static final ResourceLocation WORTH_ICON = new ResourceLocation("worthclient", "icons/icon.png");
     private static final Pattern CLEANER = Pattern.compile("[^a-zA-Z0-9_]");
+
     private final Set<String> renderedIconsThisFrame = new HashSet<>();
     private NetworkPlayerInfo currentPlayerInfo;
 
@@ -50,11 +51,19 @@ public abstract class MixinGuiPlayerTabOverlay extends Gui {
     )
     public int onCalcWidth(FontRenderer instance, String text) {
         int originalWidth = instance.getStringWidth(text);
+
         if (currentPlayerInfo != null) {
             String cleanName = cleanString(text);
             String myNick = "";
-            try { myNick = Minecraft.getMinecraft().getSession().getUsername(); } catch (Exception ignored) {}
-            if (checkMatch(cleanName, myNick)) return originalWidth + 12;
+            try {
+                if (Minecraft.getMinecraft().getSession() != null) {
+                    myNick = Minecraft.getMinecraft().getSession().getUsername();
+                }
+            } catch (Exception ignored) {}
+
+            if (checkMatch(cleanName, myNick)) {
+                return originalWidth + 12;
+            }
         }
         return originalWidth;
     }
@@ -67,9 +76,14 @@ public abstract class MixinGuiPlayerTabOverlay extends Gui {
         if (currentPlayerInfo != null) {
             String cleanDisplay = cleanString(text);
             String myNick = "";
-            try { myNick = Minecraft.getMinecraft().getSession().getUsername(); } catch (Exception ignored) {}
+            try {
+                if (Minecraft.getMinecraft().getSession() != null) {
+                    myNick = Minecraft.getMinecraft().getSession().getUsername();
+                }
+            } catch (Exception ignored) {}
 
             boolean isUser = checkMatch(cleanDisplay, myNick);
+
             boolean alreadyRendered = renderedIconsThisFrame.contains(cleanDisplay);
 
             if (isUser && !alreadyRendered) {
@@ -98,6 +112,7 @@ public abstract class MixinGuiPlayerTabOverlay extends Gui {
                 return instance.drawStringWithShadow(text, x + 11, y, color);
             }
         }
+
         this.currentPlayerInfo = null;
         return instance.drawStringWithShadow(text, x, y, color);
     }
@@ -109,11 +124,15 @@ public abstract class MixinGuiPlayerTabOverlay extends Gui {
 
     private boolean checkMatch(String cleanDisplay, String myNick) {
         if (cleanDisplay.isEmpty()) return false;
-        if (cleanDisplay.contains(cleanString("Perfil: "+ myNick))) return false;
+        if (cleanDisplay.contains(cleanString("Perfil: " + myNick))) return false;
         if (myNick != null && cleanDisplay.contains(cleanString(myNick))) return true;
-        if (ClientSocket.usersUsingClient != null) {
-            for (String socketUser : ClientSocket.usersUsingClient) {
-                if (socketUser != null && cleanDisplay.contains(socketUser.toLowerCase())) return true;
+
+        if (ClientSocket.playerCosmetics != null) {
+
+            for (String socketUser : ClientSocket.playerCosmetics.keySet()) {
+                if (socketUser != null && cleanDisplay.contains(socketUser)) {
+                    return true;
+                }
             }
         }
         return false;
