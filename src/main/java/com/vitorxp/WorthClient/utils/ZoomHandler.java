@@ -20,7 +20,7 @@ public class ZoomHandler {
     private boolean running = false;
     private float originalFov = 70.0F;
     private float scrollOffset = 0.0F;
-    private float originalSensitivity = 1.0F;
+    private float originalSensitivity = 2.0F;
     private boolean originalSmoothCamera = false;
 
     @SubscribeEvent
@@ -125,24 +125,17 @@ public class ZoomHandler {
     public void onRenderOverlay(RenderGameOverlayEvent.Text event) {
         if (running && mc.currentScreen == null && !mc.gameSettings.showDebugInfo) {
             ScaledResolution sr = new ScaledResolution(mc);
-
             float fovRange = originalFov - MIN_FOV;
             float currentProgress = originalFov - mc.gameSettings.fovSetting;
-
             int percentage = Math.round((currentProgress / fovRange) * 100);
             percentage = MathHelper.clamp_int(percentage, 0, 100);
-
             if (percentage <= 1 && !active) return;
-
             String text = "Zoom: §a" + percentage + "%";
-
             int width = sr.getScaledWidth();
             int height = sr.getScaledHeight();
-
             int textWidth = mc.fontRendererObj.getStringWidth(text);
             int x = (width / 2) - (textWidth / 2);
             int y = height - 55;
-
             mc.fontRendererObj.drawStringWithShadow(text, x, y, 0xFFFFFFFF);
         }
     }
