@@ -27,14 +27,14 @@ public class MixinGuiDisconnected extends GuiScreen {
         if (!this.buttonList.isEmpty()) {
             GuiButton backButton = this.buttonList.get(0);
             if (backButton != null) {
-                backButton.yPosition = this.height / 2 + this.field_175353_i / 2 + 100;
+                backButton.yPosition = this.height / 2 + this.field_175353_i / 2 + 20;
             }
         }
 
         this.buttonList.add(new GuiButton(
                 1,
                 this.width / 2 - 100,
-                (this.height / 2 + this.field_175353_i / 2 + 100) - 24,
+                (this.height / 2 + this.field_175353_i / 2 + 70) - 24,
                 "Reconectar"
         ));
     }
