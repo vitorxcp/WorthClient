@@ -1,12 +1,14 @@
 package com.vitorxp.WorthClient.socket;
 
+import com.vitorxp.WorthClient.WorthClient;
 import io.socket.client.IO;
 import io.socket.client.Socket;
 import net.minecraft.client.Minecraft;
 import org.json.JSONArray;
+import org.json.JSONObject;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -14,10 +16,17 @@ import java.util.concurrent.TimeUnit;
 public class ClientSocket {
 
     public static Socket socket;
-    public static Set<String> usersUsingClient = new HashSet<>();
-    private static boolean isConnecting = false;
 
+    public static Map<String, Set<String>> playerCosmetics = new ConcurrentHashMap<>();
+
+    private static boolean isConnecting = false;
     private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+
+    public static boolean hasCosmetic(String nick, String cosmeticId) {
+        if (nick == null) return false;
+        Set<String> cosmetics = playerCosmetics.get(nick.toLowerCase());
+        return cosmetics != null && cosmetics.contains(cosmeticId);
+    }
 
     public static void connect() {
         if (isConnecting) return;
@@ -58,16 +67,58 @@ public class ClientSocket {
 
                 socket.on("client:users_playing", args -> {
                     try {
-                        usersUsingClient.clear();
+                        Map<String, Set<String>> newMap = new ConcurrentHashMap<>();
+
                         if (args.length > 0 && args[0] instanceof JSONArray) {
                             JSONArray arr = (JSONArray) args[0];
+
                             for (int i = 0; i < arr.length(); i++) {
-                                usersUsingClient.add(arr.getString(i).toLowerCase());
+                                JSONObject playerData = arr.getJSONObject(i);
+                                String pNick = playerData.getString("nick").toLowerCase();
+                                JSONArray pCosmetics = playerData.optJSONArray("cosmetics");
+
+                                Set<String> activeIds = new HashSet<>();
+                                if (pCosmetics != null) {
+                                    for (int j = 0; j < pCosmetics.length(); j++) {
+                                        activeIds.add(pCosmetics.getString(j));
+                                    }
+                                }
+                                newMap.put(pNick, activeIds);
                             }
                         }
-                        if (Minecraft.getMinecraft().getSession() != null) {
-                            usersUsingClient.add(Minecraft.getMinecraft().getSession().getUsername().toLowerCase());
+
+                        playerCosmetics.putAll(newMap);
+                        playerCosmetics = newMap;
+
+                        updateLocalPlayerCosmetics();
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                });
+
+                socket.on("client:cosmetics:player", args -> {
+                    if (args.length == 0 || !(args[0] instanceof Boolean) || !(boolean) args[0]) return;
+
+                    try {
+                        String myName = Minecraft.getMinecraft().getSession().getUsername().toLowerCase();
+                        Set<String> myActiveCosmetics = new HashSet<>();
+
+                        for (int i = 1; i < args.length; i++) {
+                            Object obj = args[i];
+                            if (obj instanceof JSONObject) {
+                                JSONObject cosmetic = (JSONObject) obj;
+                                String name = cosmetic.optString("name");
+                                if (name != null && !name.isEmpty()) {
+                                    myActiveCosmetics.add(name);
+                                }
+                            }
                         }
+
+                        playerCosmetics.put(myName, myActiveCosmetics);
+
+                        System.out.println("[WorthClient] Meus cosméticos carregados: " + myActiveCosmetics);
+
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -81,6 +132,15 @@ public class ClientSocket {
                 isConnecting = false;
             }
         }).start();
+    }
+
+    private static void updateLocalPlayerCosmetics() {
+        try {
+            if (Minecraft.getMinecraft().getSession() != null) {
+                String me = Minecraft.getMinecraft().getSession().getUsername().toLowerCase();
+                playerCosmetics.putIfAbsent(me, new HashSet<>());
+            }
+        } catch (Exception ignored) {}
     }
 
     private static void startBackgroundTasks() {
