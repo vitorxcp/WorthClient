@@ -123,13 +123,17 @@ public abstract class MixinRendererLivingEntity<T extends EntityLivingBase> {
 
     private boolean checkMatch(String cleanDisplay) {
         if (cleanDisplay.isEmpty()) return false;
+
         try {
-            String myNick = Minecraft.getMinecraft().getSession().getUsername();
-            if (myNick != null && cleanDisplay.contains(cleanString(myNick))) return true;
+            if (Minecraft.getMinecraft().getSession() != null) {
+                String myNick = Minecraft.getMinecraft().getSession().getUsername();
+                if (myNick != null && cleanDisplay.contains(cleanString(myNick))) return true;
+            }
         } catch (Exception ignored) {}
-        if (ClientSocket.usersUsingClient != null) {
-            for (String socketUser : ClientSocket.usersUsingClient) {
-                if (socketUser != null && cleanDisplay.contains(socketUser.toLowerCase())) return true;
+
+        if (ClientSocket.playerCosmetics != null) {
+            for (String socketUser : ClientSocket.playerCosmetics.keySet()) {
+                if (socketUser != null && cleanDisplay.contains(socketUser)) return true;
             }
         }
         return false;
