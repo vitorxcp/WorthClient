@@ -20,7 +20,8 @@
     "MixinSoundSystem",
     "MixinResourcePackRepository",
     "MixinGuiOptions",
-    "MixinAbstractClientPlayer"
+    "MixinAbstractClientPlayer",
+    "MixinLayerCape"
   ],
   "client": [],
   "injectors": {
