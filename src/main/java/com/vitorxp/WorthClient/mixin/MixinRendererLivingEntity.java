@@ -30,7 +30,7 @@ public abstract class MixinRendererLivingEntity<T extends EntityLivingBase> {
 
     @Shadow protected abstract boolean canRenderName(T entity);
 
-    @Inject(method = {"renderName", "func_77033_b"}, at = @At("HEAD"), cancellable = true)
+    @Inject(method = {"renderName"}, at = @At("HEAD"), cancellable = true)
     public void onRenderName(T entity, double x, double y, double z, CallbackInfo ci) {
         if (!this.canRenderName(entity)) return;
 
@@ -51,45 +51,50 @@ public abstract class MixinRendererLivingEntity<T extends EntityLivingBase> {
         float f = 1.6F;
         float f1 = 0.016666668F * f;
 
-        GlStateManager.pushMatrix();
-        GlStateManager.translate((float)x, (float)y + entityIn.height + 0.5F, (float)z);
-        GL11.glNormal3f(0.0F, 1.0F, 0.0F);
-        GlStateManager.rotate(-mc.getRenderManager().playerViewY, 0.0F, 1.0F, 0.0F);
-        GlStateManager.rotate(mc.getRenderManager().playerViewX, 1.0F, 0.0F, 0.0F);
-        GlStateManager.scale(-f1, -f1, f1);
+        GlStateManager.pushMatrix(); // Início seguro
+        try {
+            GlStateManager.translate((float)x, (float)y + entityIn.height + 0.5F, (float)z);
+            GL11.glNormal3f(0.0F, 1.0F, 0.0F);
+            GlStateManager.rotate(-mc.getRenderManager().playerViewY, 0.0F, 1.0F, 0.0F);
+            GlStateManager.rotate(mc.getRenderManager().playerViewX, 1.0F, 0.0F, 0.0F);
+            GlStateManager.scale(-f1, -f1, f1);
 
-        GlStateManager.disableLighting();
-        GlStateManager.depthMask(false);
-        GlStateManager.enableBlend();
-        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+            GlStateManager.disableLighting();
+            GlStateManager.depthMask(false);
+            GlStateManager.enableBlend();
+            GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
 
-        int strWidth = fontrenderer.getStringWidth(str);
-        int halfWidth = (strWidth + 12) / 2;
+            int strWidth = fontrenderer.getStringWidth(str);
+            int halfWidth = (strWidth + 12) / 2;
 
-        GlStateManager.disableDepth();
+            GlStateManager.disableDepth();
 
-        drawBackgroundRect(halfWidth, 0.1F);
+            drawBackgroundRect(halfWidth, 0.1F);
 
-        GlStateManager.enableTexture2D();
-        GlStateManager.color(1.0F, 1.0F, 1.0F, 0.2F);
-        mc.getTextureManager().bindTexture(WORTH_ICON);
-        drawIcon(-halfWidth, -1, 8, 8);
-        fontrenderer.drawString(str, -halfWidth + 11, 0, 553648127);
+            GlStateManager.enableTexture2D();
+            GlStateManager.color(1.0F, 1.0F, 1.0F, 0.2F);
+            mc.getTextureManager().bindTexture(WORTH_ICON);
+            drawIcon(-halfWidth, -1, 8, 8);
+            fontrenderer.drawString(str, -halfWidth + 11, 0, 553648127);
 
-        GlStateManager.enableDepth();
-        GlStateManager.depthMask(true);
+            GlStateManager.enableDepth();
+            GlStateManager.depthMask(true);
 
-        drawBackgroundRect(halfWidth, 0.25F);
+            drawBackgroundRect(halfWidth, 0.25F);
 
-        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-        mc.getTextureManager().bindTexture(WORTH_ICON);
-        drawIcon(-halfWidth, -1, 8, 8);
-        fontrenderer.drawString(str, -halfWidth + 11, 0, -1);
+            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+            mc.getTextureManager().bindTexture(WORTH_ICON);
+            drawIcon(-halfWidth, -1, 8, 8);
+            fontrenderer.drawString(str, -halfWidth + 11, 0, -1);
 
-        GlStateManager.enableLighting();
-        GlStateManager.disableBlend();
-        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-        GlStateManager.popMatrix();
+            GlStateManager.enableLighting();
+            GlStateManager.disableBlend();
+            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+        } catch (Exception e) {
+            e.printStackTrace(); // Loga se der erro, mas não quebra a renderização futura
+        } finally {
+            GlStateManager.popMatrix(); // SEMPRE executa, evitando o Stack Overflow
+        }
     }
 
     private void drawBackgroundRect(int halfWidth, float alpha) {
