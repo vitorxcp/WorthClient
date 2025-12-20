@@ -21,7 +21,8 @@
     "MixinResourcePackRepository",
     "MixinGuiOptions",
     "MixinAbstractClientPlayer",
-    "MixinLayerCape"
+    "MixinLayerCape",
+    "MixinEntityPlayer"
   ],
   "client": [],
   "injectors": {
