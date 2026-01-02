@@ -22,7 +22,8 @@
     "MixinGuiOptions",
     "MixinAbstractClientPlayer",
     "MixinLayerCape",
-    "MixinEntityPlayer"
+    "MixinEntityPlayer",
+    "MixinRenderPlayer"
   ],
   "client": [],
   "injectors": {
