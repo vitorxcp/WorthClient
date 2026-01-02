@@ -69,7 +69,7 @@ public class CapeLoader {
             int h = originalImage.getHeight();
 
             if (w == 176 && h > 144) {
-                int frames = h / 136;
+                int frames = h / 144;
                 int delay = 85;
                 System.out.println("[WorthClient] Carregando animação '" + cosmeticId + "' com " + frames + " frames.");
                 BufferedImage fixedImage = processAnimatedStrip(originalImage, frames);
@@ -114,7 +114,7 @@ public class CapeLoader {
         return finalImg;
     }
     private static BufferedImage processAnimatedStrip(BufferedImage source, int totalFrames) {
-        int srcFrameHeight = 136;
+        int srcFrameHeight = 144;
         int srcBodyWidth = 88;
         int destFrameWidth = 512;
         int destFrameHeight = 256;
