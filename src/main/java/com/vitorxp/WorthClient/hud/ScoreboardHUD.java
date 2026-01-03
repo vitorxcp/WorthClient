@@ -15,6 +15,7 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class ScoreboardHUD extends HudElement {
@@ -39,7 +40,7 @@ public class ScoreboardHUD extends HudElement {
         if (!toggled) return;
 
         Minecraft mc = Minecraft.getMinecraft();
-        if (mc.theWorld == null) return;
+        if (mc.theWorld == null || mc.thePlayer == null) return;
 
         Scoreboard scoreboard = mc.theWorld.getScoreboard();
         ScoreObjective objective = null;
@@ -53,14 +54,15 @@ public class ScoreboardHUD extends HudElement {
         ScoreObjective objective1 = objective != null ? objective : scoreboard.getObjectiveInDisplaySlot(1);
 
         if (objective1 != null) {
-            renderScoreboard(objective1);
+            renderScoreboard(objective1, event.resolution);
         }
     }
 
-    private void renderScoreboard(ScoreObjective objective) {
+    private void renderScoreboard(ScoreObjective objective, ScaledResolution sr) {
         Minecraft mc = Minecraft.getMinecraft();
         Scoreboard scoreboard = objective.getScoreboard();
         Collection<Score> collection = scoreboard.getSortedScores(objective);
+
         List<Score> list = Lists.newArrayList(Iterables.filter(collection, new Predicate<Score>() {
             public boolean apply(Score p_apply_1_) {
                 return p_apply_1_.getPlayerName() != null && !p_apply_1_.getPlayerName().startsWith("#");
@@ -68,26 +70,28 @@ public class ScoreboardHUD extends HudElement {
         }));
 
         if (list.size() > 15) {
-            collection = Lists.newArrayList(Iterables.skip(list, collection.size() - 15));
-        } else {
-            collection = list;
+            list = Lists.newArrayList(Iterables.skip(list, collection.size() - 15));
         }
+
+        Collections.reverse(list);
 
         int maxWidth = mc.fontRendererObj.getStringWidth(objective.getDisplayName());
 
-        for (Score score : collection) {
+        for (Score score : list) {
             ScorePlayerTeam scoreplayerteam = scoreboard.getPlayersTeam(score.getPlayerName());
-            String s = ScorePlayerTeam.formatPlayerName(scoreplayerteam, score.getPlayerName()) + ": " + EnumChatFormatting.RED + score.getScorePoints();
+            String playerText = ScorePlayerTeam.formatPlayerName(scoreplayerteam, score.getPlayerName());
+
+            String fullText = playerText + ": " + EnumChatFormatting.RED + score.getScorePoints();
 
             if (!showNumbers) {
-                s = ScorePlayerTeam.formatPlayerName(scoreplayerteam, score.getPlayerName());
+                maxWidth = Math.max(maxWidth, mc.fontRendererObj.getStringWidth(playerText));
+            } else {
+                maxWidth = Math.max(maxWidth, mc.fontRendererObj.getStringWidth(fullText));
             }
-
-            maxWidth = Math.max(maxWidth, mc.fontRendererObj.getStringWidth(s));
         }
 
         int lineHeight = mc.fontRendererObj.FONT_HEIGHT;
-        int listHeight = collection.size() * lineHeight;
+        int listHeight = list.size() * lineHeight;
         int titleHeight = lineHeight + 2;
         int totalContentWidth = maxWidth + (padding * 2);
         int totalContentHeight = listHeight + titleHeight;
@@ -96,8 +100,7 @@ public class ScoreboardHUD extends HudElement {
         this.cachedHeight = (int) (totalContentHeight * scale);
 
         if (this.x == 0 && this.y == 0) {
-            ScaledResolution sr = new ScaledResolution(mc);
-            this.x = sr.getScaledWidth() - this.cachedWidth - 1;
+            this.x = sr.getScaledWidth() - this.cachedWidth - 2;
             this.y = (sr.getScaledHeight() / 2) - (this.cachedHeight / 2);
         }
 
@@ -105,31 +108,30 @@ public class ScoreboardHUD extends HudElement {
         GlStateManager.translate(this.x, this.y, 0);
         GlStateManager.scale(scale, scale, 1.0f);
 
-        String title = objective.getDisplayName();
-
         if (background) {
-            Gui.drawRect(0, 0, totalContentWidth, listHeight + titleHeight, backgroundColor);
-
+            Gui.drawRect(0, 0, totalContentWidth, totalContentHeight, backgroundColor);
             if (border) {
-                drawHollowRect(0, 0, totalContentWidth, listHeight + titleHeight, borderColor);
+                drawHollowRect(0, 0, totalContentWidth, totalContentHeight, borderColor);
             }
         }
 
+        String title = objective.getDisplayName();
         int titleX = (totalContentWidth / 2) - (mc.fontRendererObj.getStringWidth(title) / 2);
         mc.fontRendererObj.drawString(title, titleX, 2, 0xFFFFFFFF);
 
         int i = 0;
-        for (Score score : collection) {
+        for (Score score : list) {
             ScorePlayerTeam scoreplayerteam = scoreboard.getPlayersTeam(score.getPlayerName());
             String text = ScorePlayerTeam.formatPlayerName(scoreplayerteam, score.getPlayerName());
-            String points = EnumChatFormatting.RED + "" + score.getScorePoints();
 
             int lineY = titleHeight + (i * lineHeight);
 
             mc.fontRendererObj.drawString(text, padding, lineY, 0xFFFFFFFF);
 
             if (showNumbers) {
-                mc.fontRendererObj.drawString(points, totalContentWidth - padding - mc.fontRendererObj.getStringWidth(points), lineY, 0xFFFFFFFF);
+                String points = EnumChatFormatting.RED + "" + score.getScorePoints();
+                int pointsWidth = mc.fontRendererObj.getStringWidth(points);
+                mc.fontRendererObj.drawString(points, totalContentWidth - padding - pointsWidth, lineY, 0xFFFFFFFF);
             }
 
             i++;
