@@ -50,7 +50,7 @@ import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Mod(modid = "worthclient", name = "WorthClient", version = "1.0.1-alpha", dependencies = "after:optifine", clientSideOnly = true)
+@Mod(modid = "worthclient", name = "WorthClient", version = "1.0.1-alpha", clientSideOnly = true)
 public class WorthClient {
 
     public static final Logger logger = LogManager.getLogger("WorthClient");
@@ -125,6 +125,13 @@ public class WorthClient {
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent e) {
+        try {
+            Class.forName("net.optifine.Config");
+            logger.info(">> SUCESSO: OptiFine detectado e carregado na memória!");
+        } catch (ClassNotFoundException ex) {
+            logger.error(">> AVISO: OptiFine NÃO foi carregado corretamente.");
+        }
+
         logger.info("==========================================");
         logger.info("Iniciando WorthClient (Pré-Inicialização)");
         logger.info("Carregando configurações de performance...");
