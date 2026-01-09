@@ -1,9 +1,5 @@
 package com.vitorxp.WorthClient;
 
-import net.minecraft.client.Minecraft;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent;
 import org.lwjgl.opengl.Display;
 
 import javax.imageio.ImageIO;
@@ -20,16 +16,14 @@ public class WindowUtils {
     private static final String ICON_PATH = "/assets/worthclient/icons/icon.png";
     private static final String WINDOW_TITLE = "WorthClient";
 
-    @SubscribeEvent
-    public void onClientTick(TickEvent.ClientTickEvent event) {
+    public static void applyWindowStyle() {
         if (Display.isCreated()) {
             try {
                 setTitle(WINDOW_TITLE);
                 setIcon(ICON_PATH);
+                WorthClient.logger.info("Ícone e Título da janela definidos com sucesso.");
             } catch (Exception e) {
                 System.err.println("[WorthClient] Erro ao definir ícone/título: " + e.getMessage());
-            } finally {
-                MinecraftForge.EVENT_BUS.unregister(this);
             }
         }
     }
@@ -52,7 +46,7 @@ public class WindowUtils {
         icons.add(convertImageToBuffer(resizeImage(sourceImage, 16, 16)));
         icons.add(convertImageToBuffer(resizeImage(sourceImage, 32, 32)));
         icons.add(convertImageToBuffer(resizeImage(sourceImage, 64, 64)));
-        icons.add(convertImageToBuffer(sourceImage));
+        icons.add(convertImageToBuffer(sourceImage)); // Adiciona original também
 
         Display.setIcon(icons.toArray(new ByteBuffer[0]));
     }
