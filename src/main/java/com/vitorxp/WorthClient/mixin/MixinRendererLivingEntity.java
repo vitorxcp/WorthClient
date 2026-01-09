@@ -51,7 +51,7 @@ public abstract class MixinRendererLivingEntity<T extends EntityLivingBase> {
         float f = 1.6F;
         float f1 = 0.016666668F * f;
 
-        GlStateManager.pushMatrix(); // Início seguro
+        GlStateManager.pushMatrix();
         try {
             GlStateManager.translate((float)x, (float)y + entityIn.height + 0.5F, (float)z);
             GL11.glNormal3f(0.0F, 1.0F, 0.0F);
@@ -91,9 +91,9 @@ public abstract class MixinRendererLivingEntity<T extends EntityLivingBase> {
             GlStateManager.disableBlend();
             GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         } catch (Exception e) {
-            e.printStackTrace(); // Loga se der erro, mas não quebra a renderização futura
+            e.printStackTrace();
         } finally {
-            GlStateManager.popMatrix(); // SEMPRE executa, evitando o Stack Overflow
+            GlStateManager.popMatrix();
         }
     }
 
