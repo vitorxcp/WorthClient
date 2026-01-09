@@ -310,13 +310,24 @@ public class GuiModMenu extends GuiScreen {
             @Override public void toggle() { WorthClient.WailaMod = !WorthClient.WailaMod; }
         });
 
-        allModules.add(new ModCard("TimeChanger", "Hora do dia", "time", Category.WORLD) {
-            @Override public boolean isEnabled() { return toggleTimeChanger; }
-            @Override public void toggle() { toggleTimeChanger = !toggleTimeChanger; }
-            @Override public void initSettings() {
-                settings.add(new ModeSetting("Horário", "Dia", Arrays.asList("Dia", "Noite", "Tarde")));
+        allModules.add(new ModCard("TimeChanger", "Controla o horário do mundo", "time", Category.WORLD) {
+            @Override
+            public boolean isEnabled() {
+                return WorthClient.timeChangerEnable;
             }
-            @Override public boolean isBlocked() { return true; }
+
+            @Override
+            public void toggle() {
+                WorthClient.timeChangerEnable = !WorthClient.timeChangerEnable;
+            }
+
+            @Override
+            public void initSettings() {
+                settings.add(new SliderSetting("Horário", 0.0f, 24000.0f,
+                        () -> WorthClient.clientTime,
+                        (val) -> WorthClient.clientTime = val
+                ));
+            }
         });
 
         allModules.add(new ModCard("Perspective", "Visão 360", "360", Category.WORLD) {
@@ -403,6 +414,97 @@ public class GuiModMenu extends GuiScreen {
         if (isStaff(Minecraft.getMinecraft().thePlayer)) {
             allModules.add(new ModCard("Admin", "Painel Staff", "admin", Category.MISC) { @Override public boolean isMenuOnly() { return true; } });
         }
+
+        allModules.add(new ModCard("Skin 3D", "Adiciona relevo à skin", "skin", Category.PLAYER) {
+            @Override
+            public boolean isEnabled() {
+                return com.vitorxp.WorthClient.WorthClient.skin3D;
+            }
+
+            @Override
+            public void toggle() {
+                com.vitorxp.WorthClient.WorthClient.skin3D = !com.vitorxp.WorthClient.WorthClient.skin3D;
+            }
+
+            @Override
+            public void initSettings() {
+                settings.add(new SliderSetting("Espessura (Pixels)", 0.1f, 5.0f,
+                        () -> WorthClient.pixelsThickness,
+                        (val) -> {
+                            WorthClient.pixelsThickness = val;
+                            com.vitorxp.WorthClient.manager.ConfigManager.save();
+                        }
+                ));
+            }
+        });
+    }
+
+    class SliderSetting extends Setting {
+        Supplier<Float> getter;
+        java.util.function.Consumer<Float> setter;
+        float min;
+        float max;
+        boolean dragging = false;
+
+        public SliderSetting(String name, float min, float max, Supplier<Float> getter, java.util.function.Consumer<Float> setter) {
+            super(name);
+            this.min = min;
+            this.max = max;
+            this.getter = getter;
+            this.setter = setter;
+        }
+
+        @Override
+        void draw(Minecraft mc, int x, int y, int mouseX, int mouseY) {
+            drawRoundedRect(x, y, settingWidth, settingHeight, 6, 0xFF222222);
+            mc.fontRendererObj.drawString(name, x + 15, y + 5, 0xFFAAAAAA);
+
+            if (dragging) {
+                float val = (float)(mouseX - (x + 15)) / (float)(settingWidth - 30);
+                val = Math.max(0, Math.min(1, val));
+                float newVal = min + (val * (max - min));
+
+                newVal = Math.round(newVal * 10.0f) / 10.0f;
+                setter.accept(newVal);
+            }
+
+            float currentVal = getter.get();
+            float sliderFill = (currentVal - min) / (max - min);
+
+            int barX = x + 15;
+            int barY = y + settingHeight - 12;
+            int barW = settingWidth - 30;
+            int barH = 4;
+
+            drawRoundedRect(barX, barY, barW, barH, 2, 0xFF404040);
+
+            int fillW = (int)(barW * sliderFill);
+            if (fillW > 0) {
+                drawGradientRoundedRect(barX, barY, fillW, barH, 2, 0xFFFFAA00, 0xFFFF5500);
+            }
+
+            float knobX = barX + fillW;
+            float knobY = barY + 2;
+            boolean hover = mouseX >= barX && mouseX <= barX + barW && mouseY >= barY - 5 && mouseY <= barY + 10;
+
+            drawCircleSector(knobX, knobY, hover || dragging ? 5 : 4, 0, 360);
+
+            String valStr = String.format("%.1f", currentVal);
+            mc.fontRendererObj.drawString(valStr, x + settingWidth - 15 - mc.fontRendererObj.getStringWidth(valStr), y + 5, 0xFFFFFFFF);
+        }
+
+        @Override
+        boolean mouseClicked(int x, int y, int mouseX, int mouseY, int mouseButton) {
+            if (mouseButton == 0 && mouseX >= x && mouseX <= x + settingWidth && mouseY >= y && mouseY <= y + settingHeight) {
+                dragging = true;
+                return true;
+            }
+            return false;
+        }
+
+        public void mouseReleased(int mouseX, int mouseY, int state) {
+            dragging = false;
+        }
     }
 
     class ColorSetting extends Setting {
@@ -480,6 +582,18 @@ public class GuiModMenu extends GuiScreen {
         visibleModules.clear();
         for (ModCard mod : allModules) {
             if (mod.category == currentCategory) visibleModules.add(mod);
+        }
+    }
+
+    @Override
+    protected void mouseReleased(int mouseX, int mouseY, int state) {
+        super.mouseReleased(mouseX, mouseY, state);
+        if (selectedMod != null && currentState == ScreenState.CONFIG) {
+            for (Setting s : selectedMod.settings) {
+                if (s instanceof SliderSetting) {
+                    ((SliderSetting) s).mouseReleased(mouseX, mouseY, state);
+                }
+            }
         }
     }
 
