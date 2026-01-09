@@ -11,7 +11,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.vitorxp.WorthClient.WorthClient.GuiAdminPainel;
-import static com.vitorxp.WorthClient.utils.RankUtils.isStaff;
+import static com.vitorxp.WorthClient.utils.RankUtils.isStaffM;
 
 public class PainelAdminCommand extends CommandBase {
     @Override
@@ -26,7 +26,7 @@ public class PainelAdminCommand extends CommandBase {
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
-        if (!isStaff(Minecraft.getMinecraft().thePlayer)) {
+        if (!isStaffM(Minecraft.getMinecraft().thePlayer)) {
             Minecraft.getMinecraft().thePlayer.addChatMessage(new ChatComponentText("§cVocê não faz parte da Staff para executar esse comando!"));
             return;
         }
