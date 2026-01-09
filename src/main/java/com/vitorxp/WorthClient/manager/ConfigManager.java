@@ -46,6 +46,10 @@ public class ConfigManager {
         obj.addProperty("borderScoreBoard", ScoreboardHUD.border);
         obj.addProperty("borderColorScoreBoard", ScoreboardHUD.borderColor);
         obj.addProperty("scaleScoreBoard", ScoreboardHUD.scale);
+        obj.addProperty("skin3D", WorthClient.skin3D);
+        obj.addProperty("pixelsThickness", WorthClient.pixelsThickness);
+        obj.addProperty("timeChangerEnable", WorthClient.timeChangerEnable);
+        obj.addProperty("clientTime", WorthClient.clientTime);
 
         try (FileWriter writer = new FileWriter(FILE)) {
             new Gson().toJson(obj, writer);
@@ -92,6 +96,10 @@ public class ConfigManager {
             if (obj.has("borderScoreBoard")) ScoreboardHUD.border  = obj.get("borderScoreBoard").getAsBoolean();
             if (obj.has("borderColorScoreBoard")) ScoreboardHUD.borderColor  = obj.get("borderColorScoreBoard").getAsInt();
             if (obj.has("scaleScoreBoard")) ScoreboardHUD.scale  = obj.get("scaleScoreBoard").getAsInt();
+            if (obj.has("skin3D")) WorthClient.skin3D  = obj.get("skin3D").getAsBoolean();
+            if (obj.has("pixelsThickness")) WorthClient.pixelsThickness  = obj.get("pixelsThickness").getAsInt();
+            if (obj.has("timeChangerEnable")) WorthClient.timeChangerEnable  = obj.get("timeChangerEnable").getAsBoolean();
+            if (obj.has("clientTime")) WorthClient.clientTime  = obj.get("clientTime").getAsInt();
 
         } catch (Exception e) {
             e.printStackTrace();
