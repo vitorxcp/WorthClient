@@ -54,7 +54,14 @@ public class ScoreboardHUD extends HudElement {
         ScoreObjective objective1 = objective != null ? objective : scoreboard.getObjectiveInDisplaySlot(1);
 
         if (objective1 != null) {
-            renderScoreboard(objective1, event.resolution);
+            ScaledResolution sr;
+            if (event != null && event.resolution != null) {
+                sr = event.resolution;
+            } else {
+                sr = new ScaledResolution(mc);
+            }
+
+            renderScoreboard(objective1, sr);
         }
     }
 
