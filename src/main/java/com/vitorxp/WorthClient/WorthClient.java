@@ -63,6 +63,8 @@ public class WorthClient {
     public static int KeyZoom = Keyboard.KEY_C;
     public static boolean PerspectiveStartFront = false;
     public static boolean AutoLoginEnabled = true;
+    public static float pixelsThickness = 1.0f;
+    public static boolean skin3D = false;
     private final SessionManager sessionManager = new SessionManager();
     private static ServerData lastServerAttempted;
     public static boolean blockPetMessages = true;
@@ -70,6 +72,9 @@ public class WorthClient {
     public static boolean announceZealot = true;
     public static boolean MsgBlockDestroyBlock = true;
     public static boolean petOverlay = true;
+    public static boolean timeChangerEnable = false;
+    public static float clientTime = 6000.0f;
+    public static boolean buildEnabled = false;
     public static int zealotMessageTicksLeft = 0;
     public static boolean pingOverlay = true;
     public static boolean fpsOverlay = true;
@@ -125,6 +130,7 @@ public class WorthClient {
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent e) {
+        com.vitorxp.WorthClient.WindowUtils.applyWindowStyle();
         try {
             Class.forName("net.optifine.Config");
             logger.info(">> SUCESSO: OptiFine detectado e carregado na memória!");
@@ -140,7 +146,6 @@ public class WorthClient {
         File configFile = e.getSuggestedConfigurationFile();
         VoidLagFixConfig.syncConfig(configFile);
         logger.info("Instalando utilitários de janela e SSL...");
-        MinecraftForge.EVENT_BUS.register(new com.vitorxp.WorthClient.WindowUtils());
         SSLTrustBypasser.install();
         SSLTrustManager.initialize();
         logger.info("Pré-inicialização concluída.");
@@ -251,6 +256,9 @@ public class WorthClient {
         Minecraft.getMinecraft().renderGlobal.loadRenderers();
         logger.info("WorthClient carregado e pronto!");
         logger.info("==========================================");
+
+        ClientCommandHandler.instance.registerCommand(new CommandBuildIs());
+        MinecraftForge.EVENT_BUS.register(new com.vitorxp.WorthClient.handlers.IslandProtectionHandler());
     }
 
     @Mod.EventHandler
