@@ -25,6 +25,7 @@ public class Keybinds {
     public static KeyBinding openConfig;
     public static KeyBinding openConfigHud;
     public static KeyBinding screenshotKey;
+    public static KeyBinding openSocialKey;
     public static KeyBinding perspectiveM;
     public static KeyBinding ZoomM;
     private static boolean keysInitialized = false;
@@ -40,7 +41,7 @@ public class Keybinds {
         openConfigHud = new KeyBinding("Abrir menu de Overlays", Keyboard.KEY_RSHIFT, "WorthClient");
         ClientRegistry.registerKeyBinding(openConfigHud);
 
-        screenshotKey = new KeyBinding("Tirar Screenshot", Keyboard.KEY_P, "WorthClient");
+        screenshotKey = new KeyBinding("Tirar Screenshot", Keyboard.KEY_F12, "WorthClient");
         //ClientRegistry.registerKeyBinding(screenshotKey);
 
         perspectiveM = new KeyBinding("Perspective Mod", WorthClient.KeyPerspective, "WorthClient");
@@ -48,6 +49,9 @@ public class Keybinds {
 
         ZoomM = new KeyBinding("Botão do Zoom", WorthClient.KeyZoom, "WorthClient");
         ClientRegistry.registerKeyBinding(ZoomM);
+
+        openSocialKey = new KeyBinding("Social / Chat", Keyboard.KEY_P, "WorthClient");
+        ClientRegistry.registerKeyBinding(openSocialKey);
     }
 
     public static void updatePerspectiveKey(int newKeyCode) {
@@ -92,6 +96,17 @@ public class Keybinds {
             if (perspectiveM.isPressed()) {
                 WorthClient.perspective = !WorthClient.perspective;
             }
+        }
+
+        if (openSocialKey.isPressed()) {
+            if (com.vitorxp.WorthClient.socket.ClientSocket.socket == null ||
+                    !com.vitorxp.WorthClient.socket.ClientSocket.socket.connected()) {
+                Minecraft.getMinecraft().thePlayer.addChatMessage(new ChatComponentText("§cConectando ao chat... Aguarde."));
+                com.vitorxp.WorthClient.socket.ClientSocket.connect();
+                return;
+            }
+
+            Minecraft.getMinecraft().displayGuiScreen(new com.vitorxp.WorthClient.gui.GuiSocial());
         }
     }
 
