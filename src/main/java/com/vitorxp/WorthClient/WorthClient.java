@@ -259,6 +259,7 @@ public class WorthClient {
 
         ClientCommandHandler.instance.registerCommand(new CommandBuildIs());
         MinecraftForge.EVENT_BUS.register(new com.vitorxp.WorthClient.handlers.IslandProtectionHandler());
+        MinecraftForge.EVENT_BUS.register(new NotificationManager());
     }
 
     @Mod.EventHandler
