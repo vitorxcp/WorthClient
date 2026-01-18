@@ -2,34 +2,50 @@ package com.vitorxp.WorthClient.utils;
 
 import com.vitorxp.WorthClient.gui.WorthLoadingGUI;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ScaledResolution;
+import org.lwjgl.opengl.Display;
 
 public class LoadingUtils {
 
-    private static long lastUpdate = 0;
+    private static String currentText = "Iniciando...";
+    private static float currentProgress = 0.0f;
+
+    public static void setCurrentText(String text) {
+        currentText = text;
+    }
+
+    public static void setCurrentProgress(float progress) {
+        currentProgress = progress;
+    }
+
+    public static String getCurrentText() { return currentText; }
+    public static float getCurrentProgress() { return currentProgress; }
 
     public static void renderLoading(String text, float progress) {
-        long now = System.currentTimeMillis();
-
-        if (now - lastUpdate < 16) {
-            return;
-        }
-        lastUpdate = now;
+        if (text != null) currentText = text;
+        if (progress >= 0) currentProgress = progress;
 
         Minecraft mc = Minecraft.getMinecraft();
+
+        if (!(mc.currentScreen instanceof WorthLoadingGUI)) {
+            mc.displayGuiScreen(new WorthLoadingGUI());
+        }
+
         if (mc.currentScreen instanceof WorthLoadingGUI) {
             WorthLoadingGUI gui = (WorthLoadingGUI) mc.currentScreen;
 
-            gui.update(text, progress);
+            gui.update(currentText, currentProgress);
 
-            ScaledResolution res = new ScaledResolution(mc);
-            int scale = res.getScaleFactor();
-            int w = mc.displayWidth / scale;
-            int h = mc.displayHeight / scale;
+            mc.getFramebuffer().bindFramebuffer(true);
 
-            gui.drawScreen(w, h);
+            net.minecraft.client.gui.ScaledResolution res = new net.minecraft.client.gui.ScaledResolution(mc);
+            int w = res.getScaledWidth();
+            int h = res.getScaledHeight();
+
+            gui.drawScreen(0, 0, 0);
 
             mc.updateDisplay();
+
+            Display.sync(60);
         }
     }
 }
