@@ -126,7 +126,6 @@ public class WorthClient {
     public void preInit(FMLPreInitializationEvent e) {
         LoadingUtils.setCurrentText("Iniciando WorthClient...");
         LoadingUtils.setCurrentProgress(0.05f);
-        //WindowUtils.applyWindowStyle();
         PerfConfig.load(e.getSuggestedConfigurationFile());
         VoidLagFixConfig.syncConfig(e.getSuggestedConfigurationFile());
         SSLTrustBypasser.install();
@@ -270,26 +269,9 @@ public class WorthClient {
 
     @Mod.EventHandler
     public void postInit(FMLPostInitializationEvent e) {
-    }
-
-    private boolean packsLoaded = false;
-    private int tickCounter = 0;
-
-    @SubscribeEvent
-    public void onTick(net.minecraftforge.fml.common.gameevent.TickEvent.ClientTickEvent event) {
-        if (event.phase != net.minecraftforge.fml.common.gameevent.TickEvent.Phase.END) return;
-
-        Minecraft mc = Minecraft.getMinecraft();
-
-        if (!packsLoaded && (mc.currentScreen instanceof net.minecraft.client.gui.GuiMainMenu || mc.thePlayer != null)) {
-            tickCounter++;
-
-            if (tickCounter > 20) {
-                logger.info("Inicialização concluída. Carregando texturas salvas...");
-                WorthPackLoader.reloadSavedPacks();
-                packsLoaded = true;
-            }
-        }
+        logger.info("Verificando e carregando texturas salvas (Post-Init)...");
+        System.gc();
+        WorthPackLoader.reloadSavedPacks();
     }
 
     @SubscribeEvent
