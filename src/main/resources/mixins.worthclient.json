@@ -1,9 +1,9 @@
 {
   "required": true,
-  "minVersion": "0.7",
+  "minVersion": "0.7.11",
   "package": "com.vitorxp.WorthClient.mixin",
   "compatibilityLevel": "JAVA_8",
-  "refmap": "worthclient.refmap.json",
+  "refmap": "mixins.worthclient.refmap.json",
   "mixins": [
     "MixinMinecraft",
     "MixinGuiPlayerTabOverlay",
@@ -25,7 +25,11 @@
     "MixinEntityPlayer",
     "MixinRenderPlayer",
     "MixinRenderManager",
-    "MixinWorld"
+    "MixinWorld",
+    "MixinTextureMap",
+    "MixinWorldProvider",
+    "MixinChunk",
+    "MixinItemRenderer"
   ],
   "client": [],
   "injectors": {
