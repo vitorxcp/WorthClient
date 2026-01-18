@@ -164,6 +164,79 @@ public class GuiModMenu extends GuiScreen {
                     }
                 });
 
+                allModules.add(new ModCard("Animations", "Animações 1.7 e Física", "anim", Category.MISC) {
+                    @Override
+                    public boolean isEnabled() {
+                        return com.vitorxp.WorthClient.config.AnimationsConfig.enabled;
+                    }
+
+                    @Override
+                    public void toggle() {
+                        com.vitorxp.WorthClient.config.AnimationsConfig.enabled = !com.vitorxp.WorthClient.config.AnimationsConfig.enabled;
+                    }
+
+                    @Override
+                    public void initSettings() {
+                        settings.add(new BooleanSetting("BlockHit 1.7 (Osu)",
+                                () -> com.vitorxp.WorthClient.config.AnimationsConfig.blockHit17,
+                                () -> com.vitorxp.WorthClient.config.AnimationsConfig.blockHit17 = !com.vitorxp.WorthClient.config.AnimationsConfig.blockHit17
+                        ));
+
+                        settings.add(new BooleanSetting("Vara de Pescar 1.7",
+                                () -> com.vitorxp.WorthClient.config.AnimationsConfig.oldRod,
+                                () -> com.vitorxp.WorthClient.config.AnimationsConfig.oldRod = !com.vitorxp.WorthClient.config.AnimationsConfig.oldRod
+                        ));
+
+                        settings.add(new BooleanSetting("Arco 1.7",
+                                () -> com.vitorxp.WorthClient.config.AnimationsConfig.oldBow,
+                                () -> com.vitorxp.WorthClient.config.AnimationsConfig.oldBow = !com.vitorxp.WorthClient.config.AnimationsConfig.oldBow
+                        ));
+
+                        settings.add(new BooleanSetting("Agachar 1.7 (Suave)",
+                                () -> com.vitorxp.WorthClient.config.AnimationsConfig.oldSneak,
+                                () -> com.vitorxp.WorthClient.config.AnimationsConfig.oldSneak = !com.vitorxp.WorthClient.config.AnimationsConfig.oldSneak
+                        ));
+
+                        settings.add(new BooleanSetting("Dano na Câmera",
+                                () -> com.vitorxp.WorthClient.config.AnimationsConfig.damageShake,
+                                () -> com.vitorxp.WorthClient.config.AnimationsConfig.damageShake = !com.vitorxp.WorthClient.config.AnimationsConfig.damageShake
+                        ));
+
+                        settings.add(new BooleanSetting("Sempre Bater (Always Swing)",
+                                () -> com.vitorxp.WorthClient.config.AnimationsConfig.alwaysSwing,
+                                () -> com.vitorxp.WorthClient.config.AnimationsConfig.alwaysSwing = !com.vitorxp.WorthClient.config.AnimationsConfig.alwaysSwing
+                        ));
+
+                        settings.add(new SliderSetting("Posição X", -1.0f, 1.0f,
+                                () -> com.vitorxp.WorthClient.config.AnimationsConfig.itemPosX,
+                                (val) -> com.vitorxp.WorthClient.config.AnimationsConfig.itemPosX = val
+                        ));
+
+                        settings.add(new SliderSetting("Posição Y", -1.0f, 1.0f,
+                                () -> com.vitorxp.WorthClient.config.AnimationsConfig.itemPosY,
+                                (val) -> com.vitorxp.WorthClient.config.AnimationsConfig.itemPosY = val
+                        ));
+
+                        settings.add(new SliderSetting("Posição Z", -1.0f, 1.0f,
+                                () -> com.vitorxp.WorthClient.config.AnimationsConfig.itemPosZ,
+                                (val) -> com.vitorxp.WorthClient.config.AnimationsConfig.itemPosZ = val
+                        ));
+
+                        settings.add(new SliderSetting("Tamanho do Item", 0.5f, 2.0f,
+                                () -> com.vitorxp.WorthClient.config.AnimationsConfig.itemScale,
+                                (val) -> com.vitorxp.WorthClient.config.AnimationsConfig.itemScale = val
+                        ));
+
+                        settings.add(new ActionSetting("Resetar Posição", () -> {
+                            com.vitorxp.WorthClient.config.AnimationsConfig.itemPosX = 0.0f;
+                            com.vitorxp.WorthClient.config.AnimationsConfig.itemPosY = 0.0f;
+                            com.vitorxp.WorthClient.config.AnimationsConfig.itemPosZ = 0.0f;
+                            com.vitorxp.WorthClient.config.AnimationsConfig.itemScale = 1.0f;
+                            NotificationRenderer.send(com.vitorxp.WorthClient.gui.utils.NotificationRenderer.Type.SUCCESS, "Posição Resetada!");
+                        }));
+                    }
+                });
+
                 settings.add(new ColorSetting("Cor do Fundo",
                         () -> new java.awt.Color(ScoreboardHUD.backgroundColor, true),
                         (c) -> ScoreboardHUD.backgroundColor = c.getRGB()
