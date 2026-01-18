@@ -162,7 +162,7 @@ public class GuiMultiplayerCustom extends GuiScreen {
 
     private void createButtons() {
         int btnWidth = 75;
-        int btnSpacing = 5;
+        int btnSpacing = 10;
         int startY = this.containerY + this.containerHeight + 15;
 
         int totalWidthRow = (btnWidth * 3) + (btnSpacing * 2);
@@ -401,6 +401,7 @@ public class GuiMultiplayerCustom extends GuiScreen {
             if (netHandler != null) {
                 netHandler.getNetworkManager().closeChannel(new ChatComponentText("Trocando de Servidor"));
             }
+            System.out.println("Desconectado do Servidor.");
             this.mc.loadWorld(null);
         } else {
             NotificationRenderer.send(NotificationRenderer.Type.SUCCESS, "Conectando ao servidor...");
