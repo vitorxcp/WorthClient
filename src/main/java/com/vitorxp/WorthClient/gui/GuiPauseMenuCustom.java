@@ -2,141 +2,110 @@ package com.vitorxp.WorthClient.gui;
 
 import com.vitorxp.WorthClient.gui.button.GuiModernButton;
 import com.vitorxp.WorthClient.gui.utils.AnimationUtil;
+import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiOptions;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.network.NetHandlerPlayClient;
 import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.WorldRenderer;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ResourceLocation;
-import org.lwjgl.opengl.GL11;
-
-import java.awt.*;
+import java.awt.Color;
 import java.io.IOException;
 
 public class GuiPauseMenuCustom extends GuiScreen {
 
-    private static final ResourceLocation BACKGROUND_BLUR = new ResourceLocation("worthclient", "textures/gui/Background_3.png");
+    private static final ResourceLocation CLIENT_LOGO_LOC = new ResourceLocation("worthclient", "textures/gui/logo_client.png");
 
-    private long animationStartTime;
-    private boolean isOpening, isClosing;
-    private final int ANIMATION_DURATION_MS = 300;
-    private GuiScreen nextScreen = null;
-    private boolean shouldResumeGame = false;
+    private long initTime;
+    private boolean isClosing = false;
 
     @Override
     public void initGui() {
+        this.initTime = System.currentTimeMillis();
+
         if (!mc.entityRenderer.isShaderActive()) {
             try {
                 mc.entityRenderer.loadShader(new ResourceLocation("shaders/post/blur.json"));
-            } catch (Exception e) {
-                System.out.println("[WorthClient] Erro ao carregar Blur: " + e.getMessage());
-            }
+            } catch (Exception ignored) {}
         }
 
         this.buttonList.clear();
-        int buttonY = this.height / 2 - 50;
-        int buttonSpacing = 30;
-        this.buttonList.add(new GuiModernButton(0, this.width / 2 - 100, buttonY, "Voltar ao Jogo", 500L));
-        this.buttonList.add(new GuiModernButton(1, this.width / 2 - 100, buttonY + buttonSpacing, "Servidores", 600L));
-        this.buttonList.add(new GuiModernButton(2, this.width / 2 - 100, buttonY + buttonSpacing * 2, "Opções", 700L));
-        this.buttonList.add(new GuiModernButton(3, this.width / 2 - 100, buttonY + buttonSpacing * 3, "Desconectar", 800L));
 
-        this.isOpening = true;
-        this.isClosing = false;
-        this.animationStartTime = System.currentTimeMillis();
+        int buttonWidth = 200;
+        int buttonHeight = 25;
+        int spacing = 28;
+        int totalMenuHeight = (4 * spacing) + buttonHeight;
+        int buttonX = (this.width - buttonWidth) / 2;
+        int startY = (this.height - totalMenuHeight) / 2;
 
-        super.initGui();
-    }
+        if (startY < 60) startY = 60;
 
-    void triggerExitAnimation(GuiScreen screenToOpen) {
-        if (!this.isClosing) {
-            this.isClosing = true;
-            this.isOpening = false;
-            this.animationStartTime = System.currentTimeMillis();
-            this.nextScreen = screenToOpen;
-        }
+        this.buttonList.add(new GuiModernButton(0, buttonX, startY, "Voltar ao Jogo", 0));
+        this.buttonList.add(new GuiModernButton(1, buttonX, startY + spacing, "Servidores", 100));
+        this.buttonList.add(new GuiModernButton(2, buttonX, startY + spacing * 2, "Opções", 200));
+        this.buttonList.add(new GuiModernButton(4, buttonX, startY + spacing * 3, "Texturas", 300));
+        this.buttonList.add(new GuiModernButton(3, buttonX, startY + spacing * 4, "Desconectar", 400));
     }
 
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
-        float progress = 0;
-        if (isOpening || isClosing) {
-            long elapsedTime = System.currentTimeMillis() - this.animationStartTime;
-            progress = Math.min(1.0f, (float)elapsedTime / (float)this.ANIMATION_DURATION_MS);
-        }
-        float easedProgress = AnimationUtil.easeOutCubic(progress);
+        float animProgress = Math.min(1.0f, (System.currentTimeMillis() - initTime) / 300.0f);
+        animProgress = AnimationUtil.easeOutCubic(animProgress);
 
-        drawCustomBackground();
+        this.drawGradientRect(0, 0, this.width, this.height, new Color(0, 0, 0, 100).getRGB(), new Color(0, 0, 0, 200).getRGB());
 
-        float uiAlpha = 1.0f;
-        if (isOpening) uiAlpha = easedProgress;
-        if (isClosing) uiAlpha = 1.0f - easedProgress;
-        uiAlpha = Math.max(0.0f, uiAlpha);
+        GlStateManager.pushMatrix();
+        GlStateManager.translate(this.width / 2.0f, 40, 0);
+        float scale = 1.0f + (0.1f * (1 - animProgress));
+        GlStateManager.scale(scale, scale, 1.0f);
+        this.drawCenteredString(this.fontRendererObj, "JOGO PAUSADO", 0, 0, -1);
+        GlStateManager.popMatrix();
 
-        this.drawCenteredString(this.fontRendererObj, "Jogo Pausado", this.width / 2, 40, new Color(1.0f, 1.0f, 1.0f, uiAlpha).getRGB());
-
-        for (net.minecraft.client.gui.GuiButton button : this.buttonList) {
+        for (GuiButton button : this.buttonList) {
             if (button instanceof GuiModernButton) {
-                ((GuiModernButton) button).drawButton(this.mc, mouseX, mouseY, uiAlpha);
+                ((GuiModernButton) button).drawButton(this.mc, mouseX, mouseY, animProgress);
             } else {
                 button.drawButton(this.mc, mouseX, mouseY);
             }
         }
 
-        if (isOpening || isClosing) {
-            float transitionEffectProgress = isOpening ? 1.0f - easedProgress : easedProgress;
-            drawSlidingBarsTransition(transitionEffectProgress);
+        GlStateManager.enableBlend();
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+        try {
+            this.mc.getTextureManager().bindTexture(CLIENT_LOGO_LOC);
 
-            if (progress >= 1.0f) {
-                if (isOpening) isOpening = false;
-                if (isClosing) {
-                    if (shouldResumeGame) {
-                        this.mc.displayGuiScreen(null);
-                        this.mc.setIngameFocus();
-                    } else {
-                        this.mc.displayGuiScreen(this.nextScreen);
-                    }
-                }
-            }
+            int logoH = 25;
+            int logoW = (int) (logoH * (1640.0f / 664.0f));
+
+            int logoX = 5;
+            int logoY = this.height - logoH - 5;
+
+            drawModalRectWithCustomSizedTexture(logoX, logoY, 0, 0, logoW, logoH, logoW, logoH);
+        } catch (Exception ignored) {
+            this.drawString(fontRendererObj, "WorthClient", 5, this.height - 12, 0x808080);
         }
     }
 
     @Override
-    protected void actionPerformed(net.minecraft.client.gui.GuiButton button) throws IOException {
-        if (isClosing || isOpening) return;
-
+    protected void actionPerformed(GuiButton button) throws IOException {
         switch (button.id) {
             case 0:
-                this.shouldResumeGame = true;
-                triggerExitAnimation(null);
+                this.mc.displayGuiScreen(null);
+                this.mc.setIngameFocus();
                 break;
             case 1:
-                    button.enabled = false;
-                    this.mc.displayGuiScreen(new GuiMultiplayerCustom(new GuiClientMainMenu()));
+                this.mc.displayGuiScreen(new GuiMultiplayerCustom(new GuiClientMainMenu()));
                 break;
             case 2:
-                triggerExitAnimation(new GuiOptions(this, this.mc.gameSettings));
+                this.mc.displayGuiScreen(new GuiOptions(this, this.mc.gameSettings));
                 break;
             case 3:
                 button.enabled = false;
-                this.mc.addScheduledTask(() -> {
-                    if (this.mc.theWorld == null) return;
-
-                    NetHandlerPlayClient netHandler = this.mc.getNetHandler();
-                    if (netHandler != null) {
-                        netHandler.getNetworkManager().closeChannel(new ChatComponentText("Disconnecting"));
-                    }
-                    this.mc.loadWorld(null);
-
-                    if (netHandler != null) {
-                        this.mc.displayGuiScreen(new GuiMultiplayerCustom(new GuiClientMainMenu()));
-                    } else {
-                        this.mc.displayGuiScreen(new GuiClientMainMenu());
-                    }
-                });
+                this.mc.theWorld.sendQuittingDisconnectingPacket();
+                this.mc.loadWorld(null);
+                System.out.println("Desconectado do Servidor.");
+                this.mc.displayGuiScreen(new GuiClientMainMenu());
+                break;
+            case 4:
+                this.mc.displayGuiScreen(new GuiScreenWorthPacks(this));
                 break;
         }
     }
@@ -144,63 +113,15 @@ public class GuiPauseMenuCustom extends GuiScreen {
     @Override
     protected void keyTyped(char typedChar, int keyCode) throws IOException {
         if (keyCode == 1) {
-            this.shouldResumeGame = true;
-            triggerExitAnimation(null);
+            this.mc.displayGuiScreen(null);
+            this.mc.setIngameFocus();
         }
     }
 
-    public void drawCustomBackground() {
-        //GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-        //this.mc.getTextureManager().bindTexture(BACKGROUND_BLUR);
-        //drawModalRectWithCustomSizedTexture(0, 0, 0, 0, this.width, this.height, this.width, this.height);
-        //drawRect(0, 0, this.width, this.height, new Color(10, 10, 15, 100).getRGB());
-
-        int colorTop = new Color(10, 10, 15, 100).getRGB();
-        int colorBottom = new Color(10, 10, 15, 200).getRGB();
-
-        this.drawGradientRect(0, 0, this.width, this.height, colorTop, colorBottom);
-    }
-
-    private void drawSlidingBarsTransition(float progress) {
-        Tessellator tessellator = Tessellator.getInstance();
-        WorldRenderer worldrenderer = tessellator.getWorldRenderer();
-        GlStateManager.pushMatrix();
-        GlStateManager.enableBlend();
-        GlStateManager.disableTexture2D();
-        GlStateManager.tryBlendFuncSeparate(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
-        Color goldDark = new Color(139, 105, 20, 255);
-        Color goldLight = new Color(255, 215, 0, 255);
-        float w = this.width;
-        float h = this.height;
-        int numBars = 3;
-        float barHeight = h / numBars;
-        for (int i = 0; i < numBars; i++) {
-            float startY = barHeight * i;
-            float endY = barHeight * (i + 1);
-            float offset = ((w + 100) * progress);
-            float x1_0 = (i % 2 == 0) ? -(w + 100) + offset : (w + 100) - offset;
-            float x2_0 = x1_0 + (w + 100);
-            worldrenderer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR);
-            addVertexWithColor(worldrenderer, x1_0, startY, goldDark);
-            addVertexWithColor(worldrenderer, x2_0, startY, goldLight);
-            addVertexWithColor(worldrenderer, x2_0, endY, goldLight);
-            addVertexWithColor(worldrenderer, x1_0, endY, goldDark);
-            tessellator.draw();
-        }
-        GlStateManager.enableTexture2D();
-        GlStateManager.disableBlend();
-        GlStateManager.popMatrix();
-    }
-
-    private void addVertexWithColor(WorldRenderer wr, float x, float y, Color c) {
-        wr.pos(x, y, 0).color(c.getRed() / 255.0f, c.getGreen() / 255.0f, c.getBlue() / 255.0f, c.getAlpha() / 255.0f).endVertex();
-    }
-
+    @Override
     public void onGuiClosed() {
         if (mc.entityRenderer.isShaderActive()) {
             mc.entityRenderer.stopUseShader();
         }
-
-        super.onGuiClosed();
     }
 }
