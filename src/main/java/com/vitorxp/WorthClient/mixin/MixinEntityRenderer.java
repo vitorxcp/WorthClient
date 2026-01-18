@@ -1,5 +1,6 @@
 package com.vitorxp.WorthClient.mixin;
 
+import com.vitorxp.WorthClient.config.AnimationsConfig;
 import com.vitorxp.WorthClient.utils.PerspectiveMod;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.EntityRenderer;
@@ -20,12 +21,6 @@ public class MixinEntityRenderer {
     private float originalPrevYaw;
     private float originalPrevPitch;
 
-    /**
-     * @author vitorxp
-     * @reason Corrige a colisão da câmera (Camera Wall Clip Fix).
-     * O 'orientCamera' calcula se a câmera bate na parede. Substituímos a rotação do player
-     * pela rotação do PerspectiveMod antes desse cálculo acontecer.
-     */
     @Inject(method = "orientCamera", at = @At("HEAD"))
     private void onOrientCameraHead(float partialTicks, CallbackInfo ci) {
         Entity entity = this.mc.getRenderViewEntity();
@@ -43,10 +38,6 @@ public class MixinEntityRenderer {
         }
     }
 
-    /**
-     * @author vitorxp
-     * @reason Restaura a rotação original imediatamente após o cálculo da câmera.
-     */
     @Inject(method = "orientCamera", at = @At("RETURN"))
     private void onOrientCameraReturn(float partialTicks, CallbackInfo ci) {
         Entity entity = this.mc.getRenderViewEntity();
@@ -56,6 +47,13 @@ public class MixinEntityRenderer {
             entity.rotationPitch = originalPitch;
             entity.prevRotationYaw = originalPrevYaw;
             entity.prevRotationPitch = originalPrevPitch;
+        }
+    }
+
+    @Inject(method = "hurtCameraEffect", at = @At("HEAD"), cancellable = true)
+    public void onHurtCameraEffect(float partialTicks, CallbackInfo ci) {
+        if (AnimationsConfig.enabled && !AnimationsConfig.damageShake) {
+            ci.cancel();
         }
     }
 }
