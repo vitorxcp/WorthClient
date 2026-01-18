@@ -1,5 +1,6 @@
 package com.vitorxp.WorthClient.mixin;
 
+import com.vitorxp.WorthClient.config.AnimationsConfig;
 import com.vitorxp.WorthClient.utils.CapeSimulationHolder;
 import com.vitorxp.WorthClient.utils.StickSimulation;
 import net.minecraft.entity.EntityLivingBase;
@@ -9,9 +10,12 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(EntityPlayer.class)
 public abstract class MixinEntityPlayer extends EntityLivingBase {
+
+    private float currentEyeHeight = 1.62F;
 
     public MixinEntityPlayer(World worldIn) {
         super(worldIn);
@@ -32,6 +36,35 @@ public abstract class MixinEntityPlayer extends EntityLivingBase {
 
                 simulation.simulate();
             }
+        }
+    }
+
+    @Inject(method = "onUpdate", at = @At("HEAD"))
+    public void onUpdateSneak(CallbackInfo ci) {
+        if (AnimationsConfig.enabled && AnimationsConfig.oldSneak && this.worldObj.isRemote) {
+
+            float targetHeight = this.isSneaking() ? 1.54F : 1.62F;
+
+            if (this.isPlayerSleeping()) {
+                targetHeight = 0.2F;
+            }
+
+            if (this.currentEyeHeight != targetHeight) {
+                this.currentEyeHeight += (targetHeight - this.currentEyeHeight) * 0.5F;
+
+                if (Math.abs(this.currentEyeHeight - targetHeight) < 0.001F) {
+                    this.currentEyeHeight = targetHeight;
+                }
+            }
+        } else {
+            this.currentEyeHeight = this.isSneaking() ? 1.54F : 1.62F;
+        }
+    }
+
+    @Inject(method = "getEyeHeight", at = @At("HEAD"), cancellable = true)
+    public void getSmoothEyeHeight(CallbackInfoReturnable<Float> cir) {
+        if (AnimationsConfig.enabled && AnimationsConfig.oldSneak && this.worldObj.isRemote) {
+            cir.setReturnValue(this.currentEyeHeight);
         }
     }
 }
