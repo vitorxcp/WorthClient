@@ -2,10 +2,13 @@ package com.vitorxp.WorthClient.handlers;
 
 import com.vitorxp.WorthClient.WorthClient;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.scoreboard.ScoreObjective;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraftforge.client.event.MouseEvent;
+import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -39,26 +42,63 @@ public class IslandProtectionHandler {
     }
 
     @SubscribeEvent
+    public void onMouseClick(MouseEvent event) {
+        if (event.buttonstate && mc.currentScreen == null) {
+
+            if (event.button == 0 || event.button == 1) {
+                if (shouldCancelInteraction()) {
+                    event.setCanceled(true);
+
+                    if (event.button == 0) {
+                        KeyBinding.setKeyBindState(mc.gameSettings.keyBindAttack.getKeyCode(), false);
+                        mc.playerController.resetBlockRemoving();
+                    } else {
+                        KeyBinding.setKeyBindState(mc.gameSettings.keyBindUseItem.getKeyCode(), false);
+                        mc.playerController.onStoppedUsingItem(mc.thePlayer);
+                    }
+
+                    sendWarning();
+                }
+            }
+        }
+    }
+
+    @SubscribeEvent
     public void onInteract(PlayerInteractEvent event) {
-        if (!isStaffM(mc.thePlayer)) return;
-
-        if (isScoreboardSuaIlha() && !WorthClient.buildEnabled) {
-
+        if (shouldCancelInteraction()) {
             event.setCanceled(true);
-
             if (event.action == PlayerInteractEvent.Action.LEFT_CLICK_BLOCK) {
                 mc.playerController.resetBlockRemoving();
             }
-
-            long now = System.currentTimeMillis();
-            if (now - lastWarningTime > 1500) {
-                mc.thePlayer.addChatMessage(new ChatComponentText(
-                        EnumChatFormatting.RED + "Proteção Ativa! Use " +
-                                EnumChatFormatting.YELLOW + "/buildis" +
-                                EnumChatFormatting.RED + " para desbloquear."
-                ));
-                lastWarningTime = now;
+            if (event.action == PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK || event.action == PlayerInteractEvent.Action.RIGHT_CLICK_AIR) {
+                mc.playerController.onStoppedUsingItem(mc.thePlayer);
             }
+        }
+    }
+
+    @SubscribeEvent
+    public void onAttack(AttackEntityEvent event) {
+        if (shouldCancelInteraction()) {
+            event.setCanceled(true);
+        }
+    }
+
+    private boolean shouldCancelInteraction() {
+        if (!isStaffM(mc.thePlayer)) return false;
+        if (WorthClient.buildEnabled) return false;
+
+        return isScoreboardSuaIlha();
+    }
+
+    private void sendWarning() {
+        long now = System.currentTimeMillis();
+        if (now - lastWarningTime > 1500) {
+            mc.thePlayer.addChatMessage(new ChatComponentText(
+                    EnumChatFormatting.RED + "Proteção Ativa! Use " +
+                            EnumChatFormatting.YELLOW + "/buildis" +
+                            EnumChatFormatting.RED + " para desbloquear."
+            ));
+            lastWarningTime = now;
         }
     }
 
