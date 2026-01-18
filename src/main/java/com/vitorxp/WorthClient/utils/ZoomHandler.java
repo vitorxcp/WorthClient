@@ -12,9 +12,11 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 public class ZoomHandler {
 
     private final Minecraft mc = Minecraft.getMinecraft();
-    private static final float MIN_FOV = 1.0F;
-    private static final float SCROLL_FACTOR = 2.0F;
-    private static final float SMOOTH_FACTOR = 0.15F;
+
+    private static final float MIN_FOV = 3.0F;
+    private static final float SCROLL_FACTOR = 3.5F;
+    private static final float SMOOTH_FACTOR = 0.35F;
+
     private boolean active = false;
     private boolean wasKeyDown = false;
     private boolean running = false;
@@ -62,14 +64,21 @@ public class ZoomHandler {
             float target;
 
             if (active) {
-                float baseZoom = originalFov / 4.0F;
+                float baseZoom = originalFov / 2.5F;
+
                 target = baseZoom + scrollOffset;
                 target = MathHelper.clamp_float(target, MIN_FOV, originalFov);
+
+                if (target > originalFov) {
+                    scrollOffset = originalFov - baseZoom;
+                    target = originalFov;
+                }
             } else {
                 target = originalFov;
             }
 
             float currentFov = mc.gameSettings.fovSetting;
+
             if (Math.abs(currentFov - target) > 0.01F) {
                 mc.gameSettings.fovSetting += (target - currentFov) * SMOOTH_FACTOR;
             } else {
@@ -81,14 +90,21 @@ public class ZoomHandler {
 
             if (active) {
                 float zoomFactor = mc.gameSettings.fovSetting / originalFov;
-                mc.gameSettings.mouseSensitivity = originalSensitivity * zoomFactor;
+
+                float newSens = originalSensitivity * (zoomFactor * 1.2F);
+
+                if (newSens > originalSensitivity) newSens = originalSensitivity;
+
+                mc.gameSettings.mouseSensitivity = newSens;
 
                 if (!mc.gameSettings.smoothCamera) {
                     mc.gameSettings.smoothCamera = true;
                 }
             } else {
-                mc.gameSettings.mouseSensitivity = originalSensitivity;
-                mc.gameSettings.smoothCamera = originalSmoothCamera;
+                if (Math.abs(mc.gameSettings.fovSetting - originalFov) < 5.0F) {
+                    mc.gameSettings.mouseSensitivity = originalSensitivity;
+                    mc.gameSettings.smoothCamera = originalSmoothCamera;
+                }
             }
         }
     }
@@ -115,8 +131,8 @@ public class ZoomHandler {
 
         if (mc.renderGlobal != null && mc.thePlayer != null) {
             mc.renderGlobal.markBlockRangeForRenderUpdate(
-                    (int) mc.thePlayer.posX - 64, (int) mc.thePlayer.posY - 64, (int) mc.thePlayer.posZ - 64,
-                    (int) mc.thePlayer.posX + 64, (int) mc.thePlayer.posY + 64, (int) mc.thePlayer.posZ + 64
+                    (int) mc.thePlayer.posX - 16, (int) mc.thePlayer.posY - 16, (int) mc.thePlayer.posZ - 16,
+                    (int) mc.thePlayer.posX + 16, (int) mc.thePlayer.posY + 16, (int) mc.thePlayer.posZ + 16
             );
         }
     }
@@ -127,15 +143,20 @@ public class ZoomHandler {
             ScaledResolution sr = new ScaledResolution(mc);
             float fovRange = originalFov - MIN_FOV;
             float currentProgress = originalFov - mc.gameSettings.fovSetting;
+
             int percentage = Math.round((currentProgress / fovRange) * 100);
             percentage = MathHelper.clamp_int(percentage, 0, 100);
+
             if (percentage <= 1 && !active) return;
+
             String text = "Zoom: §a" + percentage + "%";
             int width = sr.getScaledWidth();
             int height = sr.getScaledHeight();
             int textWidth = mc.fontRendererObj.getStringWidth(text);
+
             int x = (width / 2) - (textWidth / 2);
-            int y = height - 55;
+            int y = height - 60;
+
             mc.fontRendererObj.drawStringWithShadow(text, x, y, 0xFFFFFFFF);
         }
     }
