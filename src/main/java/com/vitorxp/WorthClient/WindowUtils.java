@@ -19,24 +19,23 @@ public class WindowUtils {
     public static void applyWindowStyle() {
         if (Display.isCreated()) {
             try {
-                setTitle(WINDOW_TITLE);
+                Display.setTitle(WINDOW_TITLE);
+
                 setIcon(ICON_PATH);
-                WorthClient.logger.info("Ícone e Título da janela definidos com sucesso.");
+
+                System.out.println("[WindowUtils] Ícone e Título definidos com sucesso (Early Boot).");
             } catch (Exception e) {
-                System.err.println("[WorthClient] Erro ao definir ícone/título: " + e.getMessage());
+                System.err.println("[WindowUtils] Erro ao definir estilo da janela: " + e.getMessage());
+                e.printStackTrace();
             }
         }
-    }
-
-    public static void setTitle(String title) {
-        Display.setTitle(title);
     }
 
     public static void setIcon(String path) throws IOException {
         InputStream stream = WindowUtils.class.getResourceAsStream(path);
 
         if (stream == null) {
-            System.err.println("[WorthClient] Ícone não encontrado no caminho: " + path);
+            System.err.println("[WindowUtils] Ícone NÃO encontrado: " + path);
             return;
         }
 
@@ -45,8 +44,9 @@ public class WindowUtils {
 
         icons.add(convertImageToBuffer(resizeImage(sourceImage, 16, 16)));
         icons.add(convertImageToBuffer(resizeImage(sourceImage, 32, 32)));
+        icons.add(convertImageToBuffer(resizeImage(sourceImage, 48, 48)));
         icons.add(convertImageToBuffer(resizeImage(sourceImage, 64, 64)));
-        icons.add(convertImageToBuffer(sourceImage)); // Adiciona original também
+        icons.add(convertImageToBuffer(sourceImage));
 
         Display.setIcon(icons.toArray(new ByteBuffer[0]));
     }
