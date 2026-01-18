@@ -4,11 +4,11 @@ import com.google.common.collect.Lists;
 import com.vitorxp.WorthClient.gui.button.GuiModernButton;
 import com.vitorxp.WorthClient.interfaces.IResourcePackRepository;
 import com.vitorxp.WorthClient.utils.FolderResourcePack;
+import com.vitorxp.WorthClient.utils.WorthPackFavorites;
 import com.vitorxp.WorthClient.utils.WorthPackSaver;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.WorldRenderer;
@@ -16,8 +16,9 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.resources.IResourcePack;
 import net.minecraft.client.resources.ResourcePackRepository;
 import net.minecraft.util.ResourceLocation;
-import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
+
+import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -28,12 +29,17 @@ import java.util.List;
 public class GuiScreenWorthPacks extends GuiScreen {
 
     private static final ResourceLocation BACKGROUND_BLUR = new ResourceLocation("worthclient", "textures/gui/Background_3.png");
+    private static final int BAR_BG_COLOR = new Color(55, 50, 25).getRGB();
+    private static final int BAR_FILL_COLOR = new Color(255, 170, 0).getRGB();
 
     private final GuiScreen parentScreen;
     private GuiWorthPackList availableList;
     private GuiWorthPackList selectedList;
     private ResourcePackRepository packRepository;
     private boolean changed = false;
+
+    private boolean applyPending = false;
+    private int applyTicks = 0;
 
     public GuiScreenWorthPacks(GuiScreen parent) {
         this.parentScreen = parent;
@@ -91,14 +97,23 @@ public class GuiScreenWorthPacks extends GuiScreen {
         Collections.sort(available, (a, b) -> {
             boolean aIsBack = isBack(a); boolean bIsBack = isBack(b);
             if (aIsBack && !bIsBack) return -1; if (!aIsBack && bIsBack) return 1;
+
             boolean aIsFolder = isFolder(a); boolean bIsFolder = isFolder(b);
             if (aIsFolder && !bIsFolder) return -1; if (!aIsFolder && bIsFolder) return 1;
+
+            boolean aFav = WorthPackFavorites.isFavorite(a.getResourcePackName());
+            boolean bFav = WorthPackFavorites.isFavorite(b.getResourcePackName());
+            if (aFav && !bFav) return -1; if (!aFav && bFav) return 1;
+
             return a.getResourcePackName().compareTo(b.getResourcePackName());
         });
 
         for (ResourcePackRepository.Entry entry : available) this.availableList.addEntry(new WorthPackEntry(this, entry));
         for (ResourcePackRepository.Entry entry : selected) this.selectedList.addEntry(new WorthPackEntry(this, entry));
     }
+
+    public int getAvailableListWidth() { return this.availableList.getListWidth(); }
+    public int getSelectedListWidth() { return this.selectedList.getListWidth(); }
 
     private IResourcePack getPackFromEntry(ResourcePackRepository.Entry entry) {
         try {
@@ -162,18 +177,23 @@ public class GuiScreenWorthPacks extends GuiScreen {
 
     @Override
     protected void actionPerformed(GuiButton button) throws IOException {
+        if (applyPending) return;
+
         if (button.id == 2) {
             File resourcePackDir = this.packRepository.getDirResourcepacks();
             if (java.awt.Desktop.isDesktopSupported()) java.awt.Desktop.getDesktop().open(resourcePackDir);
             else org.lwjgl.Sys.openURL("file://" + resourcePackDir.getAbsolutePath());
         } else if (button.id == 1) {
-            if (this.changed) applyChangesWithLoading();
-            this.mc.displayGuiScreen(this.parentScreen);
+            if (this.changed) {
+                this.applyPending = true;
+                this.applyTicks = 0;
+            } else {
+                this.mc.displayGuiScreen(this.parentScreen);
+            }
         }
     }
 
-    private void applyChangesWithLoading() {
-        updateProgress("Salvando configurações...", 0.1f);
+    private void applyChangesAndExit() {
         WorthPackSaver.savePackList(this.selectedList.getEntries());
         this.mc.gameSettings.resourcePacks.clear();
 
@@ -193,54 +213,24 @@ public class GuiScreenWorthPacks extends GuiScreen {
         this.mc.gameSettings.resourcePacks.addAll(packsToSave);
         this.mc.gameSettings.saveOptions();
 
-        updateProgress("Limpando memória...", 0.4f);
-        System.gc();
-        try { Thread.sleep(50); } catch (InterruptedException ignored) {}
-        updateProgress("Recarregando Texturas (Aguarde)...", 1.0f);
-        Display.update();
         this.mc.refreshResources();
 
-        System.gc();
-    }
-
-    private void updateProgress(String status, float progress) {
-        ScaledResolution sr = new ScaledResolution(mc);
-
-        drawRect(0, 0, this.width, this.height, 0xFF101010);
-        this.mc.getTextureManager().bindTexture(BACKGROUND_BLUR);
-        GlStateManager.color(0.4F, 0.4F, 0.4F, 1.0F);
-        Gui.drawModalRectWithCustomSizedTexture(0, 0, 0, 0, this.width, this.height, this.width, this.height);
-
-        int boxW = 220;
-        int boxH = 80;
-        int boxX = (this.width - boxW) / 2;
-        int boxY = (this.height - boxH) / 2;
-
-        drawRoundedRect(boxX, boxY, boxW, boxH, 10, 0xE5000000);
-
-        GlStateManager.pushMatrix();
-        GlStateManager.scale(1.2, 1.2, 1.2);
-        this.drawCenteredString(this.fontRendererObj, "Aplicando Alterações", (int)(this.width / 2 / 1.2), (int)((boxY + 15) / 1.2), 0xFFFFFF);
-        GlStateManager.popMatrix();
-
-        this.drawCenteredString(this.fontRendererObj, status, this.width / 2, boxY + 35, 0xAAAAAA);
-
-        int barWidth = 180;
-        int barHeight = 6;
-        int barX = (this.width - barWidth) / 2;
-        int barY = boxY + 55;
-        drawRoundedRect(barX, barY, barWidth, barHeight, 3, 0xFF303030);
-
-        int filledWidth = (int) (barWidth * progress);
-        if (filledWidth > 0) {
-            drawRoundedRect(barX, barY, filledWidth, barHeight, 3, 0xFF4CAF50);
-        }
-
-        Display.update();
+        this.applyPending = false;
+        this.mc.displayGuiScreen(this.parentScreen);
     }
 
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
+        if (applyPending) {
+            drawDefaultBackground();
+            drawApplyingScreen();
+            applyTicks++;
+            if (applyTicks > 2) {
+                applyChangesAndExit();
+            }
+            return;
+        }
+
         drawDefaultBackground();
         GlStateManager.pushMatrix();
         GlStateManager.scale(2.0, 2.0, 2.0);
@@ -264,6 +254,26 @@ public class GuiScreenWorthPacks extends GuiScreen {
             if (button instanceof GuiModernButton) ((GuiModernButton) button).drawButton(this.mc, mouseX, mouseY, 1.0f);
             else button.drawButton(this.mc, mouseX, mouseY);
         }
+    }
+
+    private void drawApplyingScreen() {
+        drawRect(0, 0, this.width, this.height, 0xCC000000);
+
+        int centerX = this.width / 2;
+        int centerY = this.height / 2;
+
+        GlStateManager.pushMatrix();
+        GlStateManager.scale(1.5, 1.5, 1.5);
+        this.drawCenteredString(this.fontRendererObj, "Aplicando Alterações...", (int)(centerX / 1.5), (int)((centerY - 20) / 1.5), 0xFFFFFF);
+        GlStateManager.popMatrix();
+
+        int barWidth = 220;
+        int barHeight = 10;
+        int barX = centerX - (barWidth / 2);
+        int barY = centerY + 10;
+
+        drawRoundedRect(barX, barY, barWidth, barHeight, 3, BAR_BG_COLOR);
+        drawRoundedRect(barX, barY, barWidth, barHeight, 3, BAR_FILL_COLOR);
     }
 
     @Override
@@ -324,7 +334,22 @@ public class GuiScreenWorthPacks extends GuiScreen {
         tessellator.draw();
     }
 
-    @Override public void handleMouseInput() throws IOException { super.handleMouseInput(); this.availableList.handleMouseInput(); this.selectedList.handleMouseInput(); }
-    @Override protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException { super.mouseClicked(mouseX, mouseY, mouseButton); this.availableList.mouseClicked(mouseX, mouseY, mouseButton); this.selectedList.mouseClicked(mouseX, mouseY, mouseButton); }
-    @Override protected void mouseReleased(int mouseX, int mouseY, int state) { super.mouseReleased(mouseX, mouseY, state); this.availableList.mouseReleased(mouseX, mouseY, state); this.selectedList.mouseReleased(mouseX, mouseY, state); }
+    @Override public void handleMouseInput() throws IOException {
+        if(applyPending) return;
+        super.handleMouseInput();
+        this.availableList.handleMouseInput();
+        this.selectedList.handleMouseInput();
+    }
+    @Override protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
+        if(applyPending) return;
+        super.mouseClicked(mouseX, mouseY, mouseButton);
+        this.availableList.mouseClicked(mouseX, mouseY, mouseButton);
+        this.selectedList.mouseClicked(mouseX, mouseY, mouseButton);
+    }
+    @Override protected void mouseReleased(int mouseX, int mouseY, int state) {
+        if(applyPending) return;
+        super.mouseReleased(mouseX, mouseY, state);
+        this.availableList.mouseReleased(mouseX, mouseY, state);
+        this.selectedList.mouseReleased(mouseX, mouseY, state);
+    }
 }
