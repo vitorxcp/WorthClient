@@ -85,8 +85,8 @@ public class GuiClientMainMenu extends GuiScreen {
 
         this.closeButton = new GuiIconButton(3, this.width - 35, 10, 24, 24, ICON_CLOSE);
         this.buttonList.add(this.closeButton);
-        this.buttonList.add(new GuiModernButton(0, centerX - (btnWidth / 2), startY, btnWidth, btnHeight, "Singleplayer", 500L));
-        this.buttonList.add(new GuiModernButton(1, centerX - (btnWidth / 2), startY + spacing, btnWidth, btnHeight, "Multiplayer", 600L));
+        this.buttonList.add(new GuiModernButton(0, centerX - (btnWidth / 2), startY, btnWidth, btnHeight, "Seus Mundos", 500L));
+        this.buttonList.add(new GuiModernButton(1, centerX - (btnWidth / 2), startY + spacing, btnWidth, btnHeight, "Servidores", 600L));
         this.buttonList.add(new GuiModernButton(2, centerX - (btnWidth / 2), startY + spacing * 2, btnWidth, btnHeight, "Opções", 700L));
 
         int iconSize = 24;
