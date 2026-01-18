@@ -3,6 +3,7 @@ package com.vitorxp.WorthClient.manager;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.vitorxp.WorthClient.WorthClient;
+import com.vitorxp.WorthClient.config.AnimationsConfig;
 import com.vitorxp.WorthClient.hud.ScoreboardHUD;
 
 import java.io.*;
@@ -50,6 +51,21 @@ public class ConfigManager {
         obj.addProperty("pixelsThickness", WorthClient.pixelsThickness);
         obj.addProperty("timeChangerEnable", WorthClient.timeChangerEnable);
         obj.addProperty("clientTime", WorthClient.clientTime);
+        obj.addProperty("AnimationsConfigEnabled", AnimationsConfig.enabled);
+        obj.addProperty("AnimationsConfigblockHit17", AnimationsConfig.blockHit17);
+        obj.addProperty("AnimationsConfigsmoothSwing", AnimationsConfig.smoothSwing);
+        obj.addProperty("AnimationsConfigoldRod", AnimationsConfig.oldRod);
+        obj.addProperty("AnimationsConfigoldBow", AnimationsConfig.oldBow);
+        obj.addProperty("AnimationsConfigoldSneak", AnimationsConfig.oldSneak);
+        obj.addProperty("AnimationsConfigitemTransforms", AnimationsConfig.itemTransforms);
+        obj.addProperty("AnimationsConfigdamageShake", AnimationsConfig.damageShake);
+        obj.addProperty("AnimationsConfighealthFlash", AnimationsConfig.healthFlash);
+        obj.addProperty("AnimationsConfiguserItemWhileDigging", AnimationsConfig.userItemWhileDigging);
+        obj.addProperty("AnimationsConfigalwaysSwing", AnimationsConfig.alwaysSwing);
+        obj.addProperty("AnimationsConfigitemPosX", AnimationsConfig.itemPosX);
+        obj.addProperty("AnimationsConfigitemPosY", AnimationsConfig.itemPosY);
+        obj.addProperty("AnimationsConfigitemPosZ", AnimationsConfig.itemPosZ);
+        obj.addProperty("AnimationsConfigitemScale", AnimationsConfig.itemScale);
 
         try (FileWriter writer = new FileWriter(FILE)) {
             new Gson().toJson(obj, writer);
@@ -100,7 +116,21 @@ public class ConfigManager {
             if (obj.has("pixelsThickness")) WorthClient.pixelsThickness  = obj.get("pixelsThickness").getAsInt();
             if (obj.has("timeChangerEnable")) WorthClient.timeChangerEnable  = obj.get("timeChangerEnable").getAsBoolean();
             if (obj.has("clientTime")) WorthClient.clientTime  = obj.get("clientTime").getAsInt();
-
+            if (obj.has("AnimationsConfigEnabled")) AnimationsConfig.enabled  = obj.get("AnimationsConfigEnabled").getAsBoolean();
+            if (obj.has("AnimationsConfigblockHit17")) AnimationsConfig.blockHit17  = obj.get("AnimationsConfigblockHit17").getAsBoolean();
+            if (obj.has("AnimationsConfigsmoothSwing")) AnimationsConfig.smoothSwing  = obj.get("AnimationsConfigsmoothSwing").getAsBoolean();
+            if (obj.has("AnimationsConfigoldRod")) AnimationsConfig.oldRod  = obj.get("AnimationsConfigoldRod").getAsBoolean();
+            if (obj.has("AnimationsConfigoldBow")) AnimationsConfig.oldBow  = obj.get("AnimationsConfigoldBow").getAsBoolean();
+            if (obj.has("AnimationsConfigoldSneak")) AnimationsConfig.oldSneak  = obj.get("AnimationsConfigoldSneak").getAsBoolean();
+            if (obj.has("AnimationsConfigitemTransforms")) AnimationsConfig.itemTransforms  = obj.get("AnimationsConfigitemTransforms").getAsBoolean();
+            if (obj.has("AnimationsConfigdamageShake")) AnimationsConfig.damageShake  = obj.get("AnimationsConfigdamageShake").getAsBoolean();
+            if (obj.has("AnimationsConfighealthFlash")) AnimationsConfig.healthFlash  = obj.get("AnimationsConfighealthFlash").getAsBoolean();
+            if (obj.has("AnimationsConfiguserItemWhileDigging")) AnimationsConfig.userItemWhileDigging  = obj.get("AnimationsConfiguserItemWhileDigging").getAsBoolean();
+            if (obj.has("AnimationsConfigalwaysSwing")) AnimationsConfig.alwaysSwing  = obj.get("AnimationsConfigalwaysSwing").getAsBoolean();
+            if (obj.has("AnimationsConfigitemPosX")) AnimationsConfig.itemPosX  = obj.get("AnimationsConfigitemPosX").getAsInt();
+            if (obj.has("AnimationsConfigitemPosY")) AnimationsConfig.itemPosY  = obj.get("AnimationsConfigitemPosY").getAsInt();
+            if (obj.has("AnimationsConfigitemPosZ")) AnimationsConfig.itemPosZ  = obj.get("AnimationsConfigitemPosZ").getAsInt();
+            if (obj.has("AnimationsConfigitemScale")) AnimationsConfig.itemScale  = obj.get("AnimationsConfigitemScale").getAsInt();
         } catch (Exception e) {
             e.printStackTrace();
         }
