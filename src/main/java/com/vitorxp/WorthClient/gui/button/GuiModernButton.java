@@ -1,5 +1,6 @@
 package com.vitorxp.WorthClient.gui.button;
 
+import com.vitorxp.WorthClient.gui.GuiClientMainMenu;
 import com.vitorxp.WorthClient.gui.utils.AnimationUtil;
 import com.vitorxp.WorthClient.gui.utils.RenderUtil;
 import net.minecraft.client.Minecraft;
@@ -12,25 +13,18 @@ public class GuiModernButton extends GuiButton {
     private long startTime = -1;
     private float hoverFade = 0.0f;
 
-    private final int baseColor;
-    private final int hoverColor;
-
-    public GuiModernButton(int buttonId, int x, int y, int width, int height, String buttonText, long delay, int baseColor, int hoverColor) {
+    public GuiModernButton(int buttonId, int x, int y, int width, int height, String buttonText, long delay) {
         super(buttonId, x, y, width, height, buttonText);
         this.animationDelay = delay;
-        this.baseColor = baseColor;
-        this.hoverColor = hoverColor;
-    }
-
-    public GuiModernButton(int buttonId, int x, int y, int width, int height, String buttonText, long delay) {
-        this(buttonId, x, y, width, height, buttonText, delay,
-                new Color(50, 50, 60, 150).getRGB(),
-                new Color(130, 90, 220, 200).getRGB()
-        );
     }
 
     public GuiModernButton(int buttonId, int x, int y, String buttonText, long delay) {
         this(buttonId, x, y, 200, 25, buttonText, delay);
+    }
+
+    public GuiModernButton(int buttonId, int x, int y, int width, int height, String buttonText, long delay, int baseColor, int hoverColor) {
+        super(buttonId, x, y, width, height, buttonText);
+        this.animationDelay = delay;
     }
 
     @Override
@@ -39,6 +33,8 @@ public class GuiModernButton extends GuiButton {
     }
 
     public void drawButton(Minecraft mc, int mouseX, int mouseY, float globalAlpha) {
+        if (!this.visible) return;
+
         if (this.startTime == -1) {
             this.startTime = System.currentTimeMillis();
         }
@@ -46,33 +42,40 @@ public class GuiModernButton extends GuiButton {
         long elapsedTime = System.currentTimeMillis() - this.startTime - this.animationDelay;
         if (elapsedTime < 0) return;
 
-        float entranceAnimationProgress = Math.min(1.0F, (float)elapsedTime / 600.0F);
-        float easedEntranceProgress = AnimationUtil.easeOutCubic(entranceAnimationProgress);
-
-        float localAlpha = easedEntranceProgress;
-        float yOffset = (1.0F - easedEntranceProgress) * 20.0F;
-        float finalAlpha = localAlpha * globalAlpha;
+        float entranceProgress = Math.min(1.0F, (float)elapsedTime / 600.0F);
+        float easedEntrance = AnimationUtil.easeOutCubic(entranceProgress);
+        float alpha = easedEntrance * globalAlpha;
+        float yOffset = (1.0F - easedEntrance) * 15.0F;
 
         this.hovered = mouseX >= this.xPosition && mouseY >= this.yPosition + yOffset && mouseX < this.xPosition + this.width && mouseY < this.yPosition + this.height + yOffset;
-        float hoverSpeed = 0.1F;
-        this.hoverFade = this.hovered ? Math.min(1.0F, this.hoverFade + hoverSpeed) : Math.max(0.0F, this.hoverFade - hoverSpeed);
+        this.hoverFade = this.hovered ? Math.min(1.0F, this.hoverFade + 0.15F) : Math.max(0.0F, this.hoverFade - 0.15F);
 
-        Color idleColor = new Color(this.baseColor, true);
-        Color hoverColor = new Color(this.hoverColor, true);
+        GuiClientMainMenu.Theme theme = GuiClientMainMenu.currentTheme;
+        Color accent = theme.accentColor;
 
-        int r = (int) AnimationUtil.lerp(idleColor.getRed(), hoverColor.getRed(), hoverFade);
-        int g = (int) AnimationUtil.lerp(idleColor.getGreen(), hoverColor.getGreen(), hoverFade);
-        int b = (int) AnimationUtil.lerp(idleColor.getBlue(), hoverColor.getBlue(), hoverFade);
+        int bgAlphaStart = 80;
+        int bgAlphaEnd = 160;
+        int currentBgAlpha = (int) (AnimationUtil.lerp(bgAlphaStart, bgAlphaEnd, hoverFade) * alpha);
+        int backgroundColor = new Color(0, 0, 0, currentBgAlpha).getRGB();
+        int borderAlpha = (int) (255 * hoverFade * alpha);
+        int borderColor = new Color(accent.getRed(), accent.getGreen(), accent.getBlue(), borderAlpha).getRGB();
 
-        int a = (int) (AnimationUtil.lerp(idleColor.getAlpha(), hoverColor.getAlpha(), hoverFade) * finalAlpha);
+        Color textIdle = theme == GuiClientMainMenu.Theme.LIGHT ? new Color(50, 50, 50) : new Color(220, 220, 220);
+        Color textHover = accent;
 
-        a = Math.min(255, a);
+        int rText = (int) AnimationUtil.lerp(textIdle.getRed(), textHover.getRed(), hoverFade);
+        int gText = (int) AnimationUtil.lerp(textIdle.getGreen(), textHover.getGreen(), hoverFade);
+        int bText = (int) AnimationUtil.lerp(textIdle.getBlue(), textHover.getBlue(), hoverFade);
+        int aText = (int) (255 * alpha);
 
-        int finalColor = new Color(r,g,b,a).getRGB();
+        int finalTextColor = new Color(rText, gText, bText, aText).getRGB();
 
-        RenderUtil.drawRoundedRect(this.xPosition, this.yPosition + yOffset, this.width, this.height, 5.0f, finalColor);
+        RenderUtil.drawRoundedRect(this.xPosition, this.yPosition + yOffset, this.width, this.height, 4.0f, backgroundColor);
 
-        int textColor = new Color(1.0f, 1.0f, 1.0f, finalAlpha).getRGB();
-        this.drawCenteredString(mc.fontRendererObj, this.displayString, this.xPosition + this.width / 2, (int)(this.yPosition + yOffset + (this.height - 8) / 2), textColor);
+        if (borderAlpha > 1) {
+            RenderUtil.drawRoundedOutline(this.xPosition, this.yPosition + yOffset, this.width, this.height, 4.0f, 1.0f, borderColor);
+        }
+
+        this.drawCenteredString(mc.fontRendererObj, this.displayString, this.xPosition + this.width / 2, (int)(this.yPosition + yOffset + (this.height - 8) / 2), finalTextColor);
     }
 }
