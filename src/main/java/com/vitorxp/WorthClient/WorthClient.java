@@ -11,6 +11,7 @@ import com.vitorxp.WorthClient.events.AnnounceMutanteEvent;
 import com.vitorxp.WorthClient.events.GuiMenuEvent;
 import com.vitorxp.WorthClient.gui.AdminGui;
 import com.vitorxp.WorthClient.gui.utils.NotificationRenderer;
+import com.vitorxp.WorthClient.handler.ClientLogoRenderer;
 import com.vitorxp.WorthClient.handlers.IslandProtectionHandler;
 import com.vitorxp.WorthClient.handlers.PlayerInspectorHandler;
 import com.vitorxp.WorthClient.handlers.RadarInteractionHandler;
@@ -188,6 +189,9 @@ public class WorthClient {
         MinecraftForge.EVENT_BUS.register(new AutoLoginHandler());
         MinecraftForge.EVENT_BUS.register(new IslandProtectionHandler());
         MinecraftForge.EVENT_BUS.register(new NotificationManager());
+        MinecraftForge.EVENT_BUS.register(new ClientLogoRenderer());
+
+        com.vitorxp.WorthClient.utils.CursorManager.loadCustomCursor();
 
         hudManager = new HudManager();
         hudManager.register(
