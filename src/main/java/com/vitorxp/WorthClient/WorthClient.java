@@ -14,6 +14,7 @@ import com.vitorxp.WorthClient.gui.utils.NotificationRenderer;
 import com.vitorxp.WorthClient.handler.ClientLogoRenderer;
 import com.vitorxp.WorthClient.handlers.IslandProtectionHandler;
 import com.vitorxp.WorthClient.handlers.PlayerInspectorHandler;
+import com.vitorxp.WorthClient.handlers.PortalEffectHandler;
 import com.vitorxp.WorthClient.handlers.RadarInteractionHandler;
 import com.vitorxp.WorthClient.hud.*;
 import com.vitorxp.WorthClient.keybinds.Keybinds;
@@ -63,12 +64,19 @@ public class WorthClient {
     public static boolean ArmorsOverlays = false;
     public static int KeyPerspective = Keyboard.KEY_LMENU;
     public static boolean WailaMod = false;
+    public static String helmetStyle = "Padrão";
+    public static String chestplateStyle = "Padrão";
+    public static String leggingsStyle = "Padrão";
+    public static String bootsStyle = "Padrão";
+    public static String mainHandStyle = "Padrão";
     public static boolean enableToggleZoom = false;
     public static int KeyZoom = Keyboard.KEY_C;
     public static boolean PerspectiveStartFront = false;
     public static boolean AutoLoginEnabled = true;
     public static float pixelsThickness = 1.0f;
     public static boolean skin3D = false;
+    public static boolean blockIsBuild = true;
+    public static boolean animationPortal = false;
     private final SessionManager sessionManager = new SessionManager();
     private static ServerData lastServerAttempted;
     public static boolean blockPetMessages = true;
@@ -190,6 +198,7 @@ public class WorthClient {
         MinecraftForge.EVENT_BUS.register(new IslandProtectionHandler());
         MinecraftForge.EVENT_BUS.register(new NotificationManager());
         MinecraftForge.EVENT_BUS.register(new ClientLogoRenderer());
+        MinecraftForge.EVENT_BUS.register(new PortalEffectHandler());
 
         com.vitorxp.WorthClient.utils.CursorManager.loadCustomCursor();
 
@@ -197,7 +206,12 @@ public class WorthClient {
         hudManager.register(
                 new FPSHUD(), new PingHUD(), new PetHud(), new RadarHUD(),
                 new KeystrokesWasdHud(), new KeystrokesLmbHud(), new KeystrokesRmbHud(),
-                new ArmorStatusHUD(), new LookAtHUD(), new ScoreboardHUD()
+                new HelmetHUD(),
+                new ChestplateHUD(),
+                new LeggingsHUD(),
+                new BootsHUD(),
+                new HandHUD(),
+                new LookAtHUD(), new ScoreboardHUD()
         );
         MinecraftForge.EVENT_BUS.register(hudManager);
 
