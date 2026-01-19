@@ -30,11 +30,20 @@ public class IslandProtectionHandler {
         boolean nowOnIsland = isScoreboardSuaIlha();
 
         if (nowOnIsland && !wasOnIsland) {
+            if(!WorthClient.blockIsBuild) return;
             if (WorthClient.buildEnabled) {
                 WorthClient.buildEnabled = false;
                 mc.thePlayer.addChatMessage(new ChatComponentText(
-                        EnumChatFormatting.GOLD + "[WorthProtection] " + EnumChatFormatting.YELLOW + "Você entrou na sua ilha. Construção BLOQUEADA por segurança."
+                        EnumChatFormatting.GOLD + "[WorthProtection] " + EnumChatFormatting.YELLOW + "Você entrou no mundo das ilha. Construção BLOQUEADA por segurança."
                 ));
+            }
+        }
+
+        if(!WorthClient.blockIsBuild) {
+            if (nowOnIsland && !wasOnIsland) {
+            mc.thePlayer.addChatMessage(new ChatComponentText(
+                    EnumChatFormatting.GOLD + "[WorthProtection] " + EnumChatFormatting.YELLOW + "Você entrou no mundo das ilha. Como você desativou a proteção das ilhas, tome cuidado!."
+            ));
             }
         }
 
@@ -43,6 +52,7 @@ public class IslandProtectionHandler {
 
     @SubscribeEvent
     public void onMouseClick(MouseEvent event) {
+        if(!WorthClient.blockIsBuild) return;
         if (event.buttonstate && mc.currentScreen == null) {
 
             if (event.button == 0 || event.button == 1) {
@@ -65,6 +75,7 @@ public class IslandProtectionHandler {
 
     @SubscribeEvent
     public void onInteract(PlayerInteractEvent event) {
+        if(!WorthClient.blockIsBuild) return;
         if (shouldCancelInteraction()) {
             event.setCanceled(true);
             if (event.action == PlayerInteractEvent.Action.LEFT_CLICK_BLOCK) {
@@ -78,6 +89,7 @@ public class IslandProtectionHandler {
 
     @SubscribeEvent
     public void onAttack(AttackEntityEvent event) {
+        if(!WorthClient.blockIsBuild) return;
         if (shouldCancelInteraction()) {
             event.setCanceled(true);
         }
@@ -91,6 +103,7 @@ public class IslandProtectionHandler {
     }
 
     private void sendWarning() {
+        if(!WorthClient.blockIsBuild) return;
         long now = System.currentTimeMillis();
         if (now - lastWarningTime > 1500) {
             mc.thePlayer.addChatMessage(new ChatComponentText(
