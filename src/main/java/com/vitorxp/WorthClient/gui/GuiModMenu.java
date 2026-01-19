@@ -109,17 +109,14 @@ public class GuiModMenu extends GuiScreen {
 
     private void setupModules() {
         allModules.clear();
-
         allModules.add(new ModCard("FPS", "Exibe o framerate", "fps", Category.HUD) {
             @Override public boolean isEnabled() { return WorthClient.fpsOverlay; }
             @Override public void toggle() { WorthClient.fpsOverlay = !WorthClient.fpsOverlay; }
         });
-
         allModules.add(new ModCard("Ping", "Latência do servidor", "ping", Category.HUD) {
             @Override public boolean isEnabled() { return WorthClient.pingOverlay; }
             @Override public void toggle() { WorthClient.pingOverlay = !WorthClient.pingOverlay; }
         });
-
         allModules.add(new ModCard("Scoreboard", "Customiza a tabela lateral", "scoreboard", Category.HUD) {
             @Override
             public boolean isEnabled() {
@@ -164,79 +161,6 @@ public class GuiModMenu extends GuiScreen {
                     }
                 });
 
-                allModules.add(new ModCard("Animations", "Animações 1.7 e Física", "anim", Category.MISC) {
-                    @Override
-                    public boolean isEnabled() {
-                        return com.vitorxp.WorthClient.config.AnimationsConfig.enabled;
-                    }
-
-                    @Override
-                    public void toggle() {
-                        com.vitorxp.WorthClient.config.AnimationsConfig.enabled = !com.vitorxp.WorthClient.config.AnimationsConfig.enabled;
-                    }
-
-                    @Override
-                    public void initSettings() {
-                        settings.add(new BooleanSetting("BlockHit 1.7 (Osu)",
-                                () -> com.vitorxp.WorthClient.config.AnimationsConfig.blockHit17,
-                                () -> com.vitorxp.WorthClient.config.AnimationsConfig.blockHit17 = !com.vitorxp.WorthClient.config.AnimationsConfig.blockHit17
-                        ));
-
-                        settings.add(new BooleanSetting("Vara de Pescar 1.7",
-                                () -> com.vitorxp.WorthClient.config.AnimationsConfig.oldRod,
-                                () -> com.vitorxp.WorthClient.config.AnimationsConfig.oldRod = !com.vitorxp.WorthClient.config.AnimationsConfig.oldRod
-                        ));
-
-                        settings.add(new BooleanSetting("Arco 1.7",
-                                () -> com.vitorxp.WorthClient.config.AnimationsConfig.oldBow,
-                                () -> com.vitorxp.WorthClient.config.AnimationsConfig.oldBow = !com.vitorxp.WorthClient.config.AnimationsConfig.oldBow
-                        ));
-
-                        settings.add(new BooleanSetting("Agachar 1.7 (Suave)",
-                                () -> com.vitorxp.WorthClient.config.AnimationsConfig.oldSneak,
-                                () -> com.vitorxp.WorthClient.config.AnimationsConfig.oldSneak = !com.vitorxp.WorthClient.config.AnimationsConfig.oldSneak
-                        ));
-
-                        settings.add(new BooleanSetting("Dano na Câmera",
-                                () -> com.vitorxp.WorthClient.config.AnimationsConfig.damageShake,
-                                () -> com.vitorxp.WorthClient.config.AnimationsConfig.damageShake = !com.vitorxp.WorthClient.config.AnimationsConfig.damageShake
-                        ));
-
-                        settings.add(new BooleanSetting("Sempre Bater (Always Swing)",
-                                () -> com.vitorxp.WorthClient.config.AnimationsConfig.alwaysSwing,
-                                () -> com.vitorxp.WorthClient.config.AnimationsConfig.alwaysSwing = !com.vitorxp.WorthClient.config.AnimationsConfig.alwaysSwing
-                        ));
-
-                        settings.add(new SliderSetting("Posição X", -1.0f, 1.0f,
-                                () -> com.vitorxp.WorthClient.config.AnimationsConfig.itemPosX,
-                                (val) -> com.vitorxp.WorthClient.config.AnimationsConfig.itemPosX = val
-                        ));
-
-                        settings.add(new SliderSetting("Posição Y", -1.0f, 1.0f,
-                                () -> com.vitorxp.WorthClient.config.AnimationsConfig.itemPosY,
-                                (val) -> com.vitorxp.WorthClient.config.AnimationsConfig.itemPosY = val
-                        ));
-
-                        settings.add(new SliderSetting("Posição Z", -1.0f, 1.0f,
-                                () -> com.vitorxp.WorthClient.config.AnimationsConfig.itemPosZ,
-                                (val) -> com.vitorxp.WorthClient.config.AnimationsConfig.itemPosZ = val
-                        ));
-
-                        settings.add(new SliderSetting("Tamanho do Item", 0.5f, 2.0f,
-                                () -> com.vitorxp.WorthClient.config.AnimationsConfig.itemScale,
-                                (val) -> com.vitorxp.WorthClient.config.AnimationsConfig.itemScale = val
-                        ));
-
-                        settings.add(new ActionSetting("Resetar Posição", () -> {
-                            com.vitorxp.WorthClient.config.AnimationsConfig.itemPosX = 0.0f;
-                            com.vitorxp.WorthClient.config.AnimationsConfig.itemPosY = 0.0f;
-                            com.vitorxp.WorthClient.config.AnimationsConfig.itemPosZ = 0.0f;
-                            com.vitorxp.WorthClient.config.AnimationsConfig.itemScale = 1.0f;
-                            NotificationRenderer.send(com.vitorxp.WorthClient.gui.utils.NotificationRenderer.Type.SUCCESS, "Posição Resetada!");
-                        }));
-                    }
-                });
-
                 settings.add(new ColorSetting("Cor do Fundo",
                         () -> new java.awt.Color(ScoreboardHUD.backgroundColor, true),
                         (c) -> ScoreboardHUD.backgroundColor = c.getRGB()
@@ -258,7 +182,6 @@ public class GuiModMenu extends GuiScreen {
                 }));
             }
         });
-
         allModules.add(new ModCard("Keystrokes", "Mostra teclas", "keys", Category.HUD) {
             @Override public boolean isEnabled() { return WorthClient.keystrokesOverlay; }
             @Override public void toggle() { WorthClient.keystrokesOverlay = !WorthClient.keystrokesOverlay; }
@@ -319,34 +242,58 @@ public class GuiModMenu extends GuiScreen {
                 }));
             }
         });
-
         allModules.add(new ModCard("ArmorStatus", "Estado da Armadura", "armor", Category.HUD) {
             @Override public boolean isEnabled() { return WorthClient.ArmorsOverlays; }
             @Override public void toggle() { WorthClient.ArmorsOverlays = !WorthClient.ArmorsOverlays; }
             @Override public void initSettings() {
-                settings.add(new BooleanSetting("Mostrar Item na Mão",
-                        () -> WorthClient.mainHandHUDOverlay,
-                        () -> WorthClient.mainHandHUDOverlay = !WorthClient.mainHandHUDOverlay
-                ));
-                settings.add(new BooleanSetting("Mostrar Capacete",
-                        () -> WorthClient.helmetHUDOverlay,
-                        () -> WorthClient.helmetHUDOverlay = !WorthClient.helmetHUDOverlay
-                ));
-                settings.add(new BooleanSetting("Mostrar Peitoral",
-                        () -> WorthClient.chestplateHUDOverlay,
-                        () -> WorthClient.chestplateHUDOverlay = !WorthClient.chestplateHUDOverlay
-                ));
-                settings.add(new BooleanSetting("Mostrar Calças",
-                        () -> WorthClient.leggingsHUDOverlay,
-                        () -> WorthClient.leggingsHUDOverlay = !WorthClient.leggingsHUDOverlay
-                ));
-                settings.add(new BooleanSetting("Mostrar Botas",
-                        () -> WorthClient.bootsHUDOverlay,
-                        () -> WorthClient.bootsHUDOverlay = !WorthClient.bootsHUDOverlay
-                ));
+                List<String> styles = Arrays.asList("Padrão", "Valor", "Porcentagem");
+
+                CategorySetting handCat = new CategorySetting("Item na Mão");
+                handCat.add(new BooleanSetting("Habilitado", () -> WorthClient.mainHandHUDOverlay, () -> WorthClient.mainHandHUDOverlay = !WorthClient.mainHandHUDOverlay));
+                handCat.add(new ModeSetting("Estilo", WorthClient.mainHandStyle, styles) {
+                    @Override boolean mouseClicked(int x, int y, int mx, int my, int mb) {
+                        if(super.mouseClicked(x, y, mx, my, mb)) { WorthClient.mainHandStyle = this.currentValue; return true; } return false;
+                    }
+                });
+                settings.add(handCat);
+
+                CategorySetting helmCat = new CategorySetting("Capacete");
+                helmCat.add(new BooleanSetting("Habilitado", () -> WorthClient.helmetHUDOverlay, () -> WorthClient.helmetHUDOverlay = !WorthClient.helmetHUDOverlay));
+                helmCat.add(new ModeSetting("Estilo", WorthClient.helmetStyle, styles) {
+                    @Override boolean mouseClicked(int x, int y, int mx, int my, int mb) {
+                        if(super.mouseClicked(x, y, mx, my, mb)) { WorthClient.helmetStyle = this.currentValue; return true; } return false;
+                    }
+                });
+                settings.add(helmCat);
+
+                CategorySetting chestCat = new CategorySetting("Peitoral");
+                chestCat.add(new BooleanSetting("Habilitado", () -> WorthClient.chestplateHUDOverlay, () -> WorthClient.chestplateHUDOverlay = !WorthClient.chestplateHUDOverlay));
+                chestCat.add(new ModeSetting("Estilo", WorthClient.chestplateStyle, styles) {
+                    @Override boolean mouseClicked(int x, int y, int mx, int my, int mb) {
+                        if(super.mouseClicked(x, y, mx, my, mb)) { WorthClient.chestplateStyle = this.currentValue; return true; } return false;
+                    }
+                });
+                settings.add(chestCat);
+
+                CategorySetting legCat = new CategorySetting("Calças");
+                legCat.add(new BooleanSetting("Habilitado", () -> WorthClient.leggingsHUDOverlay, () -> WorthClient.leggingsHUDOverlay = !WorthClient.leggingsHUDOverlay));
+                legCat.add(new ModeSetting("Estilo", WorthClient.leggingsStyle, styles) {
+                    @Override boolean mouseClicked(int x, int y, int mx, int my, int mb) {
+                        if(super.mouseClicked(x, y, mx, my, mb)) { WorthClient.leggingsStyle = this.currentValue; return true; } return false;
+                    }
+                });
+                settings.add(legCat);
+
+                CategorySetting bootCat = new CategorySetting("Botas");
+                bootCat.add(new BooleanSetting("Habilitado", () -> WorthClient.bootsHUDOverlay, () -> WorthClient.bootsHUDOverlay = !WorthClient.bootsHUDOverlay));
+                bootCat.add(new ModeSetting("Estilo", WorthClient.bootsStyle, styles) {
+                    @Override boolean mouseClicked(int x, int y, int mx, int my, int mb) {
+                        if(super.mouseClicked(x, y, mx, my, mb)) { WorthClient.bootsStyle = this.currentValue; return true; } return false;
+                    }
+                });
+                settings.add(bootCat);
             }
         });
-
         allModules.add(new ModCard("AutoLogin", "Login Automático (Pirata)", "key", Category.PLAYER) {
             @Override public boolean isEnabled() { return WorthClient.AutoLoginEnabled; }
             @Override public void toggle() { WorthClient.AutoLoginEnabled = !WorthClient.AutoLoginEnabled; }
@@ -366,7 +313,6 @@ public class GuiModMenu extends GuiScreen {
                 }));
             }
         });
-
         allModules.add(new ModCard("AutoText", "Macros de Texto", "chat", Category.PLAYER) {
             @Override public boolean isMenuOnly() { return true; }
             @Override public void initSettings() {
@@ -377,12 +323,10 @@ public class GuiModMenu extends GuiScreen {
                 }));
             }
         });
-
         allModules.add(new ModCard("Waila", "Mostrar informações do bloco focado", "waila", Category.HUD) {
             @Override public boolean isEnabled() { return WorthClient.WailaMod; }
             @Override public void toggle() { WorthClient.WailaMod = !WorthClient.WailaMod; }
         });
-
         allModules.add(new ModCard("TimeChanger", "Controla o horário do mundo", "time", Category.WORLD) {
             @Override
             public boolean isEnabled() {
@@ -402,7 +346,6 @@ public class GuiModMenu extends GuiScreen {
                 ));
             }
         });
-
         allModules.add(new ModCard("Perspective", "Visão 360", "360", Category.WORLD) {
             @Override public boolean isMenuOnly() { return true; }
             @Override public void initSettings() {
@@ -430,7 +373,6 @@ public class GuiModMenu extends GuiScreen {
                 ));
             }
         });
-
         allModules.add(new ModCard("Zoom", "Amplifique com o Zoom", "Z", Category.WORLD) {
             @Override public boolean isMenuOnly() { return true; }
             @Override public void initSettings() {
@@ -451,13 +393,11 @@ public class GuiModMenu extends GuiScreen {
                 ));
             }
         });
-
         allModules.add(new ModCard("Mutante", "Alerta Zealot", "mutant", Category.MISC) {
             @Override public boolean isEnabled() { return com.vitorxp.WorthClient.WorthClient.announceZealot; }
             @Override public void toggle() { if(ActivationManager.isActivated) com.vitorxp.WorthClient.WorthClient.announceZealot = !com.vitorxp.WorthClient.WorthClient.announceZealot; }
             @Override public boolean isBlocked() { return !ActivationManager.isActivated; }
         });
-
         allModules.add(new ModCard("Chat", "Configurar Chat", "chat", Category.MISC) {
             @Override public boolean isMenuOnly() { return true; }
             public void initSettings() {
@@ -483,11 +423,17 @@ public class GuiModMenu extends GuiScreen {
                 ));
             }
         });
-
         if (isStaff(Minecraft.getMinecraft().thePlayer)) {
-            allModules.add(new ModCard("Admin", "Painel Staff", "admin", Category.MISC) { @Override public boolean isMenuOnly() { return true; } });
+            allModules.add(new ModCard("Admin", "Painel Staff", "admin", Category.MISC) {
+                @Override public boolean isMenuOnly() { return true; }
+                public void initSettings() {
+                     settings.add(new BooleanSetting("Desativar Bloqueio de Construção no mundo das Ilhas",
+                          () -> WorthClient.blockIsBuild,
+                          () -> WorthClient.blockIsBuild = !WorthClient.blockIsBuild
+                     ));
+                }
+            });
         }
-
         allModules.add(new ModCard("Skin 3D", "Adiciona relevo à skin", "skin", Category.PLAYER) {
             @Override
             public boolean isEnabled() {
@@ -508,6 +454,82 @@ public class GuiModMenu extends GuiScreen {
                             com.vitorxp.WorthClient.manager.ConfigManager.save();
                         }
                 ));
+            }
+        });
+        allModules.add(new ModCard("Animations", "Animações 1.7 e Física", "anim", Category.MISC) {
+            @Override
+            public boolean isEnabled() {
+                return com.vitorxp.WorthClient.config.AnimationsConfig.enabled;
+            }
+
+            @Override
+            public void toggle() {
+                com.vitorxp.WorthClient.config.AnimationsConfig.enabled = !com.vitorxp.WorthClient.config.AnimationsConfig.enabled;
+            }
+
+            @Override
+            public void initSettings() {
+                settings.add(new BooleanSetting("Partículas dos Portais Realçadas",
+                        () -> WorthClient.animationPortal,
+                        () -> WorthClient.animationPortal = !WorthClient.animationPortal
+                ));
+                settings.add(new BooleanSetting("BlockHit 1.7 (Osu)",
+                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.blockHit17,
+                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.blockHit17 = !com.vitorxp.WorthClient.config.AnimationsConfig.blockHit17
+                ));
+
+                settings.add(new BooleanSetting("Vara de Pescar 1.7",
+                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.oldRod,
+                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.oldRod = !com.vitorxp.WorthClient.config.AnimationsConfig.oldRod
+                ));
+
+                settings.add(new BooleanSetting("Arco 1.7",
+                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.oldBow,
+                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.oldBow = !com.vitorxp.WorthClient.config.AnimationsConfig.oldBow
+                ));
+
+                settings.add(new BooleanSetting("Agachar 1.7 (Suave)",
+                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.oldSneak,
+                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.oldSneak = !com.vitorxp.WorthClient.config.AnimationsConfig.oldSneak
+                ));
+
+                settings.add(new BooleanSetting("Dano na Câmera",
+                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.damageShake,
+                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.damageShake = !com.vitorxp.WorthClient.config.AnimationsConfig.damageShake
+                ));
+
+                settings.add(new BooleanSetting("Sempre Bater (Always Swing)",
+                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.alwaysSwing,
+                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.alwaysSwing = !com.vitorxp.WorthClient.config.AnimationsConfig.alwaysSwing
+                ));
+
+                settings.add(new SliderSetting("Posição X", -1.0f, 1.0f,
+                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.itemPosX,
+                        (val) -> com.vitorxp.WorthClient.config.AnimationsConfig.itemPosX = val
+                ));
+
+                settings.add(new SliderSetting("Posição Y", -1.0f, 1.0f,
+                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.itemPosY,
+                        (val) -> com.vitorxp.WorthClient.config.AnimationsConfig.itemPosY = val
+                ));
+
+                settings.add(new SliderSetting("Posição Z", -1.0f, 1.0f,
+                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.itemPosZ,
+                        (val) -> com.vitorxp.WorthClient.config.AnimationsConfig.itemPosZ = val
+                ));
+
+                settings.add(new SliderSetting("Tamanho do Item", 0.5f, 2.0f,
+                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.itemScale,
+                        (val) -> com.vitorxp.WorthClient.config.AnimationsConfig.itemScale = val
+                ));
+
+                settings.add(new ActionSetting("Resetar Posição", () -> {
+                    com.vitorxp.WorthClient.config.AnimationsConfig.itemPosX = 0.0f;
+                    com.vitorxp.WorthClient.config.AnimationsConfig.itemPosY = 0.0f;
+                    com.vitorxp.WorthClient.config.AnimationsConfig.itemPosZ = 0.0f;
+                    com.vitorxp.WorthClient.config.AnimationsConfig.itemScale = 1.0f;
+                    NotificationRenderer.send(com.vitorxp.WorthClient.gui.utils.NotificationRenderer.Type.SUCCESS, "Posição Resetada!");
+                }));
             }
         });
     }
@@ -759,10 +781,7 @@ public class GuiModMenu extends GuiScreen {
     }
 
     private void drawConfigScreen(int mouseX, int mouseY) {
-        if (selectedMod == null) {
-            currentState = ScreenState.GRID;
-            return;
-        }
+        if (selectedMod == null) { currentState = ScreenState.GRID; return; }
 
         boolean hoverBack = mouseX >= guiLeft + 20 && mouseX <= guiLeft + 70 && mouseY >= guiTop + 20 && mouseY <= guiTop + 40;
         drawRoundedRect(guiLeft + 20, guiTop + 20, 50, 20, 5, hoverBack ? 0xFF555555 : 0xFF333333);
@@ -775,14 +794,16 @@ public class GuiModMenu extends GuiScreen {
 
         drawRect(guiLeft + 20, guiTop + 55, guiLeft + guiWidth - 20, guiTop + 56, 0x40FFFFFF);
 
-        int totalSettingsHeight = selectedMod.settings.size() * (settingHeight + 5);
-        int viewHeight = guiHeight - 80;
+        int totalContentHeight = 0;
+        for (Setting s : selectedMod.settings) {
+            totalContentHeight += s.getHeight() + 5;
+        }
 
-        this.maxScroll = Math.max(0, totalSettingsHeight - viewHeight + 20);
+        int viewHeight = guiHeight - 80;
+        this.maxScroll = Math.max(0, totalContentHeight - viewHeight + 20);
         clampScroll();
 
         int scaleFactor = new net.minecraft.client.gui.ScaledResolution(mc).getScaleFactor();
-
         int scissorX = (guiLeft + 20) * scaleFactor;
         int scissorY = (mc.displayHeight - (guiTop + guiHeight - 10) * scaleFactor);
         int scissorW = (guiWidth - 40) * scaleFactor;
@@ -800,21 +821,17 @@ public class GuiModMenu extends GuiScreen {
             fontRendererObj.drawString("Nenhuma configuração disponível.", setX, setY, 0xFFAAAAAA);
         } else {
             for (Setting s : selectedMod.settings) {
-                int currentHeight = settingHeight + 5;
-
-                if (setY + currentHeight > guiTop + 50 && setY < guiTop + guiHeight) {
+                if (setY + s.getHeight() > guiTop + 50 && setY < guiTop + guiHeight) {
                     s.draw(mc, setX, setY, mouseX, mouseY);
                 }
-                setY += currentHeight;
+                setY += s.getHeight() + 5;
             }
         }
 
-        if (fitScale >= 1.0f) {
-            GL11.glDisable(GL11.GL_SCISSOR_TEST);
-        }
+        if (fitScale >= 1.0f) GL11.glDisable(GL11.GL_SCISSOR_TEST);
 
         if (maxScroll > 0) {
-            int scrollBarH = (int) ((float) viewHeight / totalSettingsHeight * viewHeight);
+            int scrollBarH = (int) ((float) viewHeight / totalContentHeight * viewHeight);
             if (scrollBarH < 30) scrollBarH = 30;
             int scrollBarY = guiTop + 80 + (int)((-scrollOffset / maxScroll) * (viewHeight - scrollBarH));
             drawRoundedRect(guiLeft + guiWidth - 15, scrollBarY, 5, scrollBarH, 2, 0x80FFFFFF);
@@ -891,23 +908,19 @@ public class GuiModMenu extends GuiScreen {
                 return;
             }
             if (selectedMod != null) {
-                int setX = guiLeft + 60;
                 int setY = (int) (guiTop + 80 + scrollOffset);
 
-                if (adjMouseY > guiTop + 55 && adjMouseY < guiTop + guiHeight - 10) {
-                    for (Setting s : selectedMod.settings) {
-                        int currentHeight = settingHeight + 5;
-
-                        if (s.mouseClicked(adjMouseX, setY, adjMouseX, adjMouseY, mouseButton)) {
+                for (Setting s : selectedMod.settings) {
+                    if (adjMouseY > guiTop + 55 && adjMouseY < guiTop + guiHeight - 10) {
+                        if (s.mouseClicked(0, setY, adjMouseX, adjMouseY, mouseButton)) {
                             if (!(s instanceof ColorSetting)) {
                                 ConfigManager.save();
-                                KeystrokesColors.saveColors();
-                                NotificationRenderer.send(NotificationRenderer.Type.SUCCESS, "Configurações salvas!");
+                                NotificationRenderer.send(NotificationRenderer.Type.SUCCESS, "Configurações Salvas!");
                             }
                             return;
                         }
-                        setY += currentHeight;
                     }
+                    setY += s.getHeight() + 5;
                 }
             }
         }
@@ -1061,6 +1074,68 @@ public class GuiModMenu extends GuiScreen {
         public Setting(String name) { this.name = name; }
         abstract void draw(Minecraft mc, int x, int y, int mouseX, int mouseY);
         abstract boolean mouseClicked(int x, int y, int mouseX, int mouseY, int mouseButton);
+        public int getHeight() { return 32; }
+    }
+
+    class CategorySetting extends Setting {
+        private boolean expanded = false;
+        private List<Setting> children = new ArrayList<>();
+
+        public CategorySetting(String name) {
+            super(name);
+        }
+
+        public void add(Setting setting) {
+            this.children.add(setting);
+        }
+
+        @Override
+        public int getHeight() {
+            if (!expanded) return 32;
+            int h = 32;
+            for (Setting s : children) {
+                h += s.getHeight() + 2;
+            }
+            return h + 5;
+        }
+
+        @Override
+        void draw(Minecraft mc, int x, int y, int mouseX, int mouseY) {
+            boolean hover = mouseX >= x && mouseX <= x + settingWidth && mouseY >= y && mouseY <= y + 32;
+            drawRoundedRect(x, y, settingWidth, 32, 6, hover ? 0xFF444444 : 0xFF333333);
+
+            mc.fontRendererObj.drawString(name, x + 15, y + 12, 0xFFFFFFFF);
+            String icon = expanded ? "v" : ">";
+            mc.fontRendererObj.drawString(icon, x + settingWidth - 20, y + 12, 0xFFAAAAAA);
+
+            if (expanded) {
+                int currentY = y + 34;
+                for (Setting s : children) {
+                    s.draw(mc, x + 10, currentY, mouseX, mouseY);
+                    currentY += s.getHeight() + 2;
+                }
+            }
+        }
+
+        @Override
+        boolean mouseClicked(int x, int y, int mouseX, int mouseY, int mouseButton) {
+            if (mouseX >= x && mouseX <= x + settingWidth && mouseY >= y && mouseY <= y + 32) {
+                mc.getSoundHandler().playSound(net.minecraft.client.audio.PositionedSoundRecord.create(new ResourceLocation("gui.button.press"), 1.0F));
+                expanded = !expanded;
+                return true;
+            }
+
+            if (expanded) {
+                int currentY = y + 34;
+                for (Setting s : children) {
+                    if (s.mouseClicked(x + 10, currentY, mouseX, mouseY, mouseButton)) {
+                        return true;
+                    }
+                    currentY += s.getHeight() + 2;
+                }
+            }
+            return false;
+        }
     }
 
     class ActionSetting extends Setting {
