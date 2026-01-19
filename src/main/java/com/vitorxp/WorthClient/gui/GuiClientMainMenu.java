@@ -85,7 +85,7 @@ public class GuiClientMainMenu extends GuiScreen {
         this.buttonList.clear();
 
         this.particles.clear();
-        spawnParticles(40);
+        spawnParticles(60);
 
         int centerX = this.width / 2;
         int centerY = this.height / 2;
@@ -99,7 +99,8 @@ public class GuiClientMainMenu extends GuiScreen {
 
         this.buttonList.add(new GuiModernButton(0, centerX - (btnWidth / 2), startY, btnWidth, btnHeight, "Seus Mundos", 500L));
         this.buttonList.add(new GuiModernButton(1, centerX - (btnWidth / 2), startY + spacing, btnWidth, btnHeight, "Servidores", 600L));
-        this.buttonList.add(new GuiModernButton(2, centerX - (btnWidth / 2), startY + spacing * 2, btnWidth, btnHeight, "Opções", 700L));
+        this.buttonList.add(new GuiModernButton(8, centerX - (btnWidth / 2), startY + spacing * 2, btnWidth, btnHeight, "Texturas", 700L));
+        this.buttonList.add(new GuiModernButton(2, centerX - (btnWidth / 2), startY + spacing * 3, btnWidth, btnHeight, "Opções", 800L));
 
         int iconSize = 24;
         int iconSpacing = 20;
@@ -332,6 +333,7 @@ public class GuiClientMainMenu extends GuiScreen {
             case 4: this.mc.refreshResources(); break;
             case 5: openDiscord("https://discord.gg/VWHvq9zpeV"); break;
             case 7: showThemeSelector = true; break;
+            case 8: this.mc.displayGuiScreen(new GuiScreenWorthPacks(this)); break;
         }
     }
 
