@@ -39,7 +39,7 @@ public class ConfigManager {
         obj.addProperty("KeyZoom", WorthClient.KeyZoom);
         obj.addProperty("enableToggleZoom", WorthClient.enableToggleZoom);
         obj.addProperty("PerspectiveStartFront", WorthClient.PerspectiveStartFront);
-        obj.addProperty(("AutoLoginEnabled"), WorthClient.AutoLoginEnabled);
+        obj.addProperty("AutoLoginEnabled", WorthClient.AutoLoginEnabled);
         obj.addProperty("toggleScoreBoard", ScoreboardHUD.toggled);
         obj.addProperty("showNumbersScoreBoard", ScoreboardHUD.showNumbers);
         obj.addProperty("backgroundScoreBoard", ScoreboardHUD.background);
@@ -66,6 +66,13 @@ public class ConfigManager {
         obj.addProperty("AnimationsConfigitemPosY", AnimationsConfig.itemPosY);
         obj.addProperty("AnimationsConfigitemPosZ", AnimationsConfig.itemPosZ);
         obj.addProperty("AnimationsConfigitemScale", AnimationsConfig.itemScale);
+        obj.addProperty("WblockIsBuild", WorthClient.blockIsBuild);
+        obj.addProperty("WanimationPortal", WorthClient.animationPortal);
+        obj.addProperty("WhelmetStyle", WorthClient.helmetStyle);
+        obj.addProperty("WchestplateStyle", WorthClient.chestplateStyle);
+        obj.addProperty("WleggingsStyle", WorthClient.leggingsStyle);
+        obj.addProperty("WbootsStyle", WorthClient.bootsStyle);
+        obj.addProperty("WmainHandStyle", WorthClient.mainHandStyle);
 
         try (FileWriter writer = new FileWriter(FILE)) {
             new Gson().toJson(obj, writer);
@@ -131,6 +138,13 @@ public class ConfigManager {
             if (obj.has("AnimationsConfigitemPosY")) AnimationsConfig.itemPosY  = obj.get("AnimationsConfigitemPosY").getAsInt();
             if (obj.has("AnimationsConfigitemPosZ")) AnimationsConfig.itemPosZ  = obj.get("AnimationsConfigitemPosZ").getAsInt();
             if (obj.has("AnimationsConfigitemScale")) AnimationsConfig.itemScale  = obj.get("AnimationsConfigitemScale").getAsInt();
+            if (obj.has("WblockIsBuild")) WorthClient.blockIsBuild  = obj.get("WblockIsBuild").getAsBoolean();
+            if (obj.has("WanimationPortal")) WorthClient.animationPortal  = obj.get("WanimationPortal").getAsBoolean();
+            if (obj.has("WhelmetStyle")) WorthClient.helmetStyle  = obj.get("WhelmetStyle").getAsString();
+            if (obj.has("WchestplateStyle")) WorthClient.chestplateStyle  = obj.get("WchestplateStyle").getAsString();
+            if (obj.has("WleggingsStyle")) WorthClient.leggingsStyle  = obj.get("WleggingsStyle").getAsString();
+            if (obj.has("WbootsStyle")) WorthClient.bootsStyle  = obj.get("WbootsStyle").getAsString();
+            if (obj.has("WmainHandStyle")) WorthClient.mainHandStyle  = obj.get("WmainHandStyle").getAsString();
         } catch (Exception e) {
             e.printStackTrace();
         }
