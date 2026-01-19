@@ -21,7 +21,6 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.ResourceLocation;
 import org.lwjgl.input.Keyboard;
-import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
@@ -38,25 +37,19 @@ public class GuiMultiplayerCustom extends GuiScreen {
 
     private static final ResourceLocation BACKGROUND_BLUR = new ResourceLocation("worthclient", "textures/gui/Background_3.png");
     private static final ResourceLocation UNKNOWN_SERVER = new ResourceLocation("textures/misc/unknown_server.png");
-
     private final GuiScreen parentScreen;
     private ServerList savedServerList;
     private CustomServerList serverListSelector;
     private int selectedServer = -1;
-
     private GuiButton btnSelectServer, btnEditServer, btnDeleteServer;
-
     private ExecutorService apiExecutor;
     private final Set<String> favoriteServers = new HashSet<>();
     private final File favoritesFile;
-
     private boolean isAddingServer = false;
     private boolean isEditingServer = false;
     private boolean isDirectConnecting = false;
     private boolean isDeletingServer = false;
-
     private ServerData currentServerData;
-
     private int containerWidth;
     private int containerHeight;
     private int containerX;
@@ -226,6 +219,50 @@ public class GuiMultiplayerCustom extends GuiScreen {
         worldrenderer.pos(x2, y2 - radius, 0.0D).endVertex();
         worldrenderer.pos(x2, y1 + radius, 0.0D).endVertex();
         worldrenderer.pos(x2 - radius, y1 + radius, 0.0D).endVertex();
+        tessellator.draw();
+        GlStateManager.enableTexture2D();
+        GlStateManager.disableBlend();
+        GlStateManager.popMatrix();
+    }
+
+    public static void drawRoundedOutline(float x, float y, float width, float height, float radius, float thickness, int color) {
+        float x1 = x; float y1 = y; float x2 = x + width; float y2 = y + height;
+        float f = (color >> 24 & 255) / 255.0F;
+        float f1 = (color >> 16 & 255) / 255.0F;
+        float f2 = (color >> 8 & 255) / 255.0F;
+        float f3 = (color & 255) / 255.0F;
+
+        GlStateManager.pushMatrix();
+        GlStateManager.enableBlend();
+        GlStateManager.disableTexture2D();
+        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+        GlStateManager.color(f1, f2, f3, f);
+        GL11.glLineWidth(thickness);
+
+        Tessellator tessellator = Tessellator.getInstance();
+        WorldRenderer worldrenderer = tessellator.getWorldRenderer();
+        worldrenderer.begin(GL11.GL_LINE_LOOP, DefaultVertexFormats.POSITION);
+
+        for (int i = 270; i >= 180; i -= 5) {
+            double angle = Math.toRadians(i);
+            worldrenderer.pos(x1 + radius + Math.sin(angle) * radius, y1 + radius + Math.cos(angle) * radius, 0.0D).endVertex();
+        }
+
+        for (int i = 180; i >= 90; i -= 5) {
+            double angle = Math.toRadians(i);
+            worldrenderer.pos(x2 - radius + Math.sin(angle) * radius, y1 + radius + Math.cos(angle) * radius, 0.0D).endVertex();
+        }
+
+        for (int i = 90; i >= 0; i -= 5) {
+            double angle = Math.toRadians(i);
+            worldrenderer.pos(x2 - radius + Math.sin(angle) * radius, y2 - radius + Math.cos(angle) * radius, 0.0D).endVertex();
+        }
+
+        for (int i = 360; i >= 270; i -= 5) {
+            double angle = Math.toRadians(i);
+            worldrenderer.pos(x1 + radius + Math.sin(angle) * radius, y2 - radius + Math.cos(angle) * radius, 0.0D).endVertex();
+        }
+
         tessellator.draw();
         GlStateManager.enableTexture2D();
         GlStateManager.disableBlend();
@@ -460,9 +497,18 @@ public class GuiMultiplayerCustom extends GuiScreen {
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         drawDefaultBackground();
-        drawRoundedRect(containerX, containerY, containerWidth, containerHeight, 10, 0xD00F0F0F);
+
+        GuiClientMainMenu.Theme theme = GuiClientMainMenu.currentTheme;
+        Color overlay = theme.overlayColor;
+        int containerColor = new Color(overlay.getRed(), overlay.getGreen(), overlay.getBlue(), 120).getRGB();
+        int borderColor = theme.accentColor.getRGB();
+
+        drawRoundedRect(containerX, containerY, containerWidth, containerHeight, 10, containerColor);
+        drawRoundedOutline(containerX, containerY, containerWidth, containerHeight, 10, 1.0f, borderColor);
+
         this.serverListSelector.drawScreen(mouseX, mouseY, partialTicks);
-        this.drawCenteredString(this.fontRendererObj, "Servidores", this.width / 2, this.containerY - 15, 0xFFFFFF);
+        this.drawCenteredString(this.fontRendererObj, "Servidores", this.width / 2, this.containerY - 20, theme.textColor.getRGB());
+
         for (GuiButton button : this.buttonList) {
             if (button instanceof GuiModernButton) ((GuiModernButton) button).drawButton(this.mc, mouseX, mouseY, 1.0f);
             else button.drawButton(this.mc, mouseX, mouseY);
@@ -474,7 +520,8 @@ public class GuiMultiplayerCustom extends GuiScreen {
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         this.mc.getTextureManager().bindTexture(BACKGROUND_BLUR);
         drawModalRectWithCustomSizedTexture(0, 0, 0, 0, this.width, this.height, this.width, this.height);
-        drawRect(0, 0, this.width, this.height, 0x64050505);
+
+        drawRect(0, 0, this.width, this.height, GuiClientMainMenu.currentTheme.overlayColor.getRGB());
     }
 
     @Override
@@ -538,7 +585,7 @@ public class GuiMultiplayerCustom extends GuiScreen {
             int scroll = this.getAmountScrolled();
 
             for (int i = 0; i < numServers; i++) {
-                int yPos = this.top + (i * slotHeight) - scroll; // Removed header padding reference
+                int yPos = this.top + (i * slotHeight) - scroll;
                 int slotHeightWithPadding = slotHeight - 4;
                 if (yPos > this.bottom || yPos + slotHeightWithPadding < this.top) continue;
                 this.drawSlot(i, 0, yPos, slotHeight, mouseX, mouseY);
@@ -553,7 +600,11 @@ public class GuiMultiplayerCustom extends GuiScreen {
                 int barTop = (int) this.getAmountScrolled() * (this.bottom - this.top - barHeight) / maxScroll + this.top;
                 if (barTop < this.top) barTop = this.top;
                 int scrollX = this.getScrollBarX();
-                Gui.drawRect(scrollX, barTop, scrollX + 3, barTop + barHeight, 0x80FFFFFF);
+
+                int scrollColor = GuiClientMainMenu.currentTheme.accentColor.getRGB();
+                int alphaScroll = (scrollColor & 0x00FFFFFF) | (0x80 << 24);
+
+                Gui.drawRect(scrollX, barTop, scrollX + 3, barTop + barHeight, alphaScroll);
             }
         }
 
@@ -615,14 +666,28 @@ public class GuiMultiplayerCustom extends GuiScreen {
             boolean isSelected = (entryID == GuiMultiplayerCustom.this.selectedServer);
             boolean isHovered = mouseXIn >= x && mouseXIn <= x + width && mouseYIn >= y && mouseYIn <= y + height;
 
+            GuiClientMainMenu.Theme theme = GuiClientMainMenu.currentTheme;
+            int accent = theme.accentColor.getRGB();
+
             int bgColor = 0x60000000;
-            if (isSelected) bgColor = 0x90606060; // Mais claro para mostrar seleção
-            else if (isHovered) bgColor = 0x80303030;
+            int borderColor = 0x00000000;
+
+            if (isSelected) {
+                bgColor = 0x90202020;
+                borderColor = accent;
+            } else if (isHovered) {
+                bgColor = 0x80303030;
+            }
 
             drawRoundedRect(x, y, width, height, 5, new Color(bgColor, true).getRGB());
+            if (isSelected) {
+                drawRoundedOutline(x, y, width, height, 5, 1.0f, borderColor);
+            }
 
             String name = server.serverName != null ? server.serverName : "Minecraft Server";
-            mc.fontRendererObj.drawString(name, x + 45, y + 5, 0xFFFFFF);
+
+            int textColor = isSelected ? accent : 0xFFFFFFFF;
+            mc.fontRendererObj.drawString(name, x + 45, y + 5, textColor);
 
             boolean isFavorite = favoriteServers.contains(server.serverIP);
             boolean isRedeWorth = server.serverIP.equalsIgnoreCase("redeworth.com");
