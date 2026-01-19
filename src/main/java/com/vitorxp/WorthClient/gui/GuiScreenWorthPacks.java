@@ -29,15 +29,11 @@ import java.util.List;
 public class GuiScreenWorthPacks extends GuiScreen {
 
     private static final ResourceLocation BACKGROUND_BLUR = new ResourceLocation("worthclient", "textures/gui/Background_3.png");
-    private static final int BAR_BG_COLOR = new Color(55, 50, 25).getRGB();
-    private static final int BAR_FILL_COLOR = new Color(255, 170, 0).getRGB();
-
     private final GuiScreen parentScreen;
     private GuiWorthPackList availableList;
     private GuiWorthPackList selectedList;
     private ResourcePackRepository packRepository;
     private boolean changed = false;
-
     private boolean applyPending = false;
     private int applyTicks = 0;
 
@@ -55,7 +51,6 @@ public class GuiScreenWorthPacks extends GuiScreen {
 
         this.buttonList.add(new GuiModernButton(2, xCenter - btnWidth - 5, btnY, btnWidth, 20, "Abrir Pasta", 0L));
         this.buttonList.add(new GuiModernButton(1, xCenter + 5, btnY, btnWidth, 20, "Concluído", 0L));
-
         this.packRepository = this.mc.getResourcePackRepository();
         this.packRepository.updateRepositoryEntriesAll();
 
@@ -71,7 +66,6 @@ public class GuiScreenWorthPacks extends GuiScreen {
 
         this.availableList = new GuiWorthPackList(this.mc, panelWidth, this.height, topMargin, this.height - bottomMargin, 42);
         this.availableList.setSlotXBoundsFromLeft(sideMargin);
-
         this.selectedList = new GuiWorthPackList(this.mc, panelWidth, this.height, topMargin, this.height - bottomMargin, 42);
         this.selectedList.setSlotXBoundsFromLeft(sideMargin + panelWidth + middleGap);
 
@@ -212,18 +206,20 @@ public class GuiScreenWorthPacks extends GuiScreen {
         }
         this.mc.gameSettings.resourcePacks.addAll(packsToSave);
         this.mc.gameSettings.saveOptions();
-
         this.mc.refreshResources();
-
         this.applyPending = false;
         this.mc.displayGuiScreen(this.parentScreen);
     }
 
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
+        GuiClientMainMenu.Theme theme = GuiClientMainMenu.currentTheme;
+        int accentColor = theme.accentColor.getRGB();
+        int textColor = theme.textColor.getRGB();
+
         if (applyPending) {
             drawDefaultBackground();
-            drawApplyingScreen();
+            drawApplyingScreen(theme);
             applyTicks++;
             if (applyTicks > 2) {
                 applyChangesAndExit();
@@ -234,17 +230,19 @@ public class GuiScreenWorthPacks extends GuiScreen {
         drawDefaultBackground();
         GlStateManager.pushMatrix();
         GlStateManager.scale(2.0, 2.0, 2.0);
-        this.drawCenteredString(this.fontRendererObj, "Worth Packs", (int)(this.width / 2 / 2.0f), 10, 0xFFFFFF);
+        this.drawCenteredString(this.fontRendererObj, "Worth Packs", (int)(this.width / 2 / 2.0f), 10, textColor);
         GlStateManager.popMatrix();
 
         int topMargin = 40;
         int panelWidth = this.availableList.getListWidth();
         int panelHeight = this.availableList.bottom - this.availableList.top;
+        int panelBg = 0x80000000;
 
-        drawRoundedRect(this.availableList.left, topMargin, panelWidth, panelHeight, 10, 0x80000000);
+        drawRoundedRect(this.availableList.left, topMargin, panelWidth, panelHeight, 10, panelBg);
+        drawRoundedOutline(this.availableList.left, topMargin, panelWidth, panelHeight, 10, 1.0f, accentColor);
         this.drawCenteredString(this.fontRendererObj, "Disponíveis", this.availableList.left + (panelWidth / 2), topMargin - 12, 0xAAAAAA);
-
-        drawRoundedRect(this.selectedList.left, topMargin, panelWidth, panelHeight, 10, 0x80000000);
+        drawRoundedRect(this.selectedList.left, topMargin, panelWidth, panelHeight, 10, panelBg);
+        drawRoundedOutline(this.selectedList.left, topMargin, panelWidth, panelHeight, 10, 1.0f, accentColor);
         this.drawCenteredString(this.fontRendererObj, "Selecionados", this.selectedList.left + (panelWidth / 2), topMargin - 12, 0xAAAAAA);
 
         this.availableList.drawScreen(mouseX, mouseY, partialTicks);
@@ -256,7 +254,7 @@ public class GuiScreenWorthPacks extends GuiScreen {
         }
     }
 
-    private void drawApplyingScreen() {
+    private void drawApplyingScreen(GuiClientMainMenu.Theme theme) {
         drawRect(0, 0, this.width, this.height, 0xCC000000);
 
         int centerX = this.width / 2;
@@ -264,16 +262,18 @@ public class GuiScreenWorthPacks extends GuiScreen {
 
         GlStateManager.pushMatrix();
         GlStateManager.scale(1.5, 1.5, 1.5);
-        this.drawCenteredString(this.fontRendererObj, "Aplicando Alterações...", (int)(centerX / 1.5), (int)((centerY - 20) / 1.5), 0xFFFFFF);
+        this.drawCenteredString(this.fontRendererObj, "Aplicando Alterações...", (int)(centerX / 1.5), (int)((centerY - 20) / 1.5), theme.textColor.getRGB());
         GlStateManager.popMatrix();
 
         int barWidth = 220;
         int barHeight = 10;
         int barX = centerX - (barWidth / 2);
         int barY = centerY + 10;
+        int barBg = 0x80404040;
+        int barFill = theme.accentColor.getRGB();
 
-        drawRoundedRect(barX, barY, barWidth, barHeight, 3, BAR_BG_COLOR);
-        drawRoundedRect(barX, barY, barWidth, barHeight, 3, BAR_FILL_COLOR);
+        drawRoundedRect(barX, barY, barWidth, barHeight, 3, barBg);
+        drawRoundedRect(barX, barY, barWidth, barHeight, 3, barFill);
     }
 
     @Override
@@ -281,20 +281,22 @@ public class GuiScreenWorthPacks extends GuiScreen {
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
         this.mc.getTextureManager().bindTexture(BACKGROUND_BLUR);
         Gui.drawModalRectWithCustomSizedTexture(0, 0, 0, 0, this.width, this.height, this.width, this.height);
-        drawRect(0, 0, this.width, this.height, 0x64050505);
+
+        drawRect(0, 0, this.width, this.height, GuiClientMainMenu.currentTheme.overlayColor.getRGB());
     }
 
     public static void drawRoundedRect(float x, float y, float width, float height, float radius, int color) {
         float x1 = x; float y1 = y; float x2 = x + width; float y2 = y + height;
-        float f = (color >> 24 & 255) / 255.0F;
-        float f1 = (color >> 16 & 255) / 255.0F;
-        float f2 = (color >> 8 & 255) / 255.0F;
-        float f3 = (color & 255) / 255.0F;
+        float a = (color >> 24 & 255) / 255.0F; // Alpha corrigido
+        float r = (color >> 16 & 255) / 255.0F;
+        float g = (color >> 8 & 255) / 255.0F;
+        float b = (color & 255) / 255.0F;
+
         GlStateManager.pushMatrix();
         GlStateManager.enableBlend();
         GlStateManager.disableTexture2D();
         GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
-        GlStateManager.color(f1, f2, f3, f);
+        GlStateManager.color(r, g, b, a);
         Tessellator tessellator = Tessellator.getInstance();
         WorldRenderer worldrenderer = tessellator.getWorldRenderer();
 
@@ -316,6 +318,47 @@ public class GuiScreenWorthPacks extends GuiScreen {
         worldrenderer.pos(x2, y2 - radius, 0.0D).endVertex();
         worldrenderer.pos(x2, y1 + radius, 0.0D).endVertex();
         worldrenderer.pos(x2 - radius, y1 + radius, 0.0D).endVertex();
+        tessellator.draw();
+        GlStateManager.enableTexture2D();
+        GlStateManager.disableBlend();
+        GlStateManager.popMatrix();
+    }
+
+    public static void drawRoundedOutline(float x, float y, float width, float height, float radius, float thickness, int color) {
+        float x1 = x; float y1 = y; float x2 = x + width; float y2 = y + height;
+        float a = (color >> 24 & 255) / 255.0F; // Alpha corrigido
+        float r = (color >> 16 & 255) / 255.0F;
+        float g = (color >> 8 & 255) / 255.0F;
+        float b = (color & 255) / 255.0F;
+
+        GlStateManager.pushMatrix();
+        GlStateManager.enableBlend();
+        GlStateManager.disableTexture2D();
+        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+        GlStateManager.color(r, g, b, a);
+        GL11.glLineWidth(thickness);
+
+        Tessellator tessellator = Tessellator.getInstance();
+        WorldRenderer worldrenderer = tessellator.getWorldRenderer();
+        worldrenderer.begin(GL11.GL_LINE_LOOP, DefaultVertexFormats.POSITION);
+
+        for (int i = 270; i >= 180; i -= 5) {
+            double angle = Math.toRadians(i);
+            worldrenderer.pos(x1 + radius + Math.sin(angle) * radius, y1 + radius + Math.cos(angle) * radius, 0.0D).endVertex();
+        }
+        for (int i = 180; i >= 90; i -= 5) {
+            double angle = Math.toRadians(i);
+            worldrenderer.pos(x2 - radius + Math.sin(angle) * radius, y1 + radius + Math.cos(angle) * radius, 0.0D).endVertex();
+        }
+        for (int i = 90; i >= 0; i -= 5) {
+            double angle = Math.toRadians(i);
+            worldrenderer.pos(x2 - radius + Math.sin(angle) * radius, y2 - radius + Math.cos(angle) * radius, 0.0D).endVertex();
+        }
+        for (int i = 360; i >= 270; i -= 5) {
+            double angle = Math.toRadians(i);
+            worldrenderer.pos(x1 + radius + Math.sin(angle) * radius, y2 - radius + Math.cos(angle) * radius, 0.0D).endVertex();
+        }
+
         tessellator.draw();
         GlStateManager.enableTexture2D();
         GlStateManager.disableBlend();
