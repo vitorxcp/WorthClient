@@ -12,10 +12,7 @@ import java.io.IOException;
 
 public class GuiPauseMenuCustom extends GuiScreen {
 
-    private static final ResourceLocation CLIENT_LOGO_LOC = new ResourceLocation("worthclient", "textures/gui/logo_client.png");
-
     private long initTime;
-    private boolean isClosing = false;
 
     @Override
     public void initGui() {
@@ -67,21 +64,6 @@ public class GuiPauseMenuCustom extends GuiScreen {
             }
         }
 
-        GlStateManager.enableBlend();
-        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-        try {
-            this.mc.getTextureManager().bindTexture(CLIENT_LOGO_LOC);
-
-            int logoH = 25;
-            int logoW = (int) (logoH * (1640.0f / 664.0f));
-
-            int logoX = 5;
-            int logoY = this.height - logoH - 5;
-
-            drawModalRectWithCustomSizedTexture(logoX, logoY, 0, 0, logoW, logoH, logoW, logoH);
-        } catch (Exception ignored) {
-            this.drawString(fontRendererObj, "WorthClient", 5, this.height - 12, 0x808080);
-        }
     }
 
     @Override
@@ -101,7 +83,6 @@ public class GuiPauseMenuCustom extends GuiScreen {
                 button.enabled = false;
                 this.mc.theWorld.sendQuittingDisconnectingPacket();
                 this.mc.loadWorld(null);
-                System.out.println("Desconectado do Servidor.");
                 this.mc.displayGuiScreen(new GuiClientMainMenu());
                 break;
             case 4:
