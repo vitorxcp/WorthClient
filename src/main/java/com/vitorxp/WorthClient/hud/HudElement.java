@@ -33,11 +33,9 @@ public abstract class HudElement {
         }
     }
 
-    // Métodos que CADA HUD DEVE implementar
     public abstract int getWidth();
     public abstract int getHeight();
 
-    // Métodos que CADA HUD PODE implementar (eventos)
     public void render(RenderGameOverlayEvent event) {}
     public void renderPost(RenderGameOverlayEvent.Post event) {}
     public void update(TickEvent.ClientTickEvent event) {}
