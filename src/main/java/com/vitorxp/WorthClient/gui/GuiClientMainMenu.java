@@ -38,10 +38,6 @@ public class GuiClientMainMenu extends GuiScreen {
     private static final ResourceLocation ICON_THEME = new ResourceLocation("worthclient", "textures/icons/theme.png");
     private static final ResourceLocation ICON_RELOAD = new ResourceLocation("worthclient", "textures/icons/reload.png");
     private static final ResourceLocation ICON_CLOSE = new ResourceLocation("worthclient", "textures/icons/close.png");
-    private long animationStartTime;
-    private boolean isOpening, isClosing;
-    private final int ANIMATION_DURATION_MS = 0;
-    private GuiScreen nextScreen = null;
     private GuiIconButton discordButton;
     private GuiIconButton themeButton;
     private GuiIconButton reloadButton;
@@ -80,7 +76,6 @@ public class GuiClientMainMenu extends GuiScreen {
 
     public GuiClientMainMenu() {
         loadTheme();
-
         prevTheme = currentTheme;
         themeTransitionProgress = 1.0f;
     }
@@ -126,19 +121,6 @@ public class GuiClientMainMenu extends GuiScreen {
         if (serverMotd.equals("Carregando informações...")) {
             fetchServerMotd();
         }
-
-        this.isOpening = true;
-        this.isClosing = false;
-        this.animationStartTime = System.currentTimeMillis();
-    }
-
-    void triggerExitAnimation(GuiScreen screenToOpen) {
-        if (!this.isClosing) {
-            this.isClosing = true;
-            this.isOpening = false;
-            this.animationStartTime = System.currentTimeMillis();
-            this.nextScreen = screenToOpen;
-        }
     }
 
     private void updateThemeTransition() {
@@ -174,22 +156,10 @@ public class GuiClientMainMenu extends GuiScreen {
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         updateThemeTransition();
 
-        float progress = 0;
-        if (isOpening || isClosing) {
-            long elapsedTime = System.currentTimeMillis() - this.animationStartTime;
-            progress = Math.min(1.0f, (float)elapsedTime / (float)this.ANIMATION_DURATION_MS);
-        }
-        float easedProgress = AnimationUtil.easeOutCubic(progress);
+        float uiAlpha = 1.0f;
 
         drawDefaultBackground();
-
         updateAndDrawParticles(mouseX, mouseY);
-
-        float uiAlpha = 1.0f;
-        if (isOpening) uiAlpha = easedProgress;
-        if (isClosing) uiAlpha = 1.0f - easedProgress;
-        uiAlpha = Math.max(0.0f, uiAlpha);
-
         drawLogo(uiAlpha);
         drawMotd(uiAlpha);
 
@@ -212,19 +182,6 @@ public class GuiClientMainMenu extends GuiScreen {
         themeSelectorAlpha = themeSelectorAlpha + (targetThemeAlpha - themeSelectorAlpha) * 0.2f;
         if (themeSelectorAlpha > 0.01f) {
             drawThemeSelector(mouseX, mouseY, themeSelectorAlpha);
-        }
-
-        if (isOpening || isClosing) {
-            float transitionEffectProgress = isOpening ? 1.0f - easedProgress : easedProgress;
-            drawSlidingBarsTransition(transitionEffectProgress);
-
-            if (progress >= 1.0f) {
-                if (isOpening) isOpening = false;
-                if (isClosing) {
-                    if (this.nextScreen == null) this.mc.shutdown();
-                    else this.mc.displayGuiScreen(this.nextScreen);
-                }
-            }
         }
 
         drawTooltips(mouseX, mouseY, uiAlpha);
@@ -324,7 +281,6 @@ public class GuiClientMainMenu extends GuiScreen {
 
     @Override
     protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
-        if (isOpening || isClosing) return;
 
         if (showThemeSelector && themeSelectorAlpha > 0.8f) {
             int numThemes = Theme.values().length;
@@ -366,13 +322,13 @@ public class GuiClientMainMenu extends GuiScreen {
 
     @Override
     protected void actionPerformed(GuiButton button) throws IOException {
-        if (isClosing || isOpening || showThemeSelector) return;
+        if (showThemeSelector) return;
 
         switch (button.id) {
-            case 0: triggerExitAnimation(new net.minecraft.client.gui.GuiSelectWorld(this)); break;
-            case 1: triggerExitAnimation(new GuiMultiplayerCustom(this)); break;
-            case 2: triggerExitAnimation(new net.minecraft.client.gui.GuiOptions(this, this.mc.gameSettings)); break;
-            case 3: triggerExitAnimation(null); break;
+            case 0: this.mc.displayGuiScreen(new net.minecraft.client.gui.GuiSelectWorld(this)); break;
+            case 1: this.mc.displayGuiScreen(new GuiMultiplayerCustom(this)); break;
+            case 2: this.mc.displayGuiScreen(new net.minecraft.client.gui.GuiOptions(this, this.mc.gameSettings)); break;
+            case 3: this.mc.shutdown(); break;
             case 4: this.mc.refreshResources(); break;
             case 5: openDiscord("https://discord.gg/VWHvq9zpeV"); break;
             case 7: showThemeSelector = true; break;
@@ -532,51 +488,6 @@ public class GuiClientMainMenu extends GuiScreen {
             if (y < -10) y = h + 10;
             if (y > h + 10) y = -10;
         }
-    }
-
-    private void drawSlidingBarsTransition(float progress) {
-        Tessellator tessellator = Tessellator.getInstance();
-        WorldRenderer worldrenderer = tessellator.getWorldRenderer();
-
-        GlStateManager.pushMatrix();
-        GlStateManager.enableBlend();
-        GlStateManager.disableTexture2D();
-        GlStateManager.tryBlendFuncSeparate(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
-
-        Color mainColor = currentTheme.accentColor;
-        Color darkColor = mainColor.darker().darker();
-
-        float w = this.width;
-        float h = this.height;
-
-        drawRect(0, 0, this.width, this.height, new Color(0, 0, 0, (int)(255 * progress)).getRGB());
-
-        int numBars = 5;
-        float barHeight = h / numBars;
-        float totalWidthToCover = w + 200;
-
-        for (int i = 0; i < numBars; i++) {
-            float startY = barHeight * i;
-            float endY = barHeight * (i + 1);
-            float offset = (totalWidthToCover * progress);
-            float x1_0 = (i % 2 == 0) ? -totalWidthToCover + offset : totalWidthToCover - offset;
-            float x2_0 = x1_0 + totalWidthToCover;
-
-            worldrenderer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR);
-            addVertexWithColor(worldrenderer, x1_0, startY, darkColor);
-            addVertexWithColor(worldrenderer, x2_0, startY, mainColor);
-            addVertexWithColor(worldrenderer, x2_0, endY, mainColor);
-            addVertexWithColor(worldrenderer, x1_0, endY, darkColor);
-            tessellator.draw();
-        }
-
-        GlStateManager.enableTexture2D();
-        GlStateManager.disableBlend();
-        GlStateManager.popMatrix();
-    }
-
-    private void addVertexWithColor(WorldRenderer wr, float x, float y, Color c) {
-        wr.pos(x, y, 0).color(c.getRed() / 255.0f, c.getGreen() / 255.0f, c.getBlue() / 255.0f, c.getAlpha() / 255.0f).endVertex();
     }
 
     private void fetchServerMotd() {
