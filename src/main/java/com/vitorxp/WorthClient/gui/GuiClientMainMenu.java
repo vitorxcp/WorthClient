@@ -175,6 +175,10 @@ public class GuiClientMainMenu extends GuiScreen {
         updateThemeTransition();
 
         float progress = 0;
+        if (isOpening || isClosing) {
+            long elapsedTime = System.currentTimeMillis() - this.animationStartTime;
+            progress = Math.min(1.0f, (float)elapsedTime / (float)this.ANIMATION_DURATION_MS);
+        }
         float easedProgress = AnimationUtil.easeOutCubic(progress);
 
         drawDefaultBackground();
