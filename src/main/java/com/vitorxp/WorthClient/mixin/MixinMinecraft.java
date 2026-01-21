@@ -5,11 +5,12 @@ import com.vitorxp.WorthClient.config.AnimationsConfig;
 import com.vitorxp.WorthClient.gui.WorthLoadingGUI;
 import com.vitorxp.WorthClient.utils.LoadingUtils;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiMainMenu;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.client.settings.GameSettings;
+import net.minecraft.profiler.Profiler;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import org.spongepowered.asm.mixin.Mixin;
@@ -23,13 +24,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(value = Minecraft.class, priority = 1)
 public abstract class MixinMinecraft {
 
-    @Shadow public abstract void updateDisplay();
     @Shadow public int displayWidth;
     @Shadow public int displayHeight;
     @Shadow private int leftClickCounter;
     @Shadow public GuiScreen currentScreen;
     @Shadow public net.minecraft.client.multiplayer.WorldClient theWorld;
     @Shadow public TextureManager renderEngine;
+    @Shadow public GameSettings gameSettings;
+    @Shadow public Profiler mcProfiler;
+    @Shadow public abstract void checkGLError(String message);
 
     private static WorthLoadingGUI startupGui;
 
@@ -147,28 +150,36 @@ public abstract class MixinMinecraft {
             GlStateManager.disableBlend();
             GlStateManager.enableAlpha();
 
-            this.updateDisplay();
+            Display.update();
 
         } catch (Exception ignored) {
         }
     }
 
-    @Inject(method = "checkGLError", at = @At("HEAD"))
+    @Inject(method = "checkGLError", at = @At("HEAD"), cancellable = true)
     private void onCheckGLError(String message, CallbackInfo ci) {
-        if (this.theWorld != null || (this.currentScreen != null && !(this.currentScreen instanceof WorthLoadingGUI))) {
-            startupGui = null;
-            return;
-        }
-
         if (startupGui != null) {
-            String currentStep = LoadingUtils.getCurrentText();
-            float currentProgress = LoadingUtils.getCurrentProgress();
-            updateBar(currentStep, currentProgress);
+            if (this.theWorld != null || (this.currentScreen != null && !(this.currentScreen instanceof WorthLoadingGUI))) {
+                startupGui = null;
+            } else {
+                String currentStep = LoadingUtils.getCurrentText();
+                float currentProgress = LoadingUtils.getCurrentProgress();
+                updateBar(currentStep, currentProgress);
+            }
         }
     }
 
     @Redirect(method = {"freeMemory", "shutdown"}, at = @At(value = "INVOKE", target = "Ljava/lang/System;gc()V"))
-    private void disableSystemGC() {}
+    private void smartGC() {
+        long max = Runtime.getRuntime().maxMemory();
+        long total = Runtime.getRuntime().totalMemory();
+        long free = Runtime.getRuntime().freeMemory();
+        long used = total - free;
+
+        if ((float)used / max > 0.85F) {
+            System.gc();
+        }
+    }
 
     @Inject(method = "clickMouse", at = @At("HEAD"))
     private void onClickMouse(CallbackInfo ci) {
@@ -185,5 +196,32 @@ public abstract class MixinMinecraft {
     @Inject(method = "sendClickBlockToController", at = @At("HEAD"))
     private void onSendClickBlock(boolean leftClick, CallbackInfo ci) {
         if (AnimationsConfig.enabled && AnimationsConfig.userItemWhileDigging && !leftClick) {}
+    }
+
+    @Inject(method = "dispatchKeypresses", at = @At("HEAD"))
+    public void killTwitchKeys(CallbackInfo ci) {
+        if (this.gameSettings.keyBindStreamStartStop.getKeyCode() != 0)
+            this.gameSettings.keyBindStreamStartStop.setKeyCode(0);
+        if (this.gameSettings.keyBindStreamCommercials.getKeyCode() != 0)
+            this.gameSettings.keyBindStreamCommercials.setKeyCode(0);
+        if (this.gameSettings.keyBindStreamToggleMic.getKeyCode() != 0)
+            this.gameSettings.keyBindStreamToggleMic.setKeyCode(0);
+    }
+
+    /**
+     * @author VitorXP
+     * @reason Smoother FPS Loop (Remove stuttering do LWJGL 2)
+     */
+    @Overwrite
+    public void updateDisplay() {
+        this.mcProfiler.startSection("display_update");
+        Display.update();
+        this.checkGLError("Post render");
+        this.mcProfiler.endSection();
+    }
+
+    @Inject(method = "loadWorld(Lnet/minecraft/client/multiplayer/WorldClient;Ljava/lang/String;)V", at = @At("HEAD"))
+    private void onWorldChange(net.minecraft.client.multiplayer.WorldClient world, String message, CallbackInfo ci) {
+        System.gc();
     }
 }
