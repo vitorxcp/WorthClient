@@ -101,7 +101,6 @@ public class WorthClient {
     public static boolean viewsPetAll = false;
     public static boolean showTime = false;
     public static boolean enableCopy = false;
-    public static boolean keystrokesOverlay = false;
     public static boolean GuiAdminPainel = false;
     public static boolean pendingOpenMenu = false;
     public static boolean pendingOpenMenuHud = false;
