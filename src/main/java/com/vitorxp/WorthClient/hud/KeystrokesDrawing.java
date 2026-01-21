@@ -1,6 +1,6 @@
 package com.vitorxp.WorthClient.hud;
 
-import com.vitorxp.WorthClient.config.KeystrokesColors;
+import com.vitorxp.WorthClient.config.KeystrokesSettings;
 import com.vitorxp.WorthClient.utils.RenderUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
@@ -8,46 +8,65 @@ import net.minecraft.client.renderer.GlStateManager;
 
 public class KeystrokesDrawing {
 
-    private static void drawBorderedRect(int x, int y, int width, int height, int borderColor, int insideColor) {
-        RenderUtil.drawRect(x, y, x + width, y + height, insideColor);
-        RenderUtil.drawRect(x, y, x + width, y + 1, borderColor); // Top
-        RenderUtil.drawRect(x, y + height - 1, x + width, y + height, borderColor); // Bottom
-        RenderUtil.drawRect(x, y + 1, x + 1, y + height - 1, borderColor); // Left
-        RenderUtil.drawRect(x + width - 1, y + 1, x + width, y + height - 1, borderColor); // Right
+    public static void drawKey(String keyChar, int x, int y, boolean pressed) {
+        float size = KeystrokesSettings.boxSize;
+        drawRect(x, y, size, size, pressed, keyChar);
     }
 
-    public static void drawKey(String label, int x, int y, boolean pressed, int width, int height) {
-        FontRenderer fontRenderer = Minecraft.getMinecraft().fontRendererObj;
-        int bgColor = KeystrokesColors.getBackground(pressed);
-        int borderColor = KeystrokesColors.getBorder();
-        int textColor = KeystrokesColors.getText();
+    public static void drawRect(int x, int y, float width, float height, boolean pressed, String label) {
+        int bgColor = KeystrokesSettings.getBackgroundColor(pressed);
+        int borderColor = KeystrokesSettings.getBorderColor();
+        int textColor = KeystrokesSettings.getTextColor(pressed);
 
-        drawBorderedRect(x, y, width, height, borderColor, bgColor);
+        RenderUtil.drawRect(x, y, x + (int)width, y + (int)height, bgColor);
 
-        int textX = x + (width - fontRenderer.getStringWidth(label)) / 2;
-        int textY = y + (height - fontRenderer.FONT_HEIGHT) / 2;
-        fontRenderer.drawStringWithShadow(label, textX, textY, textColor);
+        if (KeystrokesSettings.borderEnabled) {
+            float thickness = KeystrokesSettings.borderThickness;
+
+            RenderUtil.drawRect(x, y, x + (int)width, y + (int)thickness, borderColor);
+            RenderUtil.drawRect(x, y + (int)height - (int)thickness, x + (int)width, y + (int)height, borderColor);
+            RenderUtil.drawRect(x, y, x + (int)thickness, y + (int)height, borderColor);
+            RenderUtil.drawRect(x + (int)width - (int)thickness, y, x + (int)width, y + (int)height, borderColor);
+        }
+
+        FontRenderer fr = Minecraft.getMinecraft().fontRendererObj;
+        String textToDraw = label;
+
+        if (KeystrokesSettings.useArrows) {
+            if (label.equalsIgnoreCase("W")) textToDraw = "^";
+            else if (label.equalsIgnoreCase("A")) textToDraw = "<";
+            else if (label.equalsIgnoreCase("S")) textToDraw = "v";
+            else if (label.equalsIgnoreCase("D")) textToDraw = ">";
+        }
+
+        int textX = x + ((int)width - fr.getStringWidth(textToDraw)) / 2;
+        int textY = y + ((int)height - fr.FONT_HEIGHT) / 2;
+
+        if (KeystrokesSettings.textShadow) {
+            fr.drawStringWithShadow(textToDraw, textX, textY, textColor);
+        } else {
+            fr.drawString(textToDraw, textX, textY, textColor);
+        }
     }
 
-    public static void drawCpsKey(String label, int cps, int x, int y, boolean pressed, int width, int height) {
-        Minecraft mc = Minecraft.getMinecraft();
-        FontRenderer fontRenderer = mc.fontRendererObj;
-        int bgColor = KeystrokesColors.getBackground(pressed);
-        int borderColor = KeystrokesColors.getBorder();
+    public static void drawCps(String label, int cps, int x, int y, boolean pressed, int width, int height) {
+        if (!KeystrokesSettings.showClicks) return;
 
-        drawBorderedRect(x, y, width, height, borderColor, bgColor);
+        drawRect(x, y, width, height, pressed, "");
 
-        int labelWidth = fontRenderer.getStringWidth(label);
-        int labelX = x + (width - labelWidth) / 2;
-        int labelY = y + 3;
-        fontRenderer.drawStringWithShadow(label, labelX, labelY, KeystrokesColors.getText());
+        FontRenderer fr = Minecraft.getMinecraft().fontRendererObj;
+        int textColor = KeystrokesSettings.getTextColor(pressed);
 
-        String cpsText = cps + " CPS";
+        int labelW = fr.getStringWidth(label);
+        fr.drawString(label, x + (width - labelW) / 2, y + height / 2 - 4, textColor);
+
+        String cpsTxt = cps + " CPS";
         GlStateManager.pushMatrix();
-        GlStateManager.translate(x + width / 2.0f, y + height - 6, 0);
-        GlStateManager.scale(0.7f, 0.7f, 1f);
-        int cpsWidth = fontRenderer.getStringWidth(cpsText);
-        fontRenderer.drawStringWithShadow(cpsText, -cpsWidth / 2, 0, KeystrokesColors.getCpsText());
+        float scale = 0.6f;
+        GlStateManager.scale(scale, scale, 1);
+        int cpsX = (int)((x + width / 2) / scale) - fr.getStringWidth(cpsTxt) / 2;
+        int cpsY = (int)((y + height - 6) / scale);
+        fr.drawString(cpsTxt, cpsX, cpsY, KeystrokesSettings.chromaMode ? KeystrokesSettings.getChromaColor(500) : 0xFFAAAAAA);
         GlStateManager.popMatrix();
     }
 }
