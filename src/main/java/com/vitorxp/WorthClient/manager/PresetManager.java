@@ -11,6 +11,8 @@ public class PresetManager {
     private static final File PRESET_DIR = new File("config/WorthClient/presets");
     private static final File CONFIG_FILE = new File("config/WorthClient/settings.json");
 
+    public static String currentActivePreset = null;
+
     public static void savePreset(String name) {
         String safeName = name.replaceAll("[^a-zA-Z0-9.-]", "_");
 
@@ -29,6 +31,7 @@ public class PresetManager {
 
         try {
             copyFile(CONFIG_FILE, presetFile);
+            currentActivePreset = safeName;
             NotificationRenderer.send(NotificationRenderer.Type.SUCCESS, "Preset '" + name + "' salvo!");
         } catch (IOException e) {
             e.printStackTrace();
@@ -47,10 +50,23 @@ public class PresetManager {
         try {
             copyFile(presetFile, CONFIG_FILE);
             ConfigManager.load();
+            currentActivePreset = name;
             NotificationRenderer.send(NotificationRenderer.Type.SUCCESS, "Preset carregado!");
         } catch (IOException e) {
             e.printStackTrace();
             NotificationRenderer.send(NotificationRenderer.Type.ERROR, "Erro ao ler arquivo.");
+        }
+    }
+
+    public static void deletePreset(String name) {
+        File presetFile = new File(PRESET_DIR, name + ".json");
+        if (presetFile.exists()) {
+            if (presetFile.delete()) {
+                if (name.equals(currentActivePreset)) currentActivePreset = null;
+                NotificationRenderer.send(NotificationRenderer.Type.SUCCESS, "Preset deletado.");
+            } else {
+                NotificationRenderer.send(NotificationRenderer.Type.ERROR, "Falha ao deletar.");
+            }
         }
     }
 
