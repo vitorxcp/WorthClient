@@ -1,6 +1,7 @@
 package com.vitorxp.WorthClient.gui;
 
 import com.vitorxp.WorthClient.WorthClient;
+import com.vitorxp.WorthClient.config.KeystrokesSettings;
 import com.vitorxp.WorthClient.hud.HudElement;
 import com.vitorxp.WorthClient.hud.HudPositionManager;
 import net.minecraft.client.gui.GuiScreen;
@@ -295,7 +296,7 @@ public class GuiHudEditor extends GuiScreen {
         if (id.equals("PingHUD")) return WorthClient.pingOverlay;
         if (id.equals("PetHud")) return WorthClient.petOverlay;
         if (id.equals("RadarHUD")) return WorthClient.RadarOverlay;
-        if (id.startsWith("Keystrokes")) return WorthClient.keystrokesOverlay;
+        if (id.startsWith("Keystrokes")) return KeystrokesSettings.enabled;
         if (id.contains("Helmet") || id.contains("Chest") || id.contains("Leggings") ||
                 id.contains("Boots") || id.contains("Hand")) return WorthClient.ArmorsOverlays;
         if (id.equals("ScoreboardHUD")) return com.vitorxp.WorthClient.hud.ScoreboardHUD.toggled;
