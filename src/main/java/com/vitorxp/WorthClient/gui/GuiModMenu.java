@@ -212,17 +212,17 @@ public class GuiModMenu extends GuiScreen {
             }
 
             int catX = guiLeft + 140;
-            if (searchField.getText().isEmpty()) {
-                for (Category cat : Category.values()) {
-                    int catW = fontRendererObj.getStringWidth(cat.name()) + 10;
-                    if (adjX >= catX && adjX <= catX + catW && adjY >= guiTop + 15 && adjY <= guiTop + 35) {
-                        currentCategory = cat;
-                        mc.getSoundHandler().playSound(net.minecraft.client.audio.PositionedSoundRecord.create(new ResourceLocation("gui.button.press"), 1.0F));
-                        filterModules();
-                        return;
-                    }
-                    catX += 60;
+            for (Category cat : Category.values()) {
+                String nomeExibicao = cat.nome;
+                int catW = fontRendererObj.getStringWidth(nomeExibicao);
+
+                if (adjX >= catX && adjX <= catX + catW && adjY >= guiTop + 15 && adjY <= guiTop + 35) {
+                    currentCategory = cat;
+                    mc.getSoundHandler().playSound(net.minecraft.client.audio.PositionedSoundRecord.create(new ResourceLocation("gui.button.press"), 1.0F));
+                    filterModules();
+                    return;
                 }
+                catX += catW + 20;
             }
 
             if (adjY < guiTop + 50 || adjY > guiTop + guiHeight - 10) return;
@@ -442,20 +442,20 @@ public class GuiModMenu extends GuiScreen {
 
         if (searchField.getText().isEmpty()) {
             int catX = guiLeft + 140;
+
             for (Category cat : Category.values()) {
                 boolean sel = cat == currentCategory;
                 int color = sel ? 0xFFFFFFFF : 0xFFAAAAAA;
-                int catW = fontRendererObj.getStringWidth(cat.name());
+                String nomeExibicao = cat.nome;
+                int catW = fontRendererObj.getStringWidth(nomeExibicao);
                 if (mouseX >= catX && mouseX <= catX + catW && mouseY >= guiTop + 15 && mouseY <= guiTop + 35) {
                     color = 0xFFDDDDDD;
                 }
-
-                fontRendererObj.drawString(cat.name(), catX, guiTop + 18, color);
-
+                fontRendererObj.drawString(nomeExibicao, catX, guiTop + 18, color);
                 if (sel) {
                     drawRect(catX, guiTop + 30, catX + catW, guiTop + 32, themeColor.getRGB());
                 }
-                catX += 60;
+                catX += catW + 20;
             }
         } else {
             fontRendererObj.drawString("Resultados da busca", guiLeft + 140, guiTop + 18, 0xFFFFAA00);
@@ -981,7 +981,19 @@ public class GuiModMenu extends GuiScreen {
         }
     }
 
-    public enum Category {ALL, HUD, PLAYER, WORLD, MISC}
+    public enum Category {
+        ALL("TODOS"),
+        HUD("HUD"),
+        PLAYER("JOGADOR"),
+        WORLD("MUNDO"),
+        MISC("OUTROS");
+
+        public final String nome;
+
+        Category(String nome) {
+            this.nome = nome;
+        }
+    }
 
     abstract class ModCard {
         String name, description, iconName;
@@ -1241,27 +1253,59 @@ public class GuiModMenu extends GuiScreen {
     }
 
     class ColorSetting extends Setting {
-        Supplier<Color> getter;
-        java.util.function.Consumer<Color> setter;
+        Supplier<Color> getter; java.util.function.Consumer<Color> setter;
+        boolean showingModeSelect = false;
 
-        public ColorSetting(String n, Supplier<Color> g, java.util.function.Consumer<Color> s) {
-            super(n);
-            getter = g;
-            setter = s;
-        }
+        public ColorSetting(String n, Supplier<Color> g, java.util.function.Consumer<Color> s) { super(n); getter = g; setter = s; }
 
         void draw(Minecraft mc, int x, int y, int mx, int my) {
             drawRoundedRect(x, y, settingWidth, 32, 6, 0xFF222222);
             mc.fontRendererObj.drawString(name, x + 15, y + 12, 0xFFAAAAAA);
+
             int pX = x + settingWidth - 30;
             int pY = y + 6;
-            drawRoundedRect(pX, pY, 20, 20, 4, getter.get().getRGB() | 0xFF000000);
+
+            drawRoundedRect(pX, pY, 20, 20, 4, getter.get().getRGB());
+            drawRoundedOutline(pX, pY, 20, 20, 4, 1f, 0xFF888888);
+
+            if (showingModeSelect) {
+                int optW = 70;
+                int optH = 16;
+                int colX = x + settingWidth - 110;
+                boolean hCol = mx >= colX && mx <= colX + 35 && my >= y + 8 && my <= y + 24;
+                drawRoundedRect(colX, y + 8, 35, 16, 4, hCol ? 0xFF555555 : 0xFF333333);
+                drawCenteredString(mc.fontRendererObj, "COR", colX + 17, y + 12, -1);
+
+                int alpX = x + settingWidth - 70;
+                boolean hAlp = mx >= alpX && mx <= alpX + 35 && my >= y + 8 && my <= y + 24;
+                drawRoundedRect(alpX, y + 8, 35, 16, 4, hAlp ? 0xFF555555 : 0xFF333333);
+                drawCenteredString(mc.fontRendererObj, "ALPHA", alpX + 17, y + 12, -1);
+            }
         }
 
         boolean mouseClicked(int x, int y, int mx, int my, int mb) {
+            if (showingModeSelect) {
+                int colX = x + settingWidth - 110;
+                int alpX = x + settingWidth - 70;
+
+                if (mx >= colX && mx <= colX + 35 && my >= y + 8 && my <= y + 24) {
+                    mc.displayGuiScreen(new GuiColorPicker(GuiModMenu.this, name, getter.get(), c -> { setter.accept(c); markUnsaved(); }));
+                    showingModeSelect = false;
+                    return true;
+                }
+
+                if (mx >= alpX && mx <= alpX + 35 && my >= y + 8 && my <= y + 24) {
+                    mc.displayGuiScreen(new GuiTransparencyPicker(GuiModMenu.this, name, getter.get(), c -> { setter.accept(c); markUnsaved(); }));
+                    showingModeSelect = false;
+                    return true;
+                }
+
+                showingModeSelect = false;
+                return true;
+            }
+
             if (mx >= x && mx <= x + settingWidth && my >= y && my <= y + 32) {
-                mc.displayGuiScreen(new GuiColorPicker(GuiModMenu.this, name, getter.get(), setter::accept));
-                markUnsaved();
+                showingModeSelect = true;
                 return true;
             }
             return false;
@@ -1269,7 +1313,7 @@ public class GuiModMenu extends GuiScreen {
     }
 
     class ModeSetting extends Setting {
-        String currentValue; // NOME CORRIGIDO AQUI
+        String currentValue;
         List<String> modes;
         int idx;
 
