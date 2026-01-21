@@ -1,6 +1,8 @@
 package com.vitorxp.WorthClient.hud;
 
+import com.vitorxp.WorthClient.config.KeystrokesSettings;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
+import net.minecraft.client.renderer.GlStateManager;
 import org.lwjgl.input.Mouse;
 
 public class KeystrokesRmbHud extends HudElement {
@@ -11,15 +13,28 @@ public class KeystrokesRmbHud extends HudElement {
 
     @Override
     public void render(RenderGameOverlayEvent event) {
-        if (!com.vitorxp.WorthClient.WorthClient.keystrokesOverlay) return;
+        if (!KeystrokesSettings.enabled || !KeystrokesSettings.showClicks) return;
+
+        GlStateManager.pushMatrix();
+        GlStateManager.translate(this.x, this.y, 0);
+        GlStateManager.scale(KeystrokesSettings.scale, KeystrokesSettings.scale, 1);
 
         int cps = com.vitorxp.WorthClient.WorthClient.keystrokesManager.getCpsRight();
-        KeystrokesDrawing.drawCpsKey("RMB", cps, this.x, this.y, Mouse.isButtonDown(1), getWidth(), getHeight());
+
+        int w = (int)(KeystrokesSettings.boxSize * 1.5 + 1);
+        int h = (int)KeystrokesSettings.boxSize;
+
+        KeystrokesDrawing.drawCps("RMB", cps, 0, 0, Mouse.isButtonDown(1), w, h);
+        GlStateManager.popMatrix();
     }
 
     @Override
-    public int getWidth() { return 60; }
+    public int getWidth() {
+        return (int)((KeystrokesSettings.boxSize * 1.5 + 1) * KeystrokesSettings.scale);
+    }
 
     @Override
-    public int getHeight() { return 20; }
+    public int getHeight() {
+        return (int)(KeystrokesSettings.boxSize * KeystrokesSettings.scale);
+    }
 }
