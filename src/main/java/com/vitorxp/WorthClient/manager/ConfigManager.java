@@ -4,8 +4,10 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.vitorxp.WorthClient.WorthClient;
 import com.vitorxp.WorthClient.config.AnimationsConfig;
+import com.vitorxp.WorthClient.config.KeystrokesSettings;
 import com.vitorxp.WorthClient.hud.ScoreboardHUD;
 
+import java.awt.*;
 import java.io.*;
 
 public class ConfigManager {
@@ -30,7 +32,6 @@ public class ConfigManager {
         obj.addProperty("viewsPetAll", WorthClient.viewsPetAll);
         obj.addProperty("showTime", WorthClient.showTime);
         obj.addProperty("enableCopy", WorthClient.enableCopy);
-        obj.addProperty("keystrokesOverlay", WorthClient.keystrokesOverlay);
         obj.addProperty("PerspectiveModToggle", WorthClient.PerspectiveModToggle);
         obj.addProperty("ArmorsOverlays", WorthClient.ArmorsOverlays);
         obj.addProperty("RadarOverlay", WorthClient.RadarOverlay);
@@ -73,6 +74,22 @@ public class ConfigManager {
         obj.addProperty("WleggingsStyle", WorthClient.leggingsStyle);
         obj.addProperty("WbootsStyle", WorthClient.bootsStyle);
         obj.addProperty("WmainHandStyle", WorthClient.mainHandStyle);
+        obj.addProperty("KeySenabled", KeystrokesSettings.enabled);
+        obj.addProperty("KeySshowClicks", KeystrokesSettings.showClicks);
+        obj.addProperty("KeySshowMovement", KeystrokesSettings.showMovement);
+        obj.addProperty("KeySshowSpace", KeystrokesSettings.showSpace);
+        obj.addProperty("KeySuseArrows", KeystrokesSettings.useArrows);
+        obj.addProperty("KeyStextShadow", KeystrokesSettings.textShadow);
+        obj.addProperty("KeySborderEnabled", KeystrokesSettings.borderEnabled);
+        obj.addProperty("KeySscale", KeystrokesSettings.scale);
+        obj.addProperty("KeySboxSize", KeystrokesSettings.boxSize);
+        obj.addProperty("KeySborderThickness", KeystrokesSettings.borderThickness);
+        obj.addProperty("KeySchromaMode", KeystrokesSettings.chromaMode);
+        obj.addProperty("KeyScolBack", KeystrokesSettings.backgroundDefault.getRGB());
+        obj.addProperty("KeyScolPress", KeystrokesSettings.backgroundPressed.getRGB());
+        obj.addProperty("KeyScolText", KeystrokesSettings.textColor.getRGB());
+        obj.addProperty("KeyScolBorder", KeystrokesSettings.borderColor.getRGB());
+        obj.addProperty("KeyScolTextPress", KeystrokesSettings.textPressedColor.getRGB());
 
         try (FileWriter writer = new FileWriter(FILE)) {
             new Gson().toJson(obj, writer);
@@ -102,7 +119,6 @@ public class ConfigManager {
             if (obj.has("viewsPetAll")) WorthClient.viewsPetAll = obj.get("viewsPetAll").getAsBoolean();
             if (obj.has("showTime")) WorthClient.showTime = obj.get("showTime").getAsBoolean();
             if (obj.has("enableCopy")) WorthClient.enableCopy = obj.get("enableCopy").getAsBoolean();
-            if (obj.has("keystrokesOverlay")) WorthClient.keystrokesOverlay = obj.get("keystrokesOverlay").getAsBoolean();
             if (obj.has("PerspectiveModToggle")) WorthClient.PerspectiveModToggle = obj.get("PerspectiveModToggle").getAsBoolean();
             if (obj.has("RadarOverlay")) WorthClient.RadarOverlay = obj.get("RadarOverlay").getAsBoolean();
             if (obj.has("ArmorsOverlays")) WorthClient.ArmorsOverlays = obj.get("ArmorsOverlays").getAsBoolean();
@@ -145,6 +161,22 @@ public class ConfigManager {
             if (obj.has("WleggingsStyle")) WorthClient.leggingsStyle  = obj.get("WleggingsStyle").getAsString();
             if (obj.has("WbootsStyle")) WorthClient.bootsStyle  = obj.get("WbootsStyle").getAsString();
             if (obj.has("WmainHandStyle")) WorthClient.mainHandStyle  = obj.get("WmainHandStyle").getAsString();
+            if (obj.has("KeySenabled")) KeystrokesSettings.enabled = obj.get("enabled").getAsBoolean();
+            if (obj.has("KeySshowClicks")) KeystrokesSettings.showClicks = obj.get("showClicks").getAsBoolean();
+            if (obj.has("KeySshowMovement")) KeystrokesSettings.showMovement = obj.get("showMovement").getAsBoolean();
+            if (obj.has("KeySshowSpace")) KeystrokesSettings.showSpace = obj.get("showSpace").getAsBoolean();
+            if (obj.has("KeySuseArrows")) KeystrokesSettings.useArrows = obj.get("useArrows").getAsBoolean();
+            if (obj.has("KeyStextShadow")) KeystrokesSettings.textShadow = obj.get("textShadow").getAsBoolean();
+            if (obj.has("KeySborderEnabled")) KeystrokesSettings.borderEnabled = obj.get("borderEnabled").getAsBoolean();
+            if (obj.has("KeySscale")) KeystrokesSettings.scale = obj.get("scale").getAsFloat();
+            if (obj.has("KeySboxSize")) KeystrokesSettings.boxSize = obj.get("boxSize").getAsFloat();
+            if (obj.has("KeySborderThickness")) KeystrokesSettings.borderThickness = obj.get("borderThickness").getAsFloat();
+            if (obj.has("KeySchromaMode")) KeystrokesSettings.chromaMode = obj.get("chromaMode").getAsBoolean();
+            if (obj.has("KeyScolBack")) KeystrokesSettings.backgroundDefault = new Color(obj.get("colBack").getAsInt(), true);
+            if (obj.has("KeyScolPress")) KeystrokesSettings.backgroundPressed = new Color(obj.get("colPress").getAsInt(), true);
+            if (obj.has("KeyScolText")) KeystrokesSettings.textColor = new Color(obj.get("colText").getAsInt(), true);
+            if (obj.has("KeyScolBorder")) KeystrokesSettings.borderColor = new Color(obj.get("colBorder").getAsInt(), true);
+            if (obj.has("KeyScolTextPress")) KeystrokesSettings.textPressedColor = new Color(obj.get("colTextPress").getAsInt(), true);
         } catch (Exception e) {
             e.printStackTrace();
         }
