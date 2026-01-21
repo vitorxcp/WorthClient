@@ -161,22 +161,22 @@ public class ConfigManager {
             if (obj.has("WleggingsStyle")) WorthClient.leggingsStyle  = obj.get("WleggingsStyle").getAsString();
             if (obj.has("WbootsStyle")) WorthClient.bootsStyle  = obj.get("WbootsStyle").getAsString();
             if (obj.has("WmainHandStyle")) WorthClient.mainHandStyle  = obj.get("WmainHandStyle").getAsString();
-            if (obj.has("KeySenabled")) KeystrokesSettings.enabled = obj.get("enabled").getAsBoolean();
-            if (obj.has("KeySshowClicks")) KeystrokesSettings.showClicks = obj.get("showClicks").getAsBoolean();
-            if (obj.has("KeySshowMovement")) KeystrokesSettings.showMovement = obj.get("showMovement").getAsBoolean();
-            if (obj.has("KeySshowSpace")) KeystrokesSettings.showSpace = obj.get("showSpace").getAsBoolean();
-            if (obj.has("KeySuseArrows")) KeystrokesSettings.useArrows = obj.get("useArrows").getAsBoolean();
-            if (obj.has("KeyStextShadow")) KeystrokesSettings.textShadow = obj.get("textShadow").getAsBoolean();
-            if (obj.has("KeySborderEnabled")) KeystrokesSettings.borderEnabled = obj.get("borderEnabled").getAsBoolean();
-            if (obj.has("KeySscale")) KeystrokesSettings.scale = obj.get("scale").getAsFloat();
-            if (obj.has("KeySboxSize")) KeystrokesSettings.boxSize = obj.get("boxSize").getAsFloat();
-            if (obj.has("KeySborderThickness")) KeystrokesSettings.borderThickness = obj.get("borderThickness").getAsFloat();
-            if (obj.has("KeySchromaMode")) KeystrokesSettings.chromaMode = obj.get("chromaMode").getAsBoolean();
-            if (obj.has("KeyScolBack")) KeystrokesSettings.backgroundDefault = new Color(obj.get("colBack").getAsInt(), true);
-            if (obj.has("KeyScolPress")) KeystrokesSettings.backgroundPressed = new Color(obj.get("colPress").getAsInt(), true);
-            if (obj.has("KeyScolText")) KeystrokesSettings.textColor = new Color(obj.get("colText").getAsInt(), true);
-            if (obj.has("KeyScolBorder")) KeystrokesSettings.borderColor = new Color(obj.get("colBorder").getAsInt(), true);
-            if (obj.has("KeyScolTextPress")) KeystrokesSettings.textPressedColor = new Color(obj.get("colTextPress").getAsInt(), true);
+            if (obj.has("KeySenabled")) KeystrokesSettings.enabled = obj.get("KeySenabled").getAsBoolean();
+            if (obj.has("KeySshowClicks")) KeystrokesSettings.showClicks = obj.get("KeySshowClicks").getAsBoolean();
+            if (obj.has("KeySshowMovement")) KeystrokesSettings.showMovement = obj.get("KeySshowMovement").getAsBoolean();
+            if (obj.has("KeySshowSpace")) KeystrokesSettings.showSpace = obj.get("KeySshowSpace").getAsBoolean();
+            if (obj.has("KeySuseArrows")) KeystrokesSettings.useArrows = obj.get("KeySuseArrows").getAsBoolean();
+            if (obj.has("KeyStextShadow")) KeystrokesSettings.textShadow = obj.get("KeyStextShadow").getAsBoolean();
+            if (obj.has("KeySborderEnabled")) KeystrokesSettings.borderEnabled = obj.get("KeySborderEnabled").getAsBoolean();
+            if (obj.has("KeySscale")) KeystrokesSettings.scale = obj.get("KeySscale").getAsFloat();
+            if (obj.has("KeySboxSize")) KeystrokesSettings.boxSize = obj.get("KeySboxSize").getAsFloat();
+            if (obj.has("KeySborderThickness")) KeystrokesSettings.borderThickness = obj.get("KeySborderThickness").getAsFloat();
+            if (obj.has("KeySchromaMode")) KeystrokesSettings.chromaMode = obj.get("KeySchromaMode").getAsBoolean();
+            if (obj.has("KeyScolBack")) KeystrokesSettings.backgroundDefault = new Color(obj.get("KeyScolBack").getAsInt(), true);
+            if (obj.has("KeyScolPress")) KeystrokesSettings.backgroundPressed = new Color(obj.get("KeyScolPress").getAsInt(), true);
+            if (obj.has("KeyScolText")) KeystrokesSettings.textColor = new Color(obj.get("KeyScolText").getAsInt(), true);
+            if (obj.has("KeyScolBorder")) KeystrokesSettings.borderColor = new Color(obj.get("KeyScolBorder").getAsInt(), true);
+            if (obj.has("KeyScolTextPress")) KeystrokesSettings.textPressedColor = new Color(obj.get("KeyScolTextPress").getAsInt(), true);
         } catch (Exception e) {
             e.printStackTrace();
         }
