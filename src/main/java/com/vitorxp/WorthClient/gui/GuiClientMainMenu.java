@@ -60,7 +60,7 @@ public class GuiClientMainMenu extends GuiScreen {
         MAGMA("Magma", new Color(20, 5, 5, 180), new Color(255, 200, 200), new Color(255, 69, 0));
 
         String name;
-        Color overlayColor;
+        public Color overlayColor;
         Color textColor;
         public Color accentColor;
 
