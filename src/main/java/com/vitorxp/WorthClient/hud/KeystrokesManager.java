@@ -1,5 +1,6 @@
 package com.vitorxp.WorthClient.hud;
 
+import com.vitorxp.WorthClient.config.KeystrokesSettings;
 import net.minecraftforge.client.event.MouseEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -18,7 +19,7 @@ public class KeystrokesManager {
 
     @SubscribeEvent
     public void onTick(TickEvent.ClientTickEvent event) {
-        if (!com.vitorxp.WorthClient.WorthClient.keystrokesOverlay) return;
+        if (!KeystrokesSettings.enabled) return;
 
         long now = System.currentTimeMillis();
         leftClickTimestamps.removeIf(timestamp -> now - timestamp > 1000);
@@ -30,7 +31,7 @@ public class KeystrokesManager {
 
     @SubscribeEvent
     public void onMouse(MouseEvent event) {
-        if (!com.vitorxp.WorthClient.WorthClient.keystrokesOverlay || !event.buttonstate) return;
+        if (!KeystrokesSettings.enabled || !event.buttonstate) return;
 
         if (event.button == 0) leftClickTimestamps.add(System.currentTimeMillis());
         if (event.button == 1) rightClickTimestamps.add(System.currentTimeMillis());
