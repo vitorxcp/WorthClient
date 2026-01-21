@@ -1,6 +1,7 @@
 package com.vitorxp.WorthClient.mixin;
 
 import com.vitorxp.WorthClient.WorthClient;
+import com.vitorxp.WorthClient.optimization.LightOptimizer;
 import net.minecraft.util.BlockPos;
 import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.World;
@@ -40,6 +41,10 @@ public abstract class MixinWorld {
         }
 
         if (!this.getChunkProvider().chunkExists(pos.getX() >> 4, pos.getZ() >> 4)) {
+            cir.setReturnValue(false);
+        }
+
+        if (!LightOptimizer.shouldUpdateLight()) {
             cir.setReturnValue(false);
         }
     }
