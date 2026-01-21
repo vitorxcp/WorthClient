@@ -29,7 +29,10 @@
     "MixinTextureMap",
     "MixinWorldProvider",
     "MixinChunk",
-    "MixinItemRenderer"
+    "MixinItemRenderer",
+    "MixinMathHelper",
+    "MixinGuiStreamUnavailable",
+    "MixinRenderItem"
   ],
   "client": [],
   "injectors": {
