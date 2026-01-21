@@ -12,6 +12,8 @@ import com.vitorxp.WorthClient.events.GuiMenuEvent;
 import com.vitorxp.WorthClient.gui.AdminGui;
 import com.vitorxp.WorthClient.gui.utils.NotificationRenderer;
 import com.vitorxp.WorthClient.handler.ClientLogoRenderer;
+import com.vitorxp.WorthClient.handler.GlobalBackgroundHandler;
+import com.vitorxp.WorthClient.handler.GlobalButtonHandler;
 import com.vitorxp.WorthClient.handlers.IslandProtectionHandler;
 import com.vitorxp.WorthClient.handlers.PlayerInspectorHandler;
 import com.vitorxp.WorthClient.handlers.PortalEffectHandler;
@@ -138,6 +140,8 @@ public class WorthClient {
         VoidLagFixConfig.syncConfig(e.getSuggestedConfigurationFile());
         SSLTrustBypasser.install();
         SSLTrustManager.initialize();
+        TwitchFix.disableTwitchKeys();
+        logger.info("Twitch Fix aplicado (Teclas de Stream desativadas).");
     }
 
     public static final Map<String, String> pendingPlayersTP = new ConcurrentHashMap<>();
@@ -198,6 +202,8 @@ public class WorthClient {
         MinecraftForge.EVENT_BUS.register(new NotificationManager());
         MinecraftForge.EVENT_BUS.register(new ClientLogoRenderer());
         MinecraftForge.EVENT_BUS.register(new PortalEffectHandler());
+        MinecraftForge.EVENT_BUS.register(new GlobalButtonHandler());
+        MinecraftForge.EVENT_BUS.register(new GlobalBackgroundHandler());
 
         com.vitorxp.WorthClient.utils.CursorManager.loadCustomCursor();
 
