@@ -38,7 +38,9 @@ public class GuiModMenu extends GuiScreen {
     private final int btnSettingsNormal = 0xFF444444;
     private final int btnSettingsHover = 0xFF666666;
     private GuiTextField presetNameField;
+
     private enum ScreenState {GRID, CONFIG, PRESETS}
+
     private ScreenState currentState = ScreenState.GRID;
     private final List<ModCard> allModules = new ArrayList<>();
     private final List<ModCard> visibleModules = new ArrayList<>();
@@ -56,6 +58,7 @@ public class GuiModMenu extends GuiScreen {
     private float currentScale = 0.0f;
     private boolean closing = false;
     private float fitScale = 1.0f;
+    private boolean hasUnsavedChanges = false;
 
     public GuiModMenu() {
     }
@@ -67,6 +70,7 @@ public class GuiModMenu extends GuiScreen {
         this.closing = false;
         this.currentScale = 0.0f;
         this.scrollOffset = 0;
+        this.hasUnsavedChanges = false;
         this.guiLeft = (this.width - this.guiWidth) / 2;
         this.guiTop = (this.height - this.guiHeight) / 2;
         this.settingWidth = guiWidth - 120;
@@ -79,6 +83,22 @@ public class GuiModMenu extends GuiScreen {
         this.presetNameField.setEnableBackgroundDrawing(false);
         setupModules();
         filterModules();
+    }
+
+    private void markUnsaved() {
+        this.hasUnsavedChanges = true;
+    }
+
+    private void saveChanges() {
+        ConfigManager.save();
+        this.hasUnsavedChanges = false;
+        NotificationRenderer.send(NotificationRenderer.Type.SUCCESS, "Alterações confirmadas!");
+    }
+
+    private void discardChanges() {
+        ConfigManager.load();
+        this.hasUnsavedChanges = false;
+        NotificationRenderer.send(NotificationRenderer.Type.WARNING, "Alterações descartadas.");
     }
 
     private void updateFitScale() {
@@ -122,12 +142,15 @@ public class GuiModMenu extends GuiScreen {
                 filterModules();
                 return;
             }
+        } else if (currentState == ScreenState.PRESETS) {
+            presetNameField.textboxKeyTyped(typedChar, keyCode);
         } else if (currentState == ScreenState.CONFIG && selectedMod != null) {
             for (Setting s : selectedMod.settings) {
                 if (s instanceof KeybindSetting) {
                     KeybindSetting ks = (KeybindSetting) s;
                     if (ks.isBinding) {
                         ks.onKeyTyped(keyCode);
+                        markUnsaved();
                         return;
                     }
                 }
@@ -140,6 +163,9 @@ public class GuiModMenu extends GuiScreen {
                 selectedMod = null;
                 scrollOffset = 0;
             } else {
+                if (hasUnsavedChanges) {
+                    discardChanges();
+                }
                 closing = true;
             }
         }
@@ -150,10 +176,33 @@ public class GuiModMenu extends GuiScreen {
         int adjX = getAdjustedMouseX(mouseX);
         int adjY = getAdjustedMouseY(mouseY);
 
+        if (hasUnsavedChanges) {
+            int boxWidth = 320;
+            int boxX = guiLeft + (guiWidth - boxWidth) / 2;
+            int boxY = guiTop + guiHeight - 55;
+            int btnW = 100;
+            int btnH = 18;
+            int btnY = boxY + 20;
+            int confirmX = boxX + (boxWidth / 2) - btnW - 10;
+            if (adjX >= confirmX && adjX <= confirmX + btnW && adjY >= btnY && adjY <= btnY + btnH) {
+                mc.getSoundHandler().playSound(net.minecraft.client.audio.PositionedSoundRecord.create(new ResourceLocation("gui.button.press"), 1.0F));
+                saveChanges();
+                return;
+            }
+            int cancelX = boxX + (boxWidth / 2) + 10;
+            if (adjX >= cancelX && adjX <= cancelX + btnW && adjY >= btnY && adjY <= btnY + btnH) {
+                mc.getSoundHandler().playSound(net.minecraft.client.audio.PositionedSoundRecord.create(new ResourceLocation("gui.button.press"), 1.0F));
+                discardChanges();
+                return;
+            }
+            if (adjX >= boxX && adjX <= boxX + boxWidth && adjY >= boxY && adjY <= boxY + 45) return;
+        }
+
         if (currentState == ScreenState.GRID) {
             searchField.mouseClicked(adjX, adjY, btn);
 
-            if (adjX >= guiLeft + guiWidth - 100 && adjX <= guiLeft + guiWidth - 20 && adjY >= guiTop + guiHeight - 30 && adjY <= guiTop + guiHeight - 10) {
+            int btnPresetY = hasUnsavedChanges ? guiTop + guiHeight - 60 : guiTop + guiHeight - 30;
+            if (adjX >= guiLeft + guiWidth - 100 && adjX <= guiLeft + guiWidth - 20 && adjY >= btnPresetY && adjY <= btnPresetY + 20) {
                 mc.getSoundHandler().playSound(net.minecraft.client.audio.PositionedSoundRecord.create(new ResourceLocation("gui.button.press"), 1.0F));
                 currentState = ScreenState.PRESETS;
                 scrollOffset = 0;
@@ -211,7 +260,7 @@ public class GuiModMenu extends GuiScreen {
                         if (!mod.isBlocked()) {
                             mod.toggle();
                             mc.getSoundHandler().playSound(net.minecraft.client.audio.PositionedSoundRecord.create(new ResourceLocation("gui.button.press"), 1.0F));
-                            ConfigManager.save();
+                            markUnsaved();
                         }
                         return;
                     }
@@ -219,7 +268,7 @@ public class GuiModMenu extends GuiScreen {
                     if (!mod.isMenuOnly() && !mod.isBlocked()) {
                         mod.toggle();
                         mc.getSoundHandler().playSound(net.minecraft.client.audio.PositionedSoundRecord.create(new ResourceLocation("gui.button.press"), 1.0F));
-                        ConfigManager.save();
+                        markUnsaved();
                     }
                 }
             }
@@ -259,12 +308,26 @@ public class GuiModMenu extends GuiScreen {
                     } else {
                         PresetManager.savePreset(name);
                         presetNameField.setText("");
+                        hasUnsavedChanges = false;
                     }
                     return;
                 }
             }
 
-            int listY = startY + 40;
+            int updateBtnY = inputY + 40;
+            if (PresetManager.currentActivePreset != null && hasUnsavedChanges) {
+                if (adjY > guiTop + 50 && adjY < guiTop + guiHeight - 20) {
+                    if (adjX >= inputX && adjX <= inputX + settingWidth && adjY >= updateBtnY && adjY <= updateBtnY + 24) {
+                        mc.getSoundHandler().playSound(net.minecraft.client.audio.PositionedSoundRecord.create(new ResourceLocation("gui.button.press"), 1.0F));
+                        PresetManager.savePreset(PresetManager.currentActivePreset);
+                        hasUnsavedChanges = false;
+                        return;
+                    }
+                }
+                updateBtnY += 35;
+            }
+
+            int listY = updateBtnY;
             List<String> presets = PresetManager.getPresetList();
 
             for (String p : presets) {
@@ -272,6 +335,12 @@ public class GuiModMenu extends GuiScreen {
                     if (adjX >= inputX + settingWidth - 80 && adjX <= inputX + settingWidth && adjY >= listY && adjY <= listY + 25) {
                         mc.getSoundHandler().playSound(net.minecraft.client.audio.PositionedSoundRecord.create(new ResourceLocation("gui.button.press"), 1.0F));
                         PresetManager.loadPreset(p);
+                        hasUnsavedChanges = false;
+                        return;
+                    }
+                    if (adjX >= inputX + settingWidth - 110 && adjX <= inputX + settingWidth - 85 && adjY >= listY && adjY <= listY + 25) {
+                        mc.getSoundHandler().playSound(net.minecraft.client.audio.PositionedSoundRecord.create(new ResourceLocation("gui.button.press"), 1.0F));
+                        PresetManager.deletePreset(p);
                         return;
                     }
                 }
@@ -283,7 +352,15 @@ public class GuiModMenu extends GuiScreen {
     @Override
     protected void mouseReleased(int mouseX, int mouseY, int state) {
         if (currentState == ScreenState.CONFIG && selectedMod != null) {
-            for (Setting s : selectedMod.settings) if (s instanceof SliderSetting) ((SliderSetting) s).dragging = false;
+            for (Setting s : selectedMod.settings) {
+                if (s instanceof SliderSetting) {
+                    SliderSetting slider = (SliderSetting) s;
+                    if (slider.dragging) {
+                        slider.dragging = false;
+                        markUnsaved();
+                    }
+                }
+            }
         }
     }
 
@@ -298,7 +375,7 @@ public class GuiModMenu extends GuiScreen {
         if (closing) {
             currentScale = lerp(currentScale, 0f, 0.4f);
             if (currentScale < 0.1f) {
-                ConfigManager.save();
+                if (hasUnsavedChanges) discardChanges();
                 mc.displayGuiScreen(null);
                 return;
             }
@@ -322,6 +399,32 @@ public class GuiModMenu extends GuiScreen {
             drawConfigScreen(adjX, adjY);
         } else if (currentState == ScreenState.PRESETS) {
             drawPresetsScreen(adjX, adjY);
+        }
+
+        if (hasUnsavedChanges) {
+            int boxWidth = 320;
+            int boxHeight = 45;
+            int boxX = guiLeft + (guiWidth - boxWidth) / 2;
+            int boxY = guiTop + guiHeight - 55;
+
+            drawGradientRoundedRect(boxX, boxY, boxWidth, boxHeight, 8, 0xF0151515, 0xF00A0A0A);
+            drawRoundedOutline(boxX, boxY, boxWidth, boxHeight, 8, 1.5f, 0xFFFFAA00);
+            String warningText = "Você tem alterações pendentes";
+            drawCenteredString(fontRendererObj, warningText, boxX + boxWidth / 2, boxY + 7, 0xFFDDDDDD);
+
+            int btnW = 100;
+            int btnH = 18;
+            int btnY = boxY + 20;
+            int confirmX = boxX + (boxWidth / 2) - btnW - 10;
+            boolean hoverConfirm = adjX >= confirmX && adjX <= confirmX + btnW && adjY >= btnY && adjY <= btnY + btnH;
+            if (!hoverConfirm) drawRoundedRect(confirmX + 1, btnY + 1, btnW, btnH, 4, 0x50000000);
+            drawGradientRoundedRect(confirmX, btnY, btnW, btnH, 4, hoverConfirm ? 0xFF2ECC71 : 0xFF27AE60, hoverConfirm ? 0xFF27AE60 : 0xFF219150);
+            drawCenteredString(fontRendererObj, "SALVAR", confirmX + btnW / 2, btnY + 5, -1);
+            int cancelX = boxX + (boxWidth / 2) + 10;
+            boolean hoverCancel = adjX >= cancelX && adjX <= cancelX + btnW && adjY >= btnY && adjY <= btnY + btnH;
+            if (!hoverCancel) drawRoundedRect(cancelX + 1, btnY + 1, btnW, btnH, 4, 0x50000000);
+            drawGradientRoundedRect(cancelX, btnY, btnW, btnH, 4, hoverCancel ? 0xFFE74C3C : 0xFFC0392B, hoverCancel ? 0xFFC0392B : 0xFFA93226);
+            drawCenteredString(fontRendererObj, "DESCARTAR", cancelX + btnW / 2, btnY + 5, -1);
         }
 
         NotificationRenderer.render(mc);
@@ -359,7 +462,7 @@ public class GuiModMenu extends GuiScreen {
         }
 
         int btnPx = guiLeft + guiWidth - 100;
-        int btnPy = guiTop + guiHeight - 30;
+        int btnPy = hasUnsavedChanges ? guiTop + guiHeight - 60 : guiTop + guiHeight - 30;
         boolean hoverPreset = mouseX >= btnPx && mouseX <= btnPx + 80 && mouseY >= btnPy && mouseY <= btnPy + 20;
         drawRoundedRect(btnPx, btnPy, 80, 20, 5, hoverPreset ? 0xFF444444 : 0xFF333333);
         drawCenteredString(fontRendererObj, "PRESETS", btnPx + 40, btnPy + 6, -1);
@@ -371,11 +474,7 @@ public class GuiModMenu extends GuiScreen {
         int cardH = 100;
         int cols = 4;
 
-        if (visibleModules.isEmpty()) {
-            drawCenteredString(fontRendererObj, "Nenhum módulo encontrado.", guiLeft + guiWidth / 2, guiTop + guiHeight / 2, 0xFFAAAAAA);
-        }
-
-        glScissor(guiLeft + 20, guiTop + 50, guiWidth - 40, guiHeight - 85);
+        glScissor(guiLeft + 20, guiTop + 50, guiWidth - 40, hasUnsavedChanges ? guiHeight - 90 : guiHeight - 85);
         GL11.glEnable(GL11.GL_SCISSOR_TEST);
 
         for (int i = 0; i < visibleModules.size(); i++) {
@@ -390,7 +489,6 @@ public class GuiModMenu extends GuiScreen {
         int totalRows = (int) Math.ceil((double) visibleModules.size() / cols);
         int totalHeight = totalRows * (cardH + gap);
         maxScroll = Math.max(0, totalHeight - (guiHeight - 100));
-
         drawScrollbar(totalHeight, guiHeight - 100);
     }
 
@@ -430,44 +528,50 @@ public class GuiModMenu extends GuiScreen {
         int inputX = guiLeft + 60;
         int inputY = startY;
 
-        glScissor(guiLeft + 20, guiTop + 50, guiWidth - 40, guiHeight - 70);
+        glScissor(guiLeft + 20, guiTop + 50, guiWidth - 40, hasUnsavedChanges ? guiHeight - 90 : guiHeight - 70);
         GL11.glEnable(GL11.GL_SCISSOR_TEST);
-
         drawRoundedRect(inputX - 5, inputY - 5, 310, 30, 4, 0xFF333333);
         presetNameField.xPosition = inputX;
         presetNameField.yPosition = inputY + 6;
         presetNameField.drawTextBox();
-        if (presetNameField.getText().isEmpty() && !presetNameField.isFocused()) {
-            fontRendererObj.drawString("Digite o nome do preset...", inputX + 4, inputY + 6, 0xFF777777);
-        }
+        if (presetNameField.getText().isEmpty() && !presetNameField.isFocused())
+            fontRendererObj.drawString("Nome do novo preset...", inputX + 4, inputY + 6, 0xFF777777);
 
         int btnSaveX = inputX + 315;
         int btnSaveW = 80;
         boolean hoverSave = mouseX >= btnSaveX && mouseX <= btnSaveX + btnSaveW && mouseY >= inputY && mouseY <= inputY + 24;
         drawRoundedRect(btnSaveX, inputY, btnSaveW, 24, 6, hoverSave ? 0xFF27AE60 : 0xFF2ECC71);
-        drawCenteredString(fontRendererObj, "SALVAR", btnSaveX + 40, inputY + 8, -1);
-
+        drawCenteredString(fontRendererObj, "CRIAR", btnSaveX + 40, inputY + 8, -1);
         int listY = inputY + 40;
-        List<String> presets = PresetManager.getPresetList();
 
-        if (presets.isEmpty()) {
-            drawCenteredString(fontRendererObj, "Nenhum preset salvo.", guiLeft + guiWidth / 2, listY + 30, 0xFF888888);
+        if (PresetManager.currentActivePreset != null && hasUnsavedChanges) {
+            boolean hoverUpd = mouseX >= inputX && mouseX <= inputX + settingWidth && mouseY >= listY && mouseY <= listY + 24;
+            drawRoundedRect(inputX, listY, settingWidth, 24, 6, hoverUpd ? 0xFFD35400 : 0xFFE67E22);
+            drawCenteredString(fontRendererObj, "ATUALIZAR PRESET: " + PresetManager.currentActivePreset, inputX + settingWidth / 2, listY + 8, -1);
+            listY += 35;
         }
 
-        for (String p : presets) {
-            drawRoundedRect(inputX, listY, settingWidth, 25, 6, 0xFF333333);
-            fontRendererObj.drawString(p, inputX + 10, listY + 8, 0xFFDDDDDD);
+        List<String> presets = PresetManager.getPresetList();
+        if (presets.isEmpty())
+            drawCenteredString(fontRendererObj, "Nenhum preset salvo.", guiLeft + guiWidth / 2, listY + 30, 0xFF888888);
 
+        for (String p : presets) {
+            boolean active = p.equals(PresetManager.currentActivePreset);
+            drawRoundedRect(inputX, listY, settingWidth, 25, 6, active ? 0xFF444444 : 0xFF333333);
+            fontRendererObj.drawString(p + (active ? " (Ativo)" : ""), inputX + 10, listY + 8, active ? 0xFFFFAA00 : 0xFFDDDDDD);
             boolean hoverLoad = mouseX >= inputX + settingWidth - 80 && mouseX <= inputX + settingWidth && mouseY >= listY && mouseY <= listY + 25;
-            drawRoundedRect(inputX + settingWidth - 80, listY, 80, 25, 6, hoverLoad ? 0xFFE67E22 : 0xFFD35400);
+            drawRoundedRect(inputX + settingWidth - 80, listY, 80, 25, 6, hoverLoad ? 0xFF3498DB : 0xFF2980B9);
             drawCenteredString(fontRendererObj, "CARREGAR", inputX + settingWidth - 40, listY + 8, -1);
+            boolean hoverDel = mouseX >= inputX + settingWidth - 110 && mouseX <= inputX + settingWidth - 85 && mouseY >= listY && mouseY <= listY + 25;
+            drawRoundedRect(inputX + settingWidth - 110, listY, 25, 25, 6, hoverDel ? 0xFFC0392B : 0xFFE74C3C);
+            drawCenteredString(fontRendererObj, "X", inputX + settingWidth - 97, listY + 8, -1);
 
             listY += 30;
         }
 
         GL11.glDisable(GL11.GL_SCISSOR_TEST);
 
-        int contentH = 40 + (presets.size() * 30);
+        int contentH = 40 + (PresetManager.currentActivePreset != null && hasUnsavedChanges ? 35 : 0) + (presets.size() * 30);
         maxScroll = Math.max(0, contentH - (guiHeight - 100));
         drawScrollbar(contentH, (guiHeight - 100));
     }
@@ -812,26 +916,11 @@ public class GuiModMenu extends GuiScreen {
             }
 
             public void initSettings() {
-                settings.add(new BooleanSetting("Desativar mensagem de pet maxímo",
-                        () -> WorthClient.petOverlay,
-                        () -> WorthClient.petOverlay = !WorthClient.petOverlay
-                ));
-                settings.add(new BooleanSetting("Desativar mensagem de inventário cheio",
-                        () -> WorthClient.blockInventoryMessages,
-                        () -> WorthClient.blockInventoryMessages = !WorthClient.blockInventoryMessages
-                ));
-                settings.add(new BooleanSetting("Desativar aviso ao quebrar bloco (fora da ilha)",
-                        () -> WorthClient.MsgBlockDestroyBlock,
-                        () -> WorthClient.MsgBlockDestroyBlock = !WorthClient.MsgBlockDestroyBlock
-                ));
-                settings.add(new BooleanSetting("Botão para copiar mensagem",
-                        () -> WorthClient.enableCopy,
-                        () -> WorthClient.enableCopy = !WorthClient.enableCopy
-                ));
-                settings.add(new BooleanSetting("Mostrar data de envio",
-                        () -> WorthClient.showTime,
-                        () -> WorthClient.showTime = !WorthClient.showTime
-                ));
+                settings.add(new BooleanSetting("Desativar mensagem de pet maxímo", () -> WorthClient.petOverlay, () -> WorthClient.petOverlay = !WorthClient.petOverlay));
+                settings.add(new BooleanSetting("Desativar mensagem de inventário cheio", () -> WorthClient.blockInventoryMessages, () -> WorthClient.blockInventoryMessages = !WorthClient.blockInventoryMessages));
+                settings.add(new BooleanSetting("Desativar aviso ao quebrar bloco (fora da ilha)", () -> WorthClient.MsgBlockDestroyBlock, () -> WorthClient.MsgBlockDestroyBlock = !WorthClient.MsgBlockDestroyBlock));
+                settings.add(new BooleanSetting("Botão para copiar mensagem", () -> WorthClient.enableCopy, () -> WorthClient.enableCopy = !WorthClient.enableCopy));
+                settings.add(new BooleanSetting("Mostrar data de envio", () -> WorthClient.showTime, () -> WorthClient.showTime = !WorthClient.showTime));
             }
         });
         allModules.add(new ModCard("Animations", "Animações 1.7", "anim", Category.MISC) {
@@ -847,59 +936,26 @@ public class GuiModMenu extends GuiScreen {
 
             @Override
             public void initSettings() {
-                settings.add(new BooleanSetting("Partículas dos Portais Realçadas",
-                        () -> WorthClient.animationPortal,
-                        () -> WorthClient.animationPortal = !WorthClient.animationPortal
-                ));
-                settings.add(new BooleanSetting("BlockHit 1.7 (Osu)",
-                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.blockHit17,
-                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.blockHit17 = !com.vitorxp.WorthClient.config.AnimationsConfig.blockHit17
-                ));
+                settings.add(new BooleanSetting("Partículas dos Portais Realçadas", () -> WorthClient.animationPortal, () -> WorthClient.animationPortal = !WorthClient.animationPortal));
+                settings.add(new BooleanSetting("BlockHit 1.7 (Osu)", () -> com.vitorxp.WorthClient.config.AnimationsConfig.blockHit17, () -> com.vitorxp.WorthClient.config.AnimationsConfig.blockHit17 = !com.vitorxp.WorthClient.config.AnimationsConfig.blockHit17));
 
-                settings.add(new BooleanSetting("Vara de Pescar 1.7",
-                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.oldRod,
-                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.oldRod = !com.vitorxp.WorthClient.config.AnimationsConfig.oldRod
-                ));
+                settings.add(new BooleanSetting("Vara de Pescar 1.7", () -> com.vitorxp.WorthClient.config.AnimationsConfig.oldRod, () -> com.vitorxp.WorthClient.config.AnimationsConfig.oldRod = !com.vitorxp.WorthClient.config.AnimationsConfig.oldRod));
 
-                settings.add(new BooleanSetting("Arco 1.7",
-                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.oldBow,
-                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.oldBow = !com.vitorxp.WorthClient.config.AnimationsConfig.oldBow
-                ));
+                settings.add(new BooleanSetting("Arco 1.7", () -> com.vitorxp.WorthClient.config.AnimationsConfig.oldBow, () -> com.vitorxp.WorthClient.config.AnimationsConfig.oldBow = !com.vitorxp.WorthClient.config.AnimationsConfig.oldBow));
 
-                settings.add(new BooleanSetting("Agachar 1.7 (Suave)",
-                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.oldSneak,
-                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.oldSneak = !com.vitorxp.WorthClient.config.AnimationsConfig.oldSneak
-                ));
+                settings.add(new BooleanSetting("Agachar 1.7 (Suave)", () -> com.vitorxp.WorthClient.config.AnimationsConfig.oldSneak, () -> com.vitorxp.WorthClient.config.AnimationsConfig.oldSneak = !com.vitorxp.WorthClient.config.AnimationsConfig.oldSneak));
 
-                settings.add(new BooleanSetting("Dano na Câmera",
-                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.damageShake,
-                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.damageShake = !com.vitorxp.WorthClient.config.AnimationsConfig.damageShake
-                ));
+                settings.add(new BooleanSetting("Dano na Câmera", () -> com.vitorxp.WorthClient.config.AnimationsConfig.damageShake, () -> com.vitorxp.WorthClient.config.AnimationsConfig.damageShake = !com.vitorxp.WorthClient.config.AnimationsConfig.damageShake));
 
-                settings.add(new BooleanSetting("Sempre Bater (Always Swing)",
-                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.alwaysSwing,
-                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.alwaysSwing = !com.vitorxp.WorthClient.config.AnimationsConfig.alwaysSwing
-                ));
+                settings.add(new BooleanSetting("Sempre Bater (Always Swing)", () -> com.vitorxp.WorthClient.config.AnimationsConfig.alwaysSwing, () -> com.vitorxp.WorthClient.config.AnimationsConfig.alwaysSwing = !com.vitorxp.WorthClient.config.AnimationsConfig.alwaysSwing));
 
-                settings.add(new SliderSetting("Posição X", -1.0f, 1.0f,
-                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.itemPosX,
-                        (val) -> com.vitorxp.WorthClient.config.AnimationsConfig.itemPosX = val
-                ));
+                settings.add(new SliderSetting("Posição X", -1.0f, 1.0f, () -> com.vitorxp.WorthClient.config.AnimationsConfig.itemPosX, (val) -> com.vitorxp.WorthClient.config.AnimationsConfig.itemPosX = val));
 
-                settings.add(new SliderSetting("Posição Y", -1.0f, 1.0f,
-                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.itemPosY,
-                        (val) -> com.vitorxp.WorthClient.config.AnimationsConfig.itemPosY = val
-                ));
+                settings.add(new SliderSetting("Posição Y", -1.0f, 1.0f, () -> com.vitorxp.WorthClient.config.AnimationsConfig.itemPosY, (val) -> com.vitorxp.WorthClient.config.AnimationsConfig.itemPosY = val));
 
-                settings.add(new SliderSetting("Posição Z", -1.0f, 1.0f,
-                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.itemPosZ,
-                        (val) -> com.vitorxp.WorthClient.config.AnimationsConfig.itemPosZ = val
-                ));
+                settings.add(new SliderSetting("Posição Z", -1.0f, 1.0f, () -> com.vitorxp.WorthClient.config.AnimationsConfig.itemPosZ, (val) -> com.vitorxp.WorthClient.config.AnimationsConfig.itemPosZ = val));
 
-                settings.add(new SliderSetting("Tamanho do Item", 0.5f, 2.0f,
-                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.itemScale,
-                        (val) -> com.vitorxp.WorthClient.config.AnimationsConfig.itemScale = val
-                ));
+                settings.add(new SliderSetting("Tamanho do Item", 0.5f, 2.0f, () -> com.vitorxp.WorthClient.config.AnimationsConfig.itemScale, (val) -> com.vitorxp.WorthClient.config.AnimationsConfig.itemScale = val));
 
                 settings.add(new ActionSetting("Resetar Posição", () -> {
                     com.vitorxp.WorthClient.config.AnimationsConfig.itemPosX = 0.0f;
@@ -1093,6 +1149,7 @@ public class GuiModMenu extends GuiScreen {
         boolean mouseClicked(int x, int y, int mx, int my, int mb) {
             if (mx >= x && mx <= x + settingWidth && my >= y && my <= y + 32) {
                 toggler.run();
+                markUnsaved();
                 return true;
             }
             return false;
@@ -1204,6 +1261,7 @@ public class GuiModMenu extends GuiScreen {
         boolean mouseClicked(int x, int y, int mx, int my, int mb) {
             if (mx >= x && mx <= x + settingWidth && my >= y && my <= y + 32) {
                 mc.displayGuiScreen(new GuiColorPicker(GuiModMenu.this, name, getter.get(), setter::accept));
+                markUnsaved();
                 return true;
             }
             return false;
@@ -1232,6 +1290,7 @@ public class GuiModMenu extends GuiScreen {
             if (mx >= x && mx <= x + settingWidth && my >= y && my <= y + 32) {
                 idx = (idx + 1) % modes.size();
                 currentValue = modes.get(idx);
+                markUnsaved();
                 return true;
             }
             return false;
