@@ -2,8 +2,10 @@ package com.vitorxp.WorthClient.gui;
 
 import com.vitorxp.WorthClient.WorthClient;
 import com.vitorxp.WorthClient.config.KeystrokesSettings;
+import com.vitorxp.WorthClient.hud.FPSHUD;
 import com.vitorxp.WorthClient.hud.HudElement;
 import com.vitorxp.WorthClient.hud.HudPositionManager;
+import com.vitorxp.WorthClient.hud.PingHUD;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.ResourceLocation;
@@ -292,8 +294,8 @@ public class GuiHudEditor extends GuiScreen {
 
     private boolean isElementVisible(HudElement element) {
         String id = element.id;
-        if (id.equals("FPSHUD")) return WorthClient.fpsOverlay;
-        if (id.equals("PingHUD")) return WorthClient.pingOverlay;
+        if (id.equals("FPSHUD")) return FPSHUD.enabled;
+        if (id.equals("PingHUD")) return PingHUD.enabled;
         if (id.equals("PetHud")) return WorthClient.petOverlay;
         if (id.equals("RadarHUD")) return WorthClient.RadarOverlay;
         if (id.startsWith("Keystrokes")) return KeystrokesSettings.enabled;
