@@ -606,378 +606,658 @@ public class GuiModMenu extends GuiScreen {
         allModules.clear();
 
         allModules.add(new ModCard("FPS", "Exibe o framerate", "fps", Category.HUD) {
-            @Override
-            public boolean isEnabled() {
-                return WorthClient.fpsOverlay;
-            }
+                           @Override
+                           public boolean isEnabled() {
+                               return WorthClient.fpsOverlay;
+                           }
 
-            @Override
-            public void toggle() {
-                WorthClient.fpsOverlay = !WorthClient.fpsOverlay;
-            }
-        });
+                           @Override
+                           public void toggle() {
+                               WorthClient.fpsOverlay = !WorthClient.fpsOverlay;
+                           }
+                       }
+        );
         allModules.add(new ModCard("Ping", "Latência do servidor", "ping", Category.HUD) {
-            @Override
-            public boolean isEnabled() {
-                return WorthClient.pingOverlay;
-            }
+                           @Override
+                           public boolean isEnabled() {
+                               return WorthClient.pingOverlay;
+                           }
 
-            @Override
-            public void toggle() {
-                WorthClient.pingOverlay = !WorthClient.pingOverlay;
-            }
-        });
+                           @Override
+                           public void toggle() {
+                               WorthClient.pingOverlay = !WorthClient.pingOverlay;
+                           }
+                       }
+        );
         allModules.add(new ModCard("Keystrokes", "Teclas na tela", "keys", Category.HUD) {
-            @Override
-            public boolean isEnabled() {
-                return KeystrokesSettings.enabled;
-            }
+                           @Override
+                           public boolean isEnabled() {
+                               return KeystrokesSettings.enabled;
+                           }
 
-            @Override
-            public void toggle() {
-                KeystrokesSettings.enabled = !KeystrokesSettings.enabled;
-            }
+                           @Override
+                           public void toggle() {
+                               KeystrokesSettings.enabled = !KeystrokesSettings.enabled;
+                           }
 
-            @Override
-            public void initSettings() {
-                settings.add(new BooleanSetting("Modo Chroma", () -> KeystrokesSettings.chromaMode, () -> KeystrokesSettings.chromaMode = !KeystrokesSettings.chromaMode));
-                settings.add(new SliderSetting("Escala", 0.5f, 2.0f, () -> KeystrokesSettings.scale, v -> KeystrokesSettings.scale = v));
-                settings.add(new SliderSetting("Tamanho da Caixa", 15f, 35f, () -> KeystrokesSettings.boxSize, v -> KeystrokesSettings.boxSize = v));
-                CategorySetting toggles = new CategorySetting("Opções Gerais");
-                toggles.add(new BooleanSetting("Mostrar Cliques", () -> KeystrokesSettings.showClicks, () -> KeystrokesSettings.showClicks = !KeystrokesSettings.showClicks));
-                toggles.add(new BooleanSetting("Substituir Nomes por Setas", () -> KeystrokesSettings.useArrows, () -> KeystrokesSettings.useArrows = !KeystrokesSettings.useArrows));
-                toggles.add(new BooleanSetting("Mostrar Teclas Movimento", () -> KeystrokesSettings.showMovement, () -> KeystrokesSettings.showMovement = !KeystrokesSettings.showMovement));
-                toggles.add(new BooleanSetting("Mostrar Barra de Espaço", () -> KeystrokesSettings.showSpace, () -> KeystrokesSettings.showSpace = !KeystrokesSettings.showSpace));
-                toggles.add(new BooleanSetting("Sombra do Texto", () -> KeystrokesSettings.textShadow, () -> KeystrokesSettings.textShadow = !KeystrokesSettings.textShadow));
-                toggles.add(new BooleanSetting("Borda", () -> KeystrokesSettings.borderEnabled, () -> KeystrokesSettings.borderEnabled = !KeystrokesSettings.borderEnabled));
-                settings.add(toggles);
-                settings.add(new SliderSetting("Espessura da Borda", 0.5f, 3.0f, () -> KeystrokesSettings.borderThickness, v -> KeystrokesSettings.borderThickness = v));
-                CategorySetting colors = new CategorySetting("Cores");
-                colors.add(new ColorSetting("Cor da Borda", () -> KeystrokesSettings.borderColor, c -> KeystrokesSettings.borderColor = c));
-                colors.add(new ColorSetting("Cor do Texto", () -> KeystrokesSettings.textColor, c -> KeystrokesSettings.textColor = c));
-                colors.add(new ColorSetting("Cor Texto (Pressionado)", () -> KeystrokesSettings.textPressedColor, c -> KeystrokesSettings.textPressedColor = c));
-                colors.add(new ColorSetting("Cor do Fundo", () -> KeystrokesSettings.backgroundDefault, c -> KeystrokesSettings.backgroundDefault = c));
-                colors.add(new ColorSetting("Cor Fundo (Pressionado)", () -> KeystrokesSettings.backgroundPressed, c -> KeystrokesSettings.backgroundPressed = c));
-                settings.add(colors);
-                settings.add(new ActionSetting("Salvar Keystrokes", ConfigManager::save));
-            }
-        });
-        allModules.add(new ModCard("Scoreboard", "Customiza a tabela", "sb", Category.HUD) {
-            @Override
-            public boolean isEnabled() {
-                return ScoreboardHUD.toggled;
-            }
-
-            @Override
-            public void toggle() {
-                ScoreboardHUD.toggled = !ScoreboardHUD.toggled;
-            }
-
-            @Override
-            public void initSettings() {
-                settings.add(new BooleanSetting("Mostrar Números", () -> ScoreboardHUD.showNumbers, () -> ScoreboardHUD.showNumbers = !ScoreboardHUD.showNumbers));
-                settings.add(new BooleanSetting("Fundo", () -> ScoreboardHUD.background, () -> ScoreboardHUD.background = !ScoreboardHUD.background));
-                settings.add(new BooleanSetting("Borda", () -> ScoreboardHUD.border, () -> ScoreboardHUD.border = !ScoreboardHUD.border));
-                settings.add(new ModeSetting("Tamanho", "Normal", Arrays.asList("Pequeno", "Normal", "Grande", "Gigante")) {
+                           @Override
+                           public void initSettings() {
+                               settings.add(
+                                       new BooleanSetting("Modo Chroma",
+                                               () -> KeystrokesSettings.chromaMode,
+                                               () -> KeystrokesSettings.chromaMode = !KeystrokesSettings.chromaMode
+                                       )
+                               );
+                               settings.add(
+                                       new SliderSetting("Escala", 0.5f, 2.0f,
+                                               () -> KeystrokesSettings.scale,
+                                               v -> KeystrokesSettings.scale = v
+                                       )
+                               );
+                               settings.add(
+                                       new SliderSetting("Tamanho da Caixa", 15f, 35f,
+                                               () -> KeystrokesSettings.boxSize,
+                                               v -> KeystrokesSettings.boxSize = v
+                                       )
+                               );
+                               CategorySetting toggles = new CategorySetting("Opções Gerais");
+                               toggles.add(
+                                       new BooleanSetting("Mostrar Cliques",
+                                               () -> KeystrokesSettings.showClicks,
+                                               () -> KeystrokesSettings.showClicks = !KeystrokesSettings.showClicks
+                                       )
+                               );
+                               toggles.add(
+                                       new BooleanSetting("Substituir Nomes por Setas",
+                                               () -> KeystrokesSettings.useArrows,
+                                               () -> KeystrokesSettings.useArrows = !KeystrokesSettings.useArrows
+                                       )
+                               );
+                               toggles.add(
+                                       new BooleanSetting("Mostrar Teclas Movimento",
+                                               () -> KeystrokesSettings.showMovement,
+                                               () -> KeystrokesSettings.showMovement = !KeystrokesSettings.showMovement
+                                       )
+                               );
+                               toggles.add(
+                                       new BooleanSetting("Mostrar Barra de Espaço",
+                                               () -> KeystrokesSettings.showSpace,
+                                               () -> KeystrokesSettings.showSpace = !KeystrokesSettings.showSpace
+                                       )
+                               );
+                               toggles.add(
+                                       new BooleanSetting("Sombra do Texto",
+                                               () -> KeystrokesSettings.textShadow,
+                                               () -> KeystrokesSettings.textShadow = !KeystrokesSettings.textShadow
+                                       )
+                               );
+                               toggles.add(
+                                       new BooleanSetting("Borda",
+                                               () -> KeystrokesSettings.borderEnabled,
+                                               () -> KeystrokesSettings.borderEnabled = !KeystrokesSettings.borderEnabled
+                                       )
+                               );
+                               settings.add(toggles);
+                               settings.add(
+                                       new SliderSetting("Espessura da Borda", 0.5f, 3.0f,
+                                               () -> KeystrokesSettings.borderThickness,
+                                               v -> KeystrokesSettings.borderThickness = v
+                                       )
+                               );
+                               CategorySetting colors = new CategorySetting("Cores");
+                               colors.add(
+                                       new ColorSetting("Cor da Borda",
+                                               () -> KeystrokesSettings.borderColor,
+                                               c -> KeystrokesSettings.borderColor = c
+                                       )
+                               );
+                               colors.add(
+                                       new ColorSetting("Cor do Texto",
+                                               () -> KeystrokesSettings.textColor,
+                                               c -> KeystrokesSettings.textColor = c
+                                       )
+                               );
+                               colors.add(
+                                       new ColorSetting("Cor Texto (Pressionado)",
+                                               () -> KeystrokesSettings.textPressedColor,
+                                               c -> KeystrokesSettings.textPressedColor = c
+                                       )
+                               );
+                               colors.add(
+                                       new ColorSetting("Cor do Fundo",
+                                               () -> KeystrokesSettings.backgroundDefault,
+                                               c -> KeystrokesSettings.backgroundDefault = c
+                                       )
+                               );
+                               colors.add(
+                                       new ColorSetting("Cor Fundo (Pressionado)",
+                                               () -> KeystrokesSettings.backgroundPressed,
+                                               c -> KeystrokesSettings.backgroundPressed = c
+                                       )
+                               );
+                               settings.add(colors);
+                               settings.add(
+                                       new ActionSetting("Salvar Keystrokes", ConfigManager::save)
+                               );
+                           }
+                       }
+        );
+        allModules.add(
+                new ModCard("Scoreboard", "Customiza a tabela", "sb", Category.HUD) {
                     @Override
-                    boolean mouseClicked(int x, int y, int mouseX, int mouseY, int mouseButton) {
-                        if (super.mouseClicked(x, y, mouseX, mouseY, mouseButton)) {
-                            switch (this.currentValue) {
-                                case "Pequeno":
-                                    ScoreboardHUD.scale = 0.75f;
-                                    break;
-                                case "Normal":
+                    public boolean isEnabled() {
+                        return ScoreboardHUD.toggled;
+                    }
+
+                    @Override
+                    public void toggle() {
+                        ScoreboardHUD.toggled = !ScoreboardHUD.toggled;
+                    }
+
+                    @Override
+                    public void initSettings() {
+                        settings.add(
+                                new BooleanSetting("Mostrar Números",
+                                        () -> ScoreboardHUD.showNumbers,
+                                        () -> ScoreboardHUD.showNumbers = !ScoreboardHUD.showNumbers
+                                )
+                        );
+                        settings.add(
+                                new BooleanSetting("Fundo",
+                                        () -> ScoreboardHUD.background,
+                                        () -> ScoreboardHUD.background = !ScoreboardHUD.background
+                                )
+                        );
+                        settings.add(
+                                new BooleanSetting("Borda",
+                                        () -> ScoreboardHUD.border,
+                                        () -> ScoreboardHUD.border = !ScoreboardHUD.border
+                                )
+                        );
+                        settings.add(
+                                new ModeSetting("Tamanho", "Normal", Arrays.asList("Pequeno", "Normal", "Grande", "Gigante")) {
+                                    @Override
+                                    boolean mouseClicked(int x, int y, int mouseX, int mouseY, int mouseButton) {
+                                        if (super.mouseClicked(x, y, mouseX, mouseY, mouseButton)) {
+                                            switch (this.currentValue) {
+                                                case "Pequeno":
+                                                    ScoreboardHUD.scale = 0.75f;
+                                                    break;
+                                                case "Normal":
+                                                    ScoreboardHUD.scale = 1.0f;
+                                                    break;
+                                                case "Grande":
+                                                    ScoreboardHUD.scale = 1.25f;
+                                                    break;
+                                                case "Gigante":
+                                                    ScoreboardHUD.scale = 1.5f;
+                                                    break;
+                                            }
+                                            return true;
+                                        }
+                                        return false;
+                                    }
+                                }
+                        );
+                        settings.add(
+                                new ColorSetting("Cor do Fundo", () -> new java.awt.Color(ScoreboardHUD.backgroundColor, true), (c) -> ScoreboardHUD.backgroundColor = c.getRGB()));
+                        settings.add(
+                                new ActionSetting("Resetar", () -> {
+                                    ScoreboardHUD.backgroundColor = 0x50000000;
+                                    ScoreboardHUD.borderColor = 0xFF000000;
+                                    ScoreboardHUD.background = true;
+                                    ScoreboardHUD.showNumbers = true;
+                                    ScoreboardHUD.border = false;
                                     ScoreboardHUD.scale = 1.0f;
-                                    break;
-                                case "Grande":
-                                    ScoreboardHUD.scale = 1.25f;
-                                    break;
-                                case "Gigante":
-                                    ScoreboardHUD.scale = 1.5f;
-                                    break;
-                            }
-                            return true;
-                        }
-                        return false;
+                                })
+                        );
                     }
                 });
-                settings.add(new ColorSetting("Cor do Fundo", () -> new java.awt.Color(ScoreboardHUD.backgroundColor, true), (c) -> ScoreboardHUD.backgroundColor = c.getRGB()));
-                settings.add(new ActionSetting("Resetar", () -> {
-                    ScoreboardHUD.backgroundColor = 0x50000000;
-                    ScoreboardHUD.borderColor = 0xFF000000;
-                    ScoreboardHUD.background = true;
-                    ScoreboardHUD.showNumbers = true;
-                    ScoreboardHUD.border = false;
-                    ScoreboardHUD.scale = 1.0f;
-                }));
-            }
-        });
-        allModules.add(new ModCard("Waila", "Info do Bloco", "waila", Category.HUD) {
-            @Override
-            public boolean isEnabled() {
-                return WorthClient.WailaMod;
-            }
-
-            @Override
-            public void toggle() {
-                WorthClient.WailaMod = !WorthClient.WailaMod;
-            }
-        });
-        allModules.add(new ModCard("ArmorStatus", "Estado da Armadura", "armor", Category.HUD) {
-            @Override
-            public boolean isEnabled() {
-                return WorthClient.ArmorsOverlays;
-            }
-
-            @Override
-            public void toggle() {
-                WorthClient.ArmorsOverlays = !WorthClient.ArmorsOverlays;
-            }
-
-            @Override
-            public void initSettings() {
-                List<String> styles = Arrays.asList("Padrão", "Valor", "Porcentagem");
-                CategorySetting handCat = new CategorySetting("Item na Mão");
-                handCat.add(new BooleanSetting("Habilitado", () -> WorthClient.mainHandHUDOverlay, () -> WorthClient.mainHandHUDOverlay = !WorthClient.mainHandHUDOverlay));
-                handCat.add(new ModeSetting("Estilo", WorthClient.mainHandStyle, styles) {
+        allModules.add(
+                new ModCard("Waila", "Info do Bloco", "waila", Category.HUD) {
                     @Override
-                    boolean mouseClicked(int x, int y, int mx, int my, int mb) {
-                        if (super.mouseClicked(x, y, mx, my, mb)) {
-                            WorthClient.mainHandStyle = this.currentValue;
-                            return true;
-                        }
-                        return false;
+                    public boolean isEnabled() {
+                        return WorthClient.WailaMod;
                     }
-                });
-                settings.add(handCat);
 
-                CategorySetting helmCat = new CategorySetting("Capacete");
-                helmCat.add(new BooleanSetting("Habilitado", () -> WorthClient.helmetHUDOverlay, () -> WorthClient.helmetHUDOverlay = !WorthClient.helmetHUDOverlay));
-                helmCat.add(new ModeSetting("Estilo", WorthClient.helmetStyle, styles) {
                     @Override
-                    boolean mouseClicked(int x, int y, int mx, int my, int mb) {
-                        if (super.mouseClicked(x, y, mx, my, mb)) {
-                            WorthClient.helmetStyle = this.currentValue;
-                            return true;
-                        }
-                        return false;
+                    public void toggle() {
+                        WorthClient.WailaMod = !WorthClient.WailaMod;
                     }
-                });
-                settings.add(helmCat);
-
-                CategorySetting chestCat = new CategorySetting("Peitoral");
-                chestCat.add(new BooleanSetting("Habilitado", () -> WorthClient.chestplateHUDOverlay, () -> WorthClient.chestplateHUDOverlay = !WorthClient.chestplateHUDOverlay));
-                chestCat.add(new ModeSetting("Estilo", WorthClient.chestplateStyle, styles) {
+                }
+        );
+        allModules.add(
+                new ModCard("ArmorStatus", "Estado da Armadura", "armor", Category.HUD) {
                     @Override
-                    boolean mouseClicked(int x, int y, int mx, int my, int mb) {
-                        if (super.mouseClicked(x, y, mx, my, mb)) {
-                            WorthClient.chestplateStyle = this.currentValue;
-                            return true;
-                        }
-                        return false;
+                    public boolean isEnabled() {
+                        return WorthClient.ArmorsOverlays;
                     }
-                });
-                settings.add(chestCat);
 
-                CategorySetting legCat = new CategorySetting("Calças");
-                legCat.add(new BooleanSetting("Habilitado", () -> WorthClient.leggingsHUDOverlay, () -> WorthClient.leggingsHUDOverlay = !WorthClient.leggingsHUDOverlay));
-                legCat.add(new ModeSetting("Estilo", WorthClient.leggingsStyle, styles) {
                     @Override
-                    boolean mouseClicked(int x, int y, int mx, int my, int mb) {
-                        if (super.mouseClicked(x, y, mx, my, mb)) {
-                            WorthClient.leggingsStyle = this.currentValue;
-                            return true;
-                        }
-                        return false;
+                    public void toggle() {
+                        WorthClient.ArmorsOverlays = !WorthClient.ArmorsOverlays;
                     }
-                });
-                settings.add(legCat);
 
-                CategorySetting bootCat = new CategorySetting("Botas");
-                bootCat.add(new BooleanSetting("Habilitado", () -> WorthClient.bootsHUDOverlay, () -> WorthClient.bootsHUDOverlay = !WorthClient.bootsHUDOverlay));
-                bootCat.add(new ModeSetting("Estilo", WorthClient.bootsStyle, styles) {
                     @Override
-                    boolean mouseClicked(int x, int y, int mx, int my, int mb) {
-                        if (super.mouseClicked(x, y, mx, my, mb)) {
-                            WorthClient.bootsStyle = this.currentValue;
-                            return true;
-                        }
-                        return false;
+                    public void initSettings() {
+                        List<String> styles = Arrays.asList("Padrão", "Valor", "Porcentagem");
+                        CategorySetting handCat = new CategorySetting("Item na Mão");
+                        handCat.add(
+                                new BooleanSetting("Habilitado",
+                                        () -> WorthClient.mainHandHUDOverlay,
+                                        () -> WorthClient.mainHandHUDOverlay = !WorthClient.mainHandHUDOverlay
+                                )
+                        );
+                        handCat.add(
+                                new ModeSetting("Estilo", WorthClient.mainHandStyle, styles) {
+                                    @Override
+                                    boolean mouseClicked(int x, int y, int mx, int my, int mb) {
+                                        if (super.mouseClicked(x, y, mx, my, mb)) {
+                                            WorthClient.mainHandStyle = this.currentValue;
+                                            return true;
+                                        }
+                                        return false;
+                                    }
+                                }
+                        );
+                        settings.add(handCat);
+                        CategorySetting helmCat = new CategorySetting("Capacete");
+                        helmCat.add(
+                                new BooleanSetting("Habilitado",
+                                        () -> WorthClient.helmetHUDOverlay,
+                                        () -> WorthClient.helmetHUDOverlay = !WorthClient.helmetHUDOverlay
+                                )
+                        );
+                        helmCat.add(
+                                new ModeSetting("Estilo", WorthClient.helmetStyle, styles) {
+                                    @Override
+                                    boolean mouseClicked(int x, int y, int mx, int my, int mb) {
+                                        if (super.mouseClicked(x, y, mx, my, mb)) {
+                                            WorthClient.helmetStyle = this.currentValue;
+                                            return true;
+                                        }
+                                        return false;
+                                    }
+                                }
+                        );
+                        settings.add(helmCat);
+                        CategorySetting chestCat = new CategorySetting("Peitoral");
+                        chestCat.add(
+                                new BooleanSetting("Habilitado",
+                                        () -> WorthClient.chestplateHUDOverlay,
+                                        () -> WorthClient.chestplateHUDOverlay = !WorthClient.chestplateHUDOverlay
+                                )
+                        );
+                        chestCat.add(
+                                new ModeSetting("Estilo", WorthClient.chestplateStyle, styles) {
+                                    @Override
+                                    boolean mouseClicked(int x, int y, int mx, int my, int mb) {
+                                        if (super.mouseClicked(x, y, mx, my, mb)) {
+                                            WorthClient.chestplateStyle = this.currentValue;
+                                            return true;
+                                        }
+                                        return false;
+                                    }
+                                }
+                        );
+                        settings.add(chestCat);
+                        CategorySetting legCat = new CategorySetting("Calças");
+                        legCat.add(
+                                new BooleanSetting("Habilitado",
+                                        () -> WorthClient.leggingsHUDOverlay,
+                                        () -> WorthClient.leggingsHUDOverlay = !WorthClient.leggingsHUDOverlay
+                                )
+                        );
+                        legCat.add(
+                                new ModeSetting("Estilo", WorthClient.leggingsStyle, styles) {
+                                    @Override
+                                    boolean mouseClicked(int x, int y, int mx, int my, int mb) {
+                                        if (super.mouseClicked(x, y, mx, my, mb)) {
+                                            WorthClient.leggingsStyle = this.currentValue;
+                                            return true;
+                                        }
+                                        return false;
+                                    }
+                                }
+                        );
+                        settings.add(legCat);
+                        CategorySetting bootCat = new CategorySetting("Botas");
+                        bootCat.add(
+                                new BooleanSetting("Habilitado",
+                                        () -> WorthClient.bootsHUDOverlay,
+                                        () -> WorthClient.bootsHUDOverlay = !WorthClient.bootsHUDOverlay
+                                )
+                        );
+                        bootCat.add(
+                                new ModeSetting("Estilo", WorthClient.bootsStyle, styles) {
+                                    @Override
+                                    boolean mouseClicked(int x, int y, int mx, int my, int mb) {
+                                        if (super.mouseClicked(x, y, mx, my, mb)) {
+                                            WorthClient.bootsStyle = this.currentValue;
+                                            return true;
+                                        }
+                                        return false;
+                                    }
+                                }
+                        );
+                        settings.add(bootCat);
                     }
                 });
-                settings.add(bootCat);
-            }
-        });
 
-        allModules.add(new ModCard("AutoLogin", "Login Automático", "key", Category.PLAYER) {
-            @Override
-            public boolean isEnabled() {
-                return WorthClient.AutoLoginEnabled;
-            }
+        allModules.add(
+                new ModCard("AutoLogin", "Login Automático", "key", Category.PLAYER) {
+                    @Override
+                    public boolean isEnabled() {
+                        return WorthClient.AutoLoginEnabled;
+                    }
 
-            @Override
-            public void toggle() {
-                WorthClient.AutoLoginEnabled = !WorthClient.AutoLoginEnabled;
-            }
+                    @Override
+                    public void toggle() {
+                        WorthClient.AutoLoginEnabled = !WorthClient.AutoLoginEnabled;
+                    }
 
-            @Override
-            public void initSettings() {
-                settings.add(new ActionSetting("Configurar Servidores", () -> Minecraft.getMinecraft().displayGuiScreen(new GuiAutoLoginServers(Minecraft.getMinecraft().currentScreen))));
-            }
-        });
-        allModules.add(new ModCard("AutoText", "Macros de Texto", "chat", Category.PLAYER) {
-            @Override
-            public boolean isMenuOnly() {
-                return true;
-            }
+                    @Override
+                    public void initSettings() {
+                        settings.add(
+                                new ActionSetting("Configurar Servidores",
+                                        () -> Minecraft.getMinecraft().displayGuiScreen(new GuiAutoLoginServers(Minecraft.getMinecraft().currentScreen))
+                                )
+                        );
+                    }
+                }
+        );
+        allModules.add(
+                new ModCard("AutoText", "Macros de Texto", "chat", Category.PLAYER) {
+                    @Override
+                    public boolean isMenuOnly() {
+                        return true;
+                    }
 
-            @Override
-            public void initSettings() {
-                settings.add(new ActionSetting("Abrir Editor", () -> Minecraft.getMinecraft().displayGuiScreen(new GuiAutoText(Minecraft.getMinecraft().currentScreen))));
-            }
-        });
-        allModules.add(new ModCard("Skin 3D", "Relevo na Skin", "skin", Category.PLAYER) {
-            @Override
-            public boolean isEnabled() {
-                return WorthClient.skin3D;
-            }
+                    @Override
+                    public void initSettings() {
+                        settings.add(new ActionSetting("Abrir Editor", () -> Minecraft.getMinecraft().displayGuiScreen(new GuiAutoText(Minecraft.getMinecraft().currentScreen))));
+                    }
+                }
+        );
+        allModules.add(
+                new ModCard("Skin 3D", "Relevo na Skin", "skin", Category.PLAYER) {
+                    @Override
+                    public boolean isEnabled() {
+                        return WorthClient.skin3D;
+                    }
 
-            @Override
-            public void toggle() {
-                WorthClient.skin3D = !WorthClient.skin3D;
-            }
+                    @Override
+                    public void toggle() {
+                        WorthClient.skin3D = !WorthClient.skin3D;
+                    }
 
-            @Override
-            public void initSettings() {
-                settings.add(new SliderSetting("Espessura", 0.1f, 5.0f, () -> WorthClient.pixelsThickness, (val) -> WorthClient.pixelsThickness = val));
-            }
-        });
+                    @Override
+                    public void initSettings() {
+                        settings.add(
+                                new SliderSetting("Espessura", 0.1f, 5.0f,
+                                        () -> WorthClient.pixelsThickness,
+                                        (val) -> WorthClient.pixelsThickness = val
+                                )
+                        );
+                    }
+                }
+        );
 
-        allModules.add(new ModCard("TimeChanger", "Controlar Horário", "time", Category.WORLD) {
-            @Override
-            public boolean isEnabled() {
-                return WorthClient.timeChangerEnable;
-            }
+        allModules.add(
+                new ModCard("TimeChanger", "Controlar Horário", "time", Category.WORLD) {
+                    @Override
+                    public boolean isEnabled() {
+                        return WorthClient.timeChangerEnable;
+                    }
 
-            @Override
-            public void toggle() {
-                WorthClient.timeChangerEnable = !WorthClient.timeChangerEnable;
-            }
+                    @Override
+                    public void toggle() {
+                        WorthClient.timeChangerEnable = !WorthClient.timeChangerEnable;
+                    }
 
-            @Override
-            public void initSettings() {
-                settings.add(new SliderSetting("Horário", 0.0f, 24000.0f, () -> WorthClient.clientTime, (val) -> WorthClient.clientTime = val));
-            }
-        });
-        allModules.add(new ModCard("Perspective", "Visão 360", "360", Category.WORLD) {
-            @Override
-            public boolean isMenuOnly() {
-                return true;
-            }
+                    @Override
+                    public void initSettings() {
+                        settings.add(
+                                new SliderSetting("Horário", 0.0f, 24000.0f,
+                                        () -> WorthClient.clientTime,
+                                        (val) -> WorthClient.clientTime = val
+                                )
+                        );
+                    }
+                });
+        allModules.add(
+                new ModCard("Perspective", "Visão 360", "360", Category.WORLD) {
+                    @Override
+                    public boolean isMenuOnly() {
+                        return true;
+                    }
 
-            @Override
-            public void initSettings() {
-                settings.add(new KeybindSetting("Tecla", () -> WorthClient.KeyPerspective, (val) -> {
-                    WorthClient.KeyPerspective = val;
-                    com.vitorxp.WorthClient.keybinds.Keybinds.updatePerspectiveKey(val);
-                }));
-                settings.add(new KeybindSetting("Tecla do Perspective", () -> WorthClient.KeyPerspective, (val) -> {
-                    WorthClient.KeyPerspective = val;
-                    com.vitorxp.WorthClient.keybinds.Keybinds.updatePerspectiveKey(val);
-                }));
-                settings.add(new BooleanSetting("Modo Toggle (Ativar/Desativar)", () -> com.vitorxp.WorthClient.WorthClient.PerspectiveModToggle, () -> {
-                    WorthClient.PerspectiveModToggle = !WorthClient.PerspectiveModToggle;
-                }));
-                settings.add(new BooleanSetting("Iniciar de Frente", () -> WorthClient.PerspectiveStartFront, () -> {
-                    WorthClient.PerspectiveStartFront = !WorthClient.PerspectiveStartFront;
-                }));
-            }
-        });
-        allModules.add(new ModCard("Zoom", "Zoom Infinito", "Z", Category.WORLD) {
-            @Override
-            public boolean isMenuOnly() {
-                return true;
-            }
+                    @Override
+                    public void initSettings() {
+                        settings.add(
+                                new KeybindSetting("Tecla",
+                                        () -> WorthClient.KeyPerspective, (val) -> {
+                                    WorthClient.KeyPerspective = val;
+                                    com.vitorxp.WorthClient.keybinds.Keybinds.updatePerspectiveKey(val);
+                                })
+                        );
+                        settings.add(
+                                new KeybindSetting("Tecla do Perspective",
+                                        () -> WorthClient.KeyPerspective, (val) -> {
+                                    WorthClient.KeyPerspective = val;
+                                    com.vitorxp.WorthClient.keybinds.Keybinds.updatePerspectiveKey(val);
+                                })
+                        );
+                        settings.add(
+                                new BooleanSetting("Modo Toggle (Ativar/Desativar)",
+                                        () -> com.vitorxp.WorthClient.WorthClient.PerspectiveModToggle, () -> {
+                                    WorthClient.PerspectiveModToggle = !WorthClient.PerspectiveModToggle;
+                                })
+                        );
+                        settings.add(
+                                new BooleanSetting("Iniciar de Frente",
+                                        () -> WorthClient.PerspectiveStartFront, () -> {
+                                    WorthClient.PerspectiveStartFront = !WorthClient.PerspectiveStartFront;
+                                })
+                        );
+                    }
+                });
+        allModules.add(
+                new ModCard("Zoom", "Zoom Infinito", "Z", Category.WORLD) {
+                    @Override
+                    public boolean isMenuOnly() {
+                        return true;
+                    }
 
-            @Override
-            public void initSettings() {
-                settings.add(new KeybindSetting("Tecla", () -> WorthClient.KeyZoom, (val) -> {
-                    WorthClient.KeyZoom = val;
-                    com.vitorxp.WorthClient.keybinds.Keybinds.updateZoomKey(val);
-                }));
-                settings.add(new BooleanSetting("Modo Toggle", () -> WorthClient.enableToggleZoom, () -> WorthClient.enableToggleZoom = !WorthClient.enableToggleZoom));
-            }
-        });
+                    @Override
+                    public void initSettings() {
+                        settings.add(
+                                new KeybindSetting("Tecla", () -> WorthClient.KeyZoom, (val) -> {
+                                    WorthClient.KeyZoom = val;
+                                    com.vitorxp.WorthClient.keybinds.Keybinds.updateZoomKey(val);
+                                })
+                        );
+                        settings.add(
+                                new BooleanSetting("Modo Toggle",
+                                        () -> WorthClient.enableToggleZoom,
+                                        () -> WorthClient.enableToggleZoom = !WorthClient.enableToggleZoom
+                                )
+                        );
+                    }
+                });
 
-        allModules.add(new ModCard("Chat", "Opções de Chat", "chat", Category.MISC) {
-            @Override
-            public boolean isMenuOnly() {
-                return true;
-            }
+        allModules.add(
+                new ModCard("Chat", "Opções de Chat", "chat", Category.MISC) {
+                    @Override
+                    public boolean isMenuOnly() {
+                        return true;
+                    }
 
-            public void initSettings() {
-                settings.add(new BooleanSetting("Desativar mensagem de pet maxímo", () -> WorthClient.petOverlay, () -> WorthClient.petOverlay = !WorthClient.petOverlay));
-                settings.add(new BooleanSetting("Desativar mensagem de inventário cheio", () -> WorthClient.blockInventoryMessages, () -> WorthClient.blockInventoryMessages = !WorthClient.blockInventoryMessages));
-                settings.add(new BooleanSetting("Desativar aviso ao quebrar bloco (fora da ilha)", () -> WorthClient.MsgBlockDestroyBlock, () -> WorthClient.MsgBlockDestroyBlock = !WorthClient.MsgBlockDestroyBlock));
-                settings.add(new BooleanSetting("Botão para copiar mensagem", () -> WorthClient.enableCopy, () -> WorthClient.enableCopy = !WorthClient.enableCopy));
-                settings.add(new BooleanSetting("Mostrar data de envio", () -> WorthClient.showTime, () -> WorthClient.showTime = !WorthClient.showTime));
-            }
-        });
-        allModules.add(new ModCard("Animations", "Animações 1.7", "anim", Category.MISC) {
-            @Override
-            public boolean isEnabled() {
-                return com.vitorxp.WorthClient.config.AnimationsConfig.enabled;
-            }
+                    public void initSettings() {
+                        settings.add(
+                                new BooleanSetting("Desativar mensagem de pet maxímo",
+                                        () -> WorthClient.petOverlay,
+                                        () -> WorthClient.petOverlay = !WorthClient.petOverlay
+                                )
+                        );
+                        settings.add(
+                                new BooleanSetting("Desativar mensagem de inventário cheio",
+                                        () -> WorthClient.blockInventoryMessages,
+                                        () -> WorthClient.blockInventoryMessages = !WorthClient.blockInventoryMessages
+                                )
+                        );
+                        settings.add(
+                                new BooleanSetting("Desativar aviso ao quebrar bloco (fora da ilha)",
+                                        () -> WorthClient.MsgBlockDestroyBlock,
+                                        () -> WorthClient.MsgBlockDestroyBlock = !WorthClient.MsgBlockDestroyBlock
+                                )
+                        );
+                        settings.add(
+                                new BooleanSetting("Botão para copiar mensagem",
+                                        () -> WorthClient.enableCopy,
+                                        () -> WorthClient.enableCopy = !WorthClient.enableCopy
+                                )
+                        );
+                        settings.add(
+                                new BooleanSetting("Mostrar data de envio",
+                                        () -> WorthClient.showTime,
+                                        () -> WorthClient.showTime = !WorthClient.showTime
+                                )
+                        );
+                    }
+                }
+        );
+        allModules.add(
+                new ModCard("Animations", "Animações 1.7", "anim", Category.MISC) {
+                    @Override
+                    public boolean isEnabled() {
+                        return com.vitorxp.WorthClient.config.AnimationsConfig.enabled;
+                    }
 
-            @Override
-            public void toggle() {
-                com.vitorxp.WorthClient.config.AnimationsConfig.enabled = !com.vitorxp.WorthClient.config.AnimationsConfig.enabled;
-            }
+                    @Override
+                    public void toggle() {
+                        com.vitorxp.WorthClient.config.AnimationsConfig.enabled = !com.vitorxp.WorthClient.config.AnimationsConfig.enabled;
+                    }
 
-            @Override
-            public void initSettings() {
-                settings.add(new BooleanSetting("Partículas dos Portais Realçadas", () -> WorthClient.animationPortal, () -> WorthClient.animationPortal = !WorthClient.animationPortal));
-                settings.add(new BooleanSetting("BlockHit 1.7 (Osu)", () -> com.vitorxp.WorthClient.config.AnimationsConfig.blockHit17, () -> com.vitorxp.WorthClient.config.AnimationsConfig.blockHit17 = !com.vitorxp.WorthClient.config.AnimationsConfig.blockHit17));
+                    @Override
+                    public void initSettings() {
+                        settings.add(
+                                new BooleanSetting("Partículas dos Portais Realçadas",
+                                        () -> WorthClient.animationPortal,
+                                        () -> WorthClient.animationPortal = !WorthClient.animationPortal
+                                )
+                        );
+                        settings.add(
+                                new BooleanSetting("BlockHit 1.7 (Osu)",
+                                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.blockHit17,
+                                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.blockHit17 = !com.vitorxp.WorthClient.config.AnimationsConfig.blockHit17
+                                )
+                        );
+                        settings.add(
+                                new BooleanSetting("Vara de Pescar 1.7",
+                                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.oldRod,
+                                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.oldRod = !com.vitorxp.WorthClient.config.AnimationsConfig.oldRod
+                                )
+                        );
+                        settings.add(
+                                new BooleanSetting("Arco 1.7",
+                                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.oldBow,
+                                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.oldBow = !com.vitorxp.WorthClient.config.AnimationsConfig.oldBow
+                                )
+                        );
+                        settings.add(
+                                new BooleanSetting("Agachar 1.7 (Suave)",
+                                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.oldSneak,
+                                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.oldSneak = !com.vitorxp.WorthClient.config.AnimationsConfig.oldSneak
+                                )
+                        );
+                        settings.add(
+                                new BooleanSetting("Dano na Câmera",
+                                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.damageShake,
+                                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.damageShake = !com.vitorxp.WorthClient.config.AnimationsConfig.damageShake
+                                )
+                        );
+                        settings.add(
+                                new BooleanSetting("Sempre Bater (Always Swing)",
+                                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.alwaysSwing,
+                                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.alwaysSwing = !com.vitorxp.WorthClient.config.AnimationsConfig.alwaysSwing
+                                )
+                        );
+                        settings.add(
+                                new SliderSetting("Posição X", -1.0f, 1.0f,
+                                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.itemPosX,
+                                        (val) -> com.vitorxp.WorthClient.config.AnimationsConfig.itemPosX = val
+                                )
+                        );
+                        settings.add(
+                                new SliderSetting("Posição Y", -1.0f, 1.0f,
+                                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.itemPosY,
+                                        (val) -> com.vitorxp.WorthClient.config.AnimationsConfig.itemPosY = val
+                                )
+                        );
+                        settings.add(
+                                new SliderSetting("Posição Z", -1.0f, 1.0f,
+                                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.itemPosZ,
+                                        (val) -> com.vitorxp.WorthClient.config.AnimationsConfig.itemPosZ = val
+                                )
 
-                settings.add(new BooleanSetting("Vara de Pescar 1.7", () -> com.vitorxp.WorthClient.config.AnimationsConfig.oldRod, () -> com.vitorxp.WorthClient.config.AnimationsConfig.oldRod = !com.vitorxp.WorthClient.config.AnimationsConfig.oldRod));
+                        );
+                        settings.add(
+                                new SliderSetting("Tamanho do Item", 0.5f, 2.0f,
+                                        () -> com.vitorxp.WorthClient.config.AnimationsConfig.itemScale,
+                                        (val) -> com.vitorxp.WorthClient.config.AnimationsConfig.itemScale = val
+                                )
+                        );
 
-                settings.add(new BooleanSetting("Arco 1.7", () -> com.vitorxp.WorthClient.config.AnimationsConfig.oldBow, () -> com.vitorxp.WorthClient.config.AnimationsConfig.oldBow = !com.vitorxp.WorthClient.config.AnimationsConfig.oldBow));
+                        settings.add(
+                                new ActionSetting("Resetar Posição", () -> {
+                                    com.vitorxp.WorthClient.config.AnimationsConfig.itemPosX = 0.0f;
+                                    com.vitorxp.WorthClient.config.AnimationsConfig.itemPosY = 0.0f;
+                                    com.vitorxp.WorthClient.config.AnimationsConfig.itemPosZ = 0.0f;
+                                    com.vitorxp.WorthClient.config.AnimationsConfig.itemScale = 1.0f;
+                                    NotificationRenderer.send(com.vitorxp.WorthClient.gui.utils.NotificationRenderer.Type.SUCCESS, "Posição Resetada!");
+                                })
+                        );
+                    }
+                }
+        );
 
-                settings.add(new BooleanSetting("Agachar 1.7 (Suave)", () -> com.vitorxp.WorthClient.config.AnimationsConfig.oldSneak, () -> com.vitorxp.WorthClient.config.AnimationsConfig.oldSneak = !com.vitorxp.WorthClient.config.AnimationsConfig.oldSneak));
+        allModules.add(
+                new ModCard("Som Ambiente (BETA)", "Deixe os sons ambientes melhores", "anim", Category.MISC) {
+                    @Override
+                    public boolean isMenuOnly() {
+                        return true;
+                    }
 
-                settings.add(new BooleanSetting("Dano na Câmera", () -> com.vitorxp.WorthClient.config.AnimationsConfig.damageShake, () -> com.vitorxp.WorthClient.config.AnimationsConfig.damageShake = !com.vitorxp.WorthClient.config.AnimationsConfig.damageShake));
-
-                settings.add(new BooleanSetting("Sempre Bater (Always Swing)", () -> com.vitorxp.WorthClient.config.AnimationsConfig.alwaysSwing, () -> com.vitorxp.WorthClient.config.AnimationsConfig.alwaysSwing = !com.vitorxp.WorthClient.config.AnimationsConfig.alwaysSwing));
-
-                settings.add(new SliderSetting("Posição X", -1.0f, 1.0f, () -> com.vitorxp.WorthClient.config.AnimationsConfig.itemPosX, (val) -> com.vitorxp.WorthClient.config.AnimationsConfig.itemPosX = val));
-
-                settings.add(new SliderSetting("Posição Y", -1.0f, 1.0f, () -> com.vitorxp.WorthClient.config.AnimationsConfig.itemPosY, (val) -> com.vitorxp.WorthClient.config.AnimationsConfig.itemPosY = val));
-
-                settings.add(new SliderSetting("Posição Z", -1.0f, 1.0f, () -> com.vitorxp.WorthClient.config.AnimationsConfig.itemPosZ, (val) -> com.vitorxp.WorthClient.config.AnimationsConfig.itemPosZ = val));
-
-                settings.add(new SliderSetting("Tamanho do Item", 0.5f, 2.0f, () -> com.vitorxp.WorthClient.config.AnimationsConfig.itemScale, (val) -> com.vitorxp.WorthClient.config.AnimationsConfig.itemScale = val));
-
-                settings.add(new ActionSetting("Resetar Posição", () -> {
-                    com.vitorxp.WorthClient.config.AnimationsConfig.itemPosX = 0.0f;
-                    com.vitorxp.WorthClient.config.AnimationsConfig.itemPosY = 0.0f;
-                    com.vitorxp.WorthClient.config.AnimationsConfig.itemPosZ = 0.0f;
-                    com.vitorxp.WorthClient.config.AnimationsConfig.itemScale = 1.0f;
-                    NotificationRenderer.send(com.vitorxp.WorthClient.gui.utils.NotificationRenderer.Type.SUCCESS, "Posição Resetada!");
-                }));
-            }
-        });
+                    @Override
+                    public void initSettings() {
+                        settings.add(
+                                new BooleanSetting("Ambientação em cavernas/construções",
+                                        () -> WorthClient.somReverbAnb,
+                                        () -> WorthClient.somReverbAnb = !WorthClient.somReverbAnb
+                                )
+                        );
+                    }
+                }
+        );
 
         if (isStaff(Minecraft.getMinecraft().thePlayer)) {
-            allModules.add(new ModCard("Admin", "Painel Staff", "admin", Category.MISC) {
-                @Override
-                public boolean isMenuOnly() {
-                    return true;
-                }
+            allModules.add(
+                    new ModCard("Admin", "Painel Staff", "admin", Category.MISC) {
+                        @Override
+                        public boolean isMenuOnly() {
+                            return true;
+                        }
 
-                public void initSettings() {
-                    settings.add(new BooleanSetting("Bloquear Build Ilhas", () -> WorthClient.blockIsBuild, () -> WorthClient.blockIsBuild = !WorthClient.blockIsBuild));
-                }
-            });
+                        public void initSettings() {
+                            settings.add(
+                                    new BooleanSetting("Bloquear Build Ilhas",
+                                            () -> WorthClient.blockIsBuild,
+                                            () -> WorthClient.blockIsBuild = !WorthClient.blockIsBuild
+                                    )
+                            );
+                        }
+                    });
         }
     }
 
@@ -1253,10 +1533,15 @@ public class GuiModMenu extends GuiScreen {
     }
 
     class ColorSetting extends Setting {
-        Supplier<Color> getter; java.util.function.Consumer<Color> setter;
+        Supplier<Color> getter;
+        java.util.function.Consumer<Color> setter;
         boolean showingModeSelect = false;
 
-        public ColorSetting(String n, Supplier<Color> g, java.util.function.Consumer<Color> s) { super(n); getter = g; setter = s; }
+        public ColorSetting(String n, Supplier<Color> g, java.util.function.Consumer<Color> s) {
+            super(n);
+            getter = g;
+            setter = s;
+        }
 
         void draw(Minecraft mc, int x, int y, int mx, int my) {
             drawRoundedRect(x, y, settingWidth, 32, 6, 0xFF222222);
@@ -1289,13 +1574,19 @@ public class GuiModMenu extends GuiScreen {
                 int alpX = x + settingWidth - 70;
 
                 if (mx >= colX && mx <= colX + 35 && my >= y + 8 && my <= y + 24) {
-                    mc.displayGuiScreen(new GuiColorPicker(GuiModMenu.this, name, getter.get(), c -> { setter.accept(c); markUnsaved(); }));
+                    mc.displayGuiScreen(new GuiColorPicker(GuiModMenu.this, name, getter.get(), c -> {
+                        setter.accept(c);
+                        markUnsaved();
+                    }));
                     showingModeSelect = false;
                     return true;
                 }
 
                 if (mx >= alpX && mx <= alpX + 35 && my >= y + 8 && my <= y + 24) {
-                    mc.displayGuiScreen(new GuiTransparencyPicker(GuiModMenu.this, name, getter.get(), c -> { setter.accept(c); markUnsaved(); }));
+                    mc.displayGuiScreen(new GuiTransparencyPicker(GuiModMenu.this, name, getter.get(), c -> {
+                        setter.accept(c);
+                        markUnsaved();
+                    }));
                     showingModeSelect = false;
                     return true;
                 }
