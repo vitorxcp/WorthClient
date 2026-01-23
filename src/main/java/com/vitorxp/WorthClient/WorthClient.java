@@ -22,6 +22,7 @@ import com.vitorxp.WorthClient.manager.*;
 import com.vitorxp.WorthClient.optimization.*;
 import com.vitorxp.WorthClient.rpc.DiscordRPC;
 import com.vitorxp.WorthClient.utils.*;
+import de.florianmichael.viamcp.ViaMCP;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiDisconnected;
 import net.minecraft.client.gui.GuiMultiplayer;
@@ -88,8 +89,6 @@ public class WorthClient {
     public static float clientTime = 6000.0f;
     public static boolean buildEnabled = false;
     public static int zealotMessageTicksLeft = 0;
-    public static boolean pingOverlay = true;
-    public static boolean fpsOverlay = true;
     public static boolean RadarOverlay = false;
     public static boolean mainHandHUDOverlay = true;
     public static boolean helmetHUDOverlay = true;
@@ -148,6 +147,12 @@ public class WorthClient {
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
+        try {
+            ViaMCP.create();
+            ViaMCP.INSTANCE.initAsyncSlider();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         LoadingUtils.setCurrentText("Carregando Módulos...");
         LoadingUtils.setCurrentProgress(0.1f);
 
