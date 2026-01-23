@@ -3,6 +3,8 @@ package com.vitorxp.WorthClient.gui;
 import com.vitorxp.WorthClient.WorthClient;
 import com.vitorxp.WorthClient.config.KeystrokesSettings;
 import com.vitorxp.WorthClient.gui.utils.NotificationRenderer;
+import com.vitorxp.WorthClient.hud.FPSHUD;
+import com.vitorxp.WorthClient.hud.PingHUD;
 import com.vitorxp.WorthClient.hud.ScoreboardHUD;
 import com.vitorxp.WorthClient.manager.ConfigManager;
 import com.vitorxp.WorthClient.manager.PresetManager;
@@ -606,29 +608,135 @@ public class GuiModMenu extends GuiScreen {
         allModules.clear();
 
         allModules.add(new ModCard("FPS", "Exibe o framerate", "fps", Category.HUD) {
-                           @Override
-                           public boolean isEnabled() {
-                               return WorthClient.fpsOverlay;
-                           }
+            @Override
+            public boolean isEnabled() {
+                return FPSHUD.enabled;
+            }
 
-                           @Override
-                           public void toggle() {
-                               WorthClient.fpsOverlay = !WorthClient.fpsOverlay;
-                           }
-                       }
-        );
+            @Override
+            public void toggle() {
+                FPSHUD.enabled = !FPSHUD.enabled;
+            }
+
+            @Override
+            public void initSettings() {
+                settings.add(
+                        new SliderSetting("Escala", 0.5f, 3.0f,
+                                () -> FPSHUD.scale,
+                                v -> FPSHUD.scale = v
+                        )
+                );
+
+                settings.add(
+                        new BooleanSetting("Modo Chroma",
+                                () -> FPSHUD.chroma,
+                                () -> FPSHUD.chroma = !FPSHUD.chroma
+                        )
+                );
+
+                CategorySetting visuals = new CategorySetting("Visual");
+
+                visuals.add(
+                        new BooleanSetting("Mostrar Fundo",
+                                () -> FPSHUD.background,
+                                () -> FPSHUD.background = !FPSHUD.background
+                        )
+                );
+
+                visuals.add(
+                        new BooleanSetting("Mostrar Borda",
+                                () -> FPSHUD.border,
+                                () -> FPSHUD.border = !FPSHUD.border
+                        )
+                );
+
+                visuals.add(
+                        new BooleanSetting("Sombra do Texto",
+                                () -> FPSHUD.textShadow,
+                                () -> FPSHUD.textShadow = !FPSHUD.textShadow
+                        )
+                );
+                settings.add(visuals);
+
+                CategorySetting colors = new CategorySetting("Cores");
+
+                colors.add(
+                        new ColorSetting("Cor do Texto",
+                                () -> new Color(FPSHUD.textColor, true),
+                                c -> FPSHUD.textColor = c.getRGB()
+                        )
+                );
+
+                colors.add(
+                        new ColorSetting("Cor do Fundo",
+                                () -> new Color(FPSHUD.backgroundColor, true),
+                                c -> FPSHUD.backgroundColor = c.getRGB()
+                        )
+                );
+
+                colors.add(
+                        new ColorSetting("Cor da Borda",
+                                () -> new Color(FPSHUD.borderColor, true),
+                                c -> FPSHUD.borderColor = c.getRGB()
+                        )
+                );
+                settings.add(colors);
+            }
+        });
         allModules.add(new ModCard("Ping", "Latência do servidor", "ping", Category.HUD) {
-                           @Override
-                           public boolean isEnabled() {
-                               return WorthClient.pingOverlay;
-                           }
+            @Override
+            public boolean isEnabled() {
+                return PingHUD.enabled;
+            }
 
-                           @Override
-                           public void toggle() {
-                               WorthClient.pingOverlay = !WorthClient.pingOverlay;
-                           }
-                       }
-        );
+            @Override
+            public void toggle() {
+                PingHUD.enabled = !PingHUD.enabled;
+            }
+
+            @Override
+            public void initSettings() {
+                settings.add(new SliderSetting("Escala", 0.5f, 3.0f, () -> PingHUD.scale, v -> PingHUD.scale = v));
+
+                settings.add(new BooleanSetting("Modo Chroma",
+                        () -> PingHUD.chroma,
+                        () -> PingHUD.chroma = !PingHUD.chroma
+                ));
+
+                CategorySetting visuals = new CategorySetting("Visual");
+                visuals.add(new BooleanSetting("Mostrar Fundo",
+                        () -> PingHUD.background,
+                        () -> PingHUD.background = !PingHUD.background
+                ));
+                visuals.add(new BooleanSetting("Mostrar Borda",
+                        () -> PingHUD.border,
+                        () -> PingHUD.border = !PingHUD.border
+                ));
+                visuals.add(new BooleanSetting("Sombra do Texto",
+                        () -> PingHUD.textShadow,
+                        () -> PingHUD.textShadow = !PingHUD.textShadow
+                ));
+                settings.add(visuals);
+
+                CategorySetting colors = new CategorySetting("Cores");
+
+                colors.add(new ColorSetting("Cor do Texto",
+                        () -> new Color(PingHUD.textColor, true),
+                        c -> PingHUD.textColor = c.getRGB()
+                ));
+
+                colors.add(new ColorSetting("Cor do Fundo",
+                        () -> new Color(PingHUD.backgroundColor, true),
+                        c -> PingHUD.backgroundColor = c.getRGB()
+                ));
+
+                colors.add(new ColorSetting("Cor da Borda",
+                        () -> new Color(PingHUD.borderColor, true),
+                        c -> PingHUD.borderColor = c.getRGB()
+                ));
+                settings.add(colors);
+            }
+        });
         allModules.add(new ModCard("Keystrokes", "Teclas na tela", "keys", Category.HUD) {
                            @Override
                            public boolean isEnabled() {
