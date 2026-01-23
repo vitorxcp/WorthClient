@@ -14,10 +14,7 @@ import com.vitorxp.WorthClient.gui.utils.NotificationRenderer;
 import com.vitorxp.WorthClient.handler.ClientLogoRenderer;
 import com.vitorxp.WorthClient.handler.GlobalBackgroundHandler;
 import com.vitorxp.WorthClient.handler.GlobalButtonHandler;
-import com.vitorxp.WorthClient.handlers.IslandProtectionHandler;
-import com.vitorxp.WorthClient.handlers.PlayerInspectorHandler;
-import com.vitorxp.WorthClient.handlers.PortalEffectHandler;
-import com.vitorxp.WorthClient.handlers.RadarInteractionHandler;
+import com.vitorxp.WorthClient.handlers.*;
 import com.vitorxp.WorthClient.hud.*;
 import com.vitorxp.WorthClient.keybinds.Keybinds;
 import com.vitorxp.WorthClient.logger.InventoryLossLogger;
@@ -79,6 +76,7 @@ public class WorthClient {
     public static boolean skin3D = false;
     public static boolean blockIsBuild = true;
     public static boolean animationPortal = false;
+    public static boolean somReverbAnb = false;
     private final SessionManager sessionManager = new SessionManager();
     private static ServerData lastServerAttempted;
     public static boolean blockPetMessages = true;
@@ -129,7 +127,9 @@ public class WorthClient {
                 }
             }
             if (changed) Files.write(configFile.toPath(), lines);
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Mod.EventHandler
@@ -240,6 +240,7 @@ public class WorthClient {
         MinecraftForge.EVENT_BUS.register(new SellMessageCombiner());
         MinecraftForge.EVENT_BUS.register(new ChatModifier());
         MinecraftForge.EVENT_BUS.register(new Keybinds());
+        new SoundEnvironmentHandler().register();
 
         optimizeGameSettings();
 
@@ -260,10 +261,21 @@ public class WorthClient {
     private void registerCommands() {
         ECTPCOmmand ectpCommand = new ECTPCOmmand();
         ClientCommandHandler.instance.registerCommand(new CommandBase() {
-            public String getCommandName() { return "chatsettings"; }
-            public String getCommandUsage(ICommandSender sender) { return "/chatsettings"; }
-            public int getRequiredPermissionLevel() { return 0; }
-            public void processCommand(ICommandSender sender, String[] args) { WorthClient.openGuiChat = true; }
+            public String getCommandName() {
+                return "chatsettings";
+            }
+
+            public String getCommandUsage(ICommandSender sender) {
+                return "/chatsettings";
+            }
+
+            public int getRequiredPermissionLevel() {
+                return 0;
+            }
+
+            public void processCommand(ICommandSender sender, String[] args) {
+                WorthClient.openGuiChat = true;
+            }
         });
         ClientCommandHandler.instance.registerCommand(new CommandPetMaxBlock());
         ClientCommandHandler.instance.registerCommand(new CommandInventoryBlock());
@@ -287,7 +299,10 @@ public class WorthClient {
         settings.useVbo = true;
         settings.ambientOcclusion = 0;
         settings.clouds = 0;
-        try { settings.mipmapLevels = 4; } catch (Exception ignored) {}
+        try {
+            settings.mipmapLevels = 4;
+        } catch (Exception ignored) {
+        }
     }
 
     @Mod.EventHandler
@@ -307,7 +322,10 @@ public class WorthClient {
     @SubscribeEvent
     public void onRenderGameOverlay(RenderGameOverlayEvent.Post event) {
         if (event.type == RenderGameOverlayEvent.ElementType.ALL) {
-            try { NotificationRenderer.render(Minecraft.getMinecraft()); } catch (Exception ignored) {}
+            try {
+                NotificationRenderer.render(Minecraft.getMinecraft());
+            } catch (Exception ignored) {
+            }
         }
     }
 
@@ -318,7 +336,9 @@ public class WorthClient {
                 Field f = GuiMultiplayer.class.getDeclaredField("field_146801_A");
                 f.setAccessible(true);
                 lastServerAttempted = (ServerData) f.get(event.gui);
-            } catch (Exception e) { e.printStackTrace(); }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -337,7 +357,8 @@ public class WorthClient {
                         Minecraft.getMinecraft().displayGuiScreen(new GuiConnecting(null, Minecraft.getMinecraft(), lastServerAttempted));
                     }
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
     }
 
