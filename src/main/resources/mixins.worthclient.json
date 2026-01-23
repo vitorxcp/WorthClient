@@ -32,7 +32,8 @@
     "MixinItemRenderer",
     "MixinMathHelper",
     "MixinGuiStreamUnavailable",
-    "MixinRenderItem"
+    "MixinRenderItem",
+    "MixinNetHandlerPlayClient"
   ],
   "client": [],
   "injectors": {
