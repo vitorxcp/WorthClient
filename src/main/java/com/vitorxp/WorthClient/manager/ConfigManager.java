@@ -90,6 +90,7 @@ public class ConfigManager {
         obj.addProperty("KeyScolText", KeystrokesSettings.textColor.getRGB());
         obj.addProperty("KeyScolBorder", KeystrokesSettings.borderColor.getRGB());
         obj.addProperty("KeyScolTextPress", KeystrokesSettings.textPressedColor.getRGB());
+        obj.addProperty("WsomReverbAnb", WorthClient.somReverbAnb);
 
         try (FileWriter writer = new FileWriter(FILE)) {
             new Gson().toJson(obj, writer);
@@ -177,6 +178,7 @@ public class ConfigManager {
             if (obj.has("KeyScolText")) KeystrokesSettings.textColor = new Color(obj.get("KeyScolText").getAsInt(), true);
             if (obj.has("KeyScolBorder")) KeystrokesSettings.borderColor = new Color(obj.get("KeyScolBorder").getAsInt(), true);
             if (obj.has("KeyScolTextPress")) KeystrokesSettings.textPressedColor = new Color(obj.get("KeyScolTextPress").getAsInt(), true);
+            if (obj.has("WsomReverbAnb")) WorthClient.somReverbAnb = obj.get("WsomReverbAnb").getAsBoolean();
         } catch (Exception e) {
             e.printStackTrace();
         }
