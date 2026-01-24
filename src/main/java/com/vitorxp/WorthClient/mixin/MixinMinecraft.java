@@ -1,17 +1,14 @@
 package com.vitorxp.WorthClient.mixin;
 
-import com.vitorxp.WorthClient.WindowUtils;
-import com.vitorxp.WorthClient.config.AnimationsConfig;
 import com.vitorxp.WorthClient.gui.WorthLoadingGUI;
 import com.vitorxp.WorthClient.utils.LoadingUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.gui.ScaledResolution;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.settings.GameSettings;
+import net.minecraft.client.stream.IStream;
+import net.minecraft.client.stream.NullStream;
 import org.lwjgl.opengl.Display;
-import org.lwjgl.opengl.GL11;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
@@ -20,161 +17,76 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(value = Minecraft.class, priority = 1)
+@Mixin(Minecraft.class)
 public abstract class MixinMinecraft {
 
-    @Shadow
-    public abstract void updateDisplay();
+    @Shadow public abstract void updateDisplay();
+    @Shadow public int displayWidth;
+    @Shadow public int displayHeight;
+    @Shadow public GuiScreen currentScreen;
+    @Shadow public GameSettings gameSettings;
+    @Shadow public IStream stream;
+    @Shadow public TextureManager renderEngine;
 
-    @Shadow
-    public int displayWidth;
-    @Shadow
-    public int displayHeight;
-    @Shadow
-    private int leftClickCounter;
-    @Shadow
-    public GuiScreen currentScreen;
-    @Shadow
-    public net.minecraft.client.multiplayer.WorldClient theWorld;
-    @Shadow
-    public TextureManager renderEngine;
+    private WorthLoadingGUI worthSplashScreen;
 
-    @Shadow
-    public GameSettings gameSettings;
-
-    private static WorthLoadingGUI startupGui;
-
-    @Inject(
-            method = "startGame",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/client/renderer/OpenGlHelper;initializeTextures()V",
-                    shift = At.Shift.AFTER
-            )
-    )
-    private void onStartGameEarly(CallbackInfo ci) {
-        WindowUtils.applyWindowStyle();
-
-        LoadingUtils.setCurrentText("Inicializando Engine...");
-        LoadingUtils.setCurrentProgress(0.0f);
-
-        if (startupGui == null) {
-            startupGui = new WorthLoadingGUI();
-        }
-
-        try {
-            int w = Display.getWidth();
-            int h = Display.getHeight();
-
-            GlStateManager.viewport(0, 0, w, h);
-            GlStateManager.clearColor(0.0f, 0.0f, 0.0f, 1.0f);
-            GlStateManager.disableLighting();
-            GlStateManager.disableFog();
-            GlStateManager.disableDepth();
-            GlStateManager.enableTexture2D();
-            GlStateManager.enableBlend();
-            GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
-            GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f);
-
-            GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
-
-            GlStateManager.matrixMode(GL11.GL_PROJECTION);
-            GlStateManager.loadIdentity();
-            GlStateManager.ortho(0.0D, w / 2.0, h / 2.0, 0.0D, 1000.0D, 3000.0D);
-            GlStateManager.matrixMode(GL11.GL_MODELVIEW);
-            GlStateManager.loadIdentity();
-            GlStateManager.translate(0.0F, 0.0F, -2000.0F);
-
-            startupGui.drawManual(w, h);
-
-            Display.update();
-
-        } catch (Exception ignored) {
-        }
+    @Inject(method = "startGame", at = @At("HEAD"))
+    private void initSplash(CallbackInfo ci) {
+        worthSplashScreen = new WorthLoadingGUI();
+        updateSplash("Iniciando Engine...", 0.0f);
     }
 
+    @Inject(method = "startGame", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/OpenGlHelper;initializeTextures()V", shift = At.Shift.AFTER))
+    private void onDisplayInit(CallbackInfo ci) {
+        updateSplash("Configurando OpenGL...", 0.15f);
+    }
+
+    @Inject(method = "startGame", at = @At(value = "NEW", target = "net/minecraft/client/renderer/texture/TextureManager"))
+    private void onTextureManagerStart(CallbackInfo ci) {
+        updateSplash("Carregando Texturas...", 0.30f);
+    }
+
+    @Inject(method = "startGame", at = @At(value = "NEW", target = "net/minecraft/client/renderer/entity/RenderManager"))
+    private void onRenderManager(CallbackInfo ci) {
+        updateSplash("Preparando Entidades...", 0.80f);
+    }
+
+
     /**
-     * @author vitorxp
-     * @reason Tela de carregamento estilo Lunar Client (Modo Normal)
+     * @author
+     * @reason
      */
     @Overwrite
     public void drawSplashScreen(TextureManager textureManagerInstance) {
-        Minecraft mc = Minecraft.getMinecraft();
+        String txt = LoadingUtils.getCurrentText();
+        float prog = LoadingUtils.getCurrentProgress();
 
-        if (mc.currentScreen instanceof WorthLoadingGUI) {
-            startupGui = (WorthLoadingGUI) mc.currentScreen;
-        } else if (startupGui == null) {
-            startupGui = new WorthLoadingGUI();
-        }
+        if (txt.equals("Iniciando...")) txt = "Carregando Recursos...";
 
-        String text = LoadingUtils.getCurrentText();
-        float progress = LoadingUtils.getCurrentProgress();
+        if (prog < 0.2f) prog = 0.45f;
 
-        updateBar(text, progress);
+        updateSplash(txt, prog);
     }
 
-    private void updateBar(String text, float progress) {
-        if (this.theWorld != null) {
-            startupGui = null;
-            return;
-        }
+    private void updateSplash(String text, float percent) {
+        LoadingUtils.setCurrentText(text);
+        LoadingUtils.setCurrentProgress(percent);
 
-        if (this.currentScreen != null && !(this.currentScreen instanceof WorthLoadingGUI)) {
-            startupGui = null;
-            return;
-        }
-
-        if (startupGui == null) return;
+        if (worthSplashScreen == null) worthSplashScreen = new WorthLoadingGUI();
 
         try {
-            if (Minecraft.getMinecraft().displayWidth <= 0) return;
+            worthSplashScreen.drawProgress(text, percent);
 
-            ScaledResolution res = new ScaledResolution(Minecraft.getMinecraft());
-            int w = res.getScaledWidth();
-            int h = res.getScaledHeight();
-
-            GlStateManager.viewport(0, 0, this.displayWidth, this.displayHeight);
-            GlStateManager.clearColor(0.0f, 0.0f, 0.0f, 1.0f);
-            GlStateManager.clear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
-
-            GlStateManager.matrixMode(GL11.GL_PROJECTION);
-            GlStateManager.loadIdentity();
-            GlStateManager.ortho(0.0D, w, h, 0.0D, 1000.0D, 3000.0D);
-            GlStateManager.matrixMode(GL11.GL_MODELVIEW);
-            GlStateManager.loadIdentity();
-            GlStateManager.translate(0.0F, 0.0F, -2000.0F);
-
-            GlStateManager.disableLighting();
-            GlStateManager.disableFog();
-            GlStateManager.disableDepth();
-            GlStateManager.enableTexture2D();
-            GlStateManager.enableBlend();
-            GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
-            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-
-            startupGui.drawContent(w, h);
-
-            GlStateManager.disableLighting();
-            GlStateManager.disableBlend();
-            GlStateManager.enableAlpha();
-
-            this.updateDisplay();
-
-        } catch (Exception ignored) {
-        }
+            if (Display.isCreated()) {
+                Display.update();
+            }
+        } catch (Exception ignored) {}
     }
 
     @Inject(method = "checkGLError", at = @At("HEAD"))
     private void onCheckGLError(String message, CallbackInfo ci) {
-        if (this.theWorld != null || (this.currentScreen != null && !(this.currentScreen instanceof WorthLoadingGUI))) {
-            startupGui = null;
-            return;
-        }
-
-        if (startupGui != null) {
-            String currentStep = LoadingUtils.getCurrentText();
-            float currentProgress = LoadingUtils.getCurrentProgress();
-            updateBar(currentStep, currentProgress);
+        if (Minecraft.getMinecraft().theWorld == null && worthSplashScreen != null) {
+            updateSplash(LoadingUtils.getCurrentText(), LoadingUtils.getCurrentProgress());
         }
     }
 
@@ -184,42 +96,24 @@ public abstract class MixinMinecraft {
         long total = Runtime.getRuntime().totalMemory();
         long free = Runtime.getRuntime().freeMemory();
         long used = total - free;
-
-        if ((float) used / max > 0.85F) {
+        if ((float) used / max > 0.90F) {
             System.gc();
         }
     }
 
-    @Inject(method = "clickMouse", at = @At("HEAD"))
-    private void onClickMouse(CallbackInfo ci) {
-        this.leftClickCounter = 0;
-    }
-
     @Inject(method = "displayGuiScreen", at = @At("HEAD"))
     private void onDisplayGuiScreen(GuiScreen guiScreenIn, CallbackInfo ci) {
-        if (startupGui != null && guiScreenIn != null && !(guiScreenIn instanceof WorthLoadingGUI)) {
-            startupGui = null;
+        if (worthSplashScreen != null && guiScreenIn != null && !(guiScreenIn instanceof WorthLoadingGUI)) {
+            worthSplashScreen = null;
         }
     }
 
-    @Inject(method = "sendClickBlockToController", at = @At("HEAD"))
-    private void onSendClickBlock(boolean leftClick, CallbackInfo ci) {
-        if (AnimationsConfig.enabled && AnimationsConfig.userItemWhileDigging && !leftClick) {
-        }
-    }
-
-    @Inject(method = "dispatchKeypresses", at = @At("HEAD"))
-    public void killTwitchKeys(CallbackInfo ci) {
-        if (this.gameSettings.keyBindStreamStartStop.getKeyCode() != 0)
-            this.gameSettings.keyBindStreamStartStop.setKeyCode(0);
-        if (this.gameSettings.keyBindStreamCommercials.getKeyCode() != 0)
-            this.gameSettings.keyBindStreamCommercials.setKeyCode(0);
-        if (this.gameSettings.keyBindStreamToggleMic.getKeyCode() != 0)
-            this.gameSettings.keyBindStreamToggleMic.setKeyCode(0);
-    }
-
-    @Inject(method = "loadWorld(Lnet/minecraft/client/multiplayer/WorldClient;Ljava/lang/String;)V", at = @At("HEAD"))
-    private void onWorldChange(net.minecraft.client.multiplayer.WorldClient world, String message, CallbackInfo ci) {
-        System.gc();
+    /**
+     * @author
+     * @reason
+     */
+    @Overwrite
+    private void initStream() {
+        this.stream = new NullStream(new Throwable("Twitch Support Removed by WorthClient"));
     }
 }
