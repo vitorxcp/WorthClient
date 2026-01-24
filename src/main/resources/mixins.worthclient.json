@@ -35,9 +35,13 @@
     "MixinRenderItem",
     "MixinNetHandlerPlayClient",
     "MixinGuiConnecting",
-    "MixinGuiMultiplayer"
+    "MixinGuiMultiplayer",
+    "MixinGameSettings",
+    "MixinGuiStreamIndicator"
   ],
-  "client": [],
+  "client": [
+    "MixinGuiStreamIndicator"
+  ],
   "injectors": {
     "defaultRequire": 1
   }
