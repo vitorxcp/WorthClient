@@ -17,35 +17,29 @@ public class LoadingUtils {
         currentProgress = progress;
     }
 
-    public static String getCurrentText() { return currentText; }
-    public static float getCurrentProgress() { return currentProgress; }
+    public static String getCurrentText() {
+        return currentText;
+    }
+
+    public static float getCurrentProgress() {
+        return currentProgress;
+    }
 
     public static void renderLoading(String text, float progress) {
         if (text != null) currentText = text;
         if (progress >= 0) currentProgress = progress;
 
         Minecraft mc = Minecraft.getMinecraft();
-
-        if (!(mc.currentScreen instanceof WorthLoadingGUI)) {
-            mc.displayGuiScreen(new WorthLoadingGUI());
-        }
-
+        WorthLoadingGUI gui;
         if (mc.currentScreen instanceof WorthLoadingGUI) {
-            WorthLoadingGUI gui = (WorthLoadingGUI) mc.currentScreen;
-
-            gui.update(currentText, currentProgress);
-
-            mc.getFramebuffer().bindFramebuffer(true);
-
-            net.minecraft.client.gui.ScaledResolution res = new net.minecraft.client.gui.ScaledResolution(mc);
-            int w = res.getScaledWidth();
-            int h = res.getScaledHeight();
-
-            gui.drawScreen(0, 0, 0);
-
-            mc.updateDisplay();
-
-            Display.sync(60);
+            gui = (WorthLoadingGUI) mc.currentScreen;
+        } else {
+            gui = new WorthLoadingGUI();
+        }
+        try {
+            gui.drawProgress(currentText, currentProgress);
+            Display.update();
+        } catch (Exception ignored) {
         }
     }
 }
