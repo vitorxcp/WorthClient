@@ -12,16 +12,17 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(MouseHelper.class)
 public class MixinMouseHelper {
 
-    @Shadow public int deltaX;
-    @Shadow public int deltaY;
+    @Shadow
+    public int deltaX;
+    @Shadow
+    public int deltaY;
 
     private float smoothCamFilterX;
     private float smoothCamFilterY;
 
     /**
      * @author vitorxp
-     * @reason Move a câmera do Perspective Mod usando a EXATA mesma matemática do Minecraft Vanilla.
-     * Inclui suporte a Sensibilidade, Inverter Mouse e Smooth Camera (F8).
+     * @reason Move a câmera do Perspective
      */
     @Inject(method = "mouseXYChange", at = @At("RETURN"))
     public void onMouseXYChange(CallbackInfo ci) {
@@ -38,16 +39,12 @@ public class MixinMouseHelper {
                 float smoothFactor = multiplier * 0.5F;
                 float smoothX = (float) this.deltaX * smoothFactor;
                 float smoothY = (float) this.deltaY * smoothFactor;
-
                 this.smoothCamFilterX += smoothX;
                 this.smoothCamFilterY += smoothY;
-
                 float dampX = this.smoothCamFilterX * 0.5F;
                 float dampY = this.smoothCamFilterY * 0.5F;
-
                 this.smoothCamFilterX -= dampX;
                 this.smoothCamFilterY -= dampY;
-
                 moveX = dampX;
                 moveY = dampY;
             } else {
@@ -61,10 +58,8 @@ public class MixinMouseHelper {
 
             PerspectiveMod.cameraYaw += moveX;
             PerspectiveMod.cameraPitch += moveY;
-
             if (PerspectiveMod.cameraPitch > 90.0F) PerspectiveMod.cameraPitch = 90.0F;
             if (PerspectiveMod.cameraPitch < -90.0F) PerspectiveMod.cameraPitch = -90.0F;
-
             this.deltaX = 0;
             this.deltaY = 0;
         }
