@@ -1,37 +1,39 @@
 package com.vitorxp.WorthClient.gui;
 
-import com.vitorxp.WorthClient.utils.LoadingUtils;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.WorldRenderer;
+import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.ResourceLocation;
 import org.lwjgl.opengl.GL11;
 
+import javax.imageio.ImageIO;
 import java.awt.Color;
+import java.awt.image.BufferedImage;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
 public class WorthLoadingGUI extends GuiScreen {
 
-    private static final int BG_COLOR = new Color(10, 10, 10).getRGB();
-    private static final int BAR_BG_COLOR = new Color(55, 50, 25).getRGB();
-    private static final int BAR_FILL_COLOR = new Color(255, 170, 0).getRGB();
-    private static final int TEXT_COLOR = new Color(255, 255, 240).getRGB();
-    private static final int SUB_TEXT_COLOR = new Color(150, 150, 150).getRGB();
-
-    private ResourceLocation LOGO_LOC;
-    private ResourceLocation BG_LOC;
-    private ResourceLocation CLIENT_LOGO_LOC;
-
-    public String text = "Inicializando...";
-    public float currentProgress = 0f;
-    public float targetProgress = 0f;
-
-    private String currentTip;
-
+    private static final int BG_COLOR = new Color(12, 12, 12).getRGB();
+    private static final int BAR_BG_COLOR = new Color(30, 30, 30).getRGB();
+    private static final int TEXT_COLOR = new Color(220, 220, 220).getRGB();
+    private static final int RAM_TEXT_COLOR = new Color(100, 100, 100).getRGB();
+    private static ResourceLocation LOGO_LOC;
+    private static ResourceLocation CLIENT_LOGO_LOC;
+    private static ResourceLocation BG_LOC;
+    private String currentStep = "Iniciando...";
+    private float targetProgress = 0.0f;
+    private static float visualProgress = 0.0f;
+    private static String currentTip = "Carregando...";
+    private static long lastTipTime = 0;
+    private static final long TIP_INTERVAL = 4000;
     private static final List<String> TIPS = Arrays.asList(
             "Dica: Pressione RSHIFT para abrir o Menu do Cliente.",
             "Dica: Você pode mover e personalizar a HUD pressionando RSHIFT.",
@@ -47,194 +49,209 @@ public class WorthLoadingGUI extends GuiScreen {
             "Curiosidade: O WorthClient bloqueia partículas inúteis para aumentar o FPS.",
             "Dica: Configure o filtro de chat para esconder mensagens de spam.",
             "Dica: Entre no nosso Discord para sugerir novas funções!",
-            "Curiosidade: Este cliente foi desenvolvido com foco total em performance."
+            "Curiosidade: Este cliente foi desenvolvido com foco total em performance.",
+            "Dica: Pressione RSHIFT para abrir o Menu de Mods.",
+            "Você sabia? WorthClient aumenta seu FPS em até 40%.",
+            "Dica: Personalize sua HUD arrastando os elementos.",
+            "Dica: Use o Zoom pressionando a tecla C.",
+            "Status: Otimizando texturas em tempo real...",
+            "Dica: Entre no Discord para sugerir novidades!",
+            "Dica: O AutoLogin protege sua conta automaticamente.",
+            "Curiosidade: Use o Perspective Mod para olhar ao redor."
     );
 
     public WorthLoadingGUI() {
         this.mc = Minecraft.getMinecraft();
-        if (TIPS != null && !TIPS.isEmpty()) {
-            this.currentTip = TIPS.get(new Random().nextInt(TIPS.size()));
-        } else {
-            this.currentTip = "WorthClient - PvP Otimizado";
+        if (lastTipTime == 0) {
+            updateTip();
         }
     }
 
+    private void updateTip() {
+        if (TIPS != null && !TIPS.isEmpty()) {
+            currentTip = TIPS.get(new Random().nextInt(TIPS.size()));
+        }
+        lastTipTime = System.currentTimeMillis();
+    }
+
     private void initTextures() {
-        if (LOGO_LOC != null) return;
+        if (mc.getTextureManager() == null) return;
+
+        if (LOGO_LOC != null && CLIENT_LOGO_LOC != null && BG_LOC != null) return;
+
         try {
-            if (mc.getTextureManager() != null) {
-                LOGO_LOC = new ResourceLocation("worthclient", "textures/gui/logo_splash.png");
-                BG_LOC = new ResourceLocation("worthclient", "textures/gui/Background_3.png");
-                CLIENT_LOGO_LOC = new ResourceLocation("worthclient", "textures/gui/logo_client.png");
-            }
+            if (LOGO_LOC == null)
+                LOGO_LOC = loadTextureSafe("splash_logo", "/assets/worthclient/textures/gui/logo_splash.png");
+            if (BG_LOC == null)
+                BG_LOC = loadTextureSafe("splash_bg", "/assets/worthclient/textures/gui/Background_3.png");
+            if (CLIENT_LOGO_LOC == null)
+                CLIENT_LOGO_LOC = loadTextureSafe("client_logo_bottom", "/assets/worthclient/textures/gui/logo_client.png");
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public void update(String newText, float newProgress) {
-        if (newText != null) this.text = newText;
-        if (newProgress >= 0) this.targetProgress = newProgress;
+    private ResourceLocation loadTextureSafe(String name, String path) throws Exception {
+        if (mc.getTextureManager() == null) return null;
+
+        InputStream is = getClass().getResourceAsStream(path);
+        if (is == null) return null;
+
+        BufferedImage img = ImageIO.read(is);
+        DynamicTexture tex = new DynamicTexture(img);
+        return mc.getTextureManager().getDynamicTextureLocation(name, tex);
     }
 
-    private float interpolate(float current, float target, float speed) {
-        return current + (target - current) * speed;
+    private float lerp(float start, float end, float step) {
+        return start + (end - start) * step;
     }
 
-    @Override
-    public void drawScreen(int mouseX, int mouseY, float partialTicks) {
-        ScaledResolution sr = new ScaledResolution(mc);
-        drawContent(sr.getScaledWidth(), sr.getScaledHeight());
-    }
+    public void drawProgress(String step, float progress) {
+        this.currentStep = step;
+        this.targetProgress = progress;
 
-    public void drawManual(int width, int height) {
-        int scale = 2;
-        drawContent(width / scale, height / scale);
-    }
-
-    public void drawContent(int width, int height) {
-        this.text = LoadingUtils.getCurrentText();
-        this.targetProgress = LoadingUtils.getCurrentProgress();
-
-        if (this.text.equalsIgnoreCase("Pronto!") || this.targetProgress >= 1.0f) {
-            this.currentProgress = 1.0f;
-            this.targetProgress = 1.0f;
-        } else {
-            this.currentProgress = interpolate(this.currentProgress, this.targetProgress, 0.1f);
+        if (System.currentTimeMillis() - lastTipTime > TIP_INTERVAL) {
+            updateTip();
         }
-        if (this.currentProgress > 1.0f) this.currentProgress = 1.0f;
 
-        initTextures();
-        drawRect(0, 0, width, height, BG_COLOR);
+        float diff = targetProgress - visualProgress;
+        float speed = (diff > 0.2f) ? 0.2f : 0.08f;
+        visualProgress = lerp(visualProgress, targetProgress, speed);
 
+        if (targetProgress >= 0.99f && visualProgress >= 0.95f) visualProgress = 1.0f;
+        if (visualProgress > 1.0f) visualProgress = 1.0f;
+        if (visualProgress < 0.0f) visualProgress = 0.0f;
+        if (mc.displayWidth <= 0 || mc.displayHeight <= 0) return;
+
+        int w = mc.displayWidth;
+        int h = mc.displayHeight;
+        ScaledResolution sr = new ScaledResolution(mc);
+        int scaleFactor = sr.getScaleFactor();
+        int width = w / scaleFactor;
+        int height = h / scaleFactor;
+
+        GlStateManager.viewport(0, 0, w, h);
+        GlStateManager.matrixMode(GL11.GL_PROJECTION);
+        GlStateManager.loadIdentity();
+        GlStateManager.ortho(0.0D, width, height, 0.0D, 1000.0D, 3000.0D);
+        GlStateManager.matrixMode(GL11.GL_MODELVIEW);
+        GlStateManager.loadIdentity();
+        GlStateManager.translate(0.0F, 0.0F, -2000.0F);
+        GlStateManager.disableLighting();
+        GlStateManager.disableFog();
+        GlStateManager.disableDepth();
+        GlStateManager.enableTexture2D();
         GlStateManager.enableBlend();
         GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+        drawRect(0, 0, width, height, BG_COLOR);
+        initTextures();
 
         if (BG_LOC != null) {
-            GlStateManager.enableTexture2D();
-            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-            try {
-                mc.getTextureManager().bindTexture(BG_LOC);
-                drawModalRectWithCustomSizedTexture(0, 0, 0, 0, width, height, width, height);
-                drawRect(0, 0, width, height, 0xCC000000);
-            } catch (Exception ignored) {}
+            GlStateManager.color(0.7f, 0.7f, 0.7f, 1.0f);
+            mc.getTextureManager().bindTexture(BG_LOC);
+            drawModalRectWithCustomSizedTexture(0, 0, 0, 0, width, height, width, height);
+            drawGradientRect(0, 0, width, height / 3, 0xAA000000, 0x00000000);
+            drawGradientRect(0, height - (height / 3), width, height, 0x00000000, 0xCC000000);
         }
 
         int centerX = width / 2;
-        int logoSize = 100;
-        int barWidth = 220;
-        int barHeight = 10;
+        int centerY = height / 2;
 
-        int totalContentHeight = logoSize + 15 + 10 + 20;
-        int startY = (height - totalContentHeight) / 2;
+        if (LOGO_LOC != null) {
+            GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f);
+            mc.getTextureManager().bindTexture(LOGO_LOC);
 
-        int logoY = startY + (logoSize / 2);
-        int textY = startY + logoSize + 10;
-        int barY = textY + 15;
+            double time = System.currentTimeMillis() / 800.0;
+            float pulse = 1.0f + (float) Math.sin(time) * 0.03f;
+            float floatY = (float) Math.cos(time) * 3.0f;
 
-        drawLogo(centerX, logoY, logoSize);
-        drawStatusText(centerX, textY);
-        drawRoundedGoldBar(centerX, barY, barWidth, barHeight);
-
-        drawBottomInfo(width, height);
-    }
-
-    private void drawLogo(int x, int y, int size) {
-        if (LOGO_LOC == null) return;
-        try {
-            GlStateManager.enableTexture2D();
-            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-
-            float pulse = 1.0f + (float) Math.sin(System.currentTimeMillis() / 600.0) * 0.02f;
+            int logoSize = 110;
 
             GlStateManager.pushMatrix();
-            GlStateManager.translate(x, y, 0);
+            GlStateManager.translate(centerX, centerY - 50 + floatY, 0);
             GlStateManager.scale(pulse, pulse, 1.0f);
-            GlStateManager.translate(-size / 2.0f, -size / 2.0f, 0);
-
-            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
-            GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
-
-            mc.getTextureManager().bindTexture(LOGO_LOC);
-            drawModalRectWithCustomSizedTexture(0, 0, 0, 0, size, size, size, size);
+            GlStateManager.translate(-logoSize / 2.0f, -logoSize / 2.0f, 0);
+            drawModalRectWithCustomSizedTexture(0, 0, 0, 0, logoSize, logoSize, logoSize, logoSize);
             GlStateManager.popMatrix();
-        } catch (Exception ignored) {}
-    }
-
-    private void drawRoundedGoldBar(int centerX, int y, int width, int height) {
-        int left = centerX - (width / 2);
-        int right = left + width;
-        int bottom = y + height;
-
-        drawRect(left + 2, y, right - 2, bottom, BAR_BG_COLOR);
-        drawRect(left, y + 1, left + 2, bottom - 1, BAR_BG_COLOR);
-        drawRect(right - 2, y + 1, right, bottom - 1, BAR_BG_COLOR);
-
-        int fillWidth = (int) (width * currentProgress);
-        if (fillWidth > width) fillWidth = width;
-        if (fillWidth < 0) fillWidth = 0;
-
-        if (fillWidth > 0) {
-            int fillRight = left + fillWidth;
-            if (fillRight - 2 > left + 2)
-                drawRect(left + 2, y, fillRight - 2, bottom, BAR_FILL_COLOR);
-            drawRect(left, y + 1, left + 2, bottom - 1, BAR_FILL_COLOR);
-            if (fillWidth >= width - 2) {
-                drawRect(fillRight - 2, y + 1, fillRight, bottom - 1, BAR_FILL_COLOR);
-            } else if (fillWidth > 4) {
-                drawRect(fillRight - 2, y + 1, fillRight, bottom - 1, BAR_FILL_COLOR);
-            }
-        }
-    }
-
-    private void drawStatusText(int centerX, int y) {
-        if (mc.fontRendererObj == null) return;
-        GlStateManager.enableTexture2D();
-
-        String fullText;
-        if (currentProgress >= 0.99f || text.toLowerCase().contains("pronto")) {
-            fullText = "Finalizando...";
-        } else {
-            String percent = String.format("%d%%", (int)(currentProgress * 100));
-            fullText = text + " " + percent;
         }
 
-        int strW = mc.fontRendererObj.getStringWidth(fullText);
-        mc.fontRendererObj.drawStringWithShadow(fullText, centerX - (strW / 2), y, TEXT_COLOR);
-    }
+        int barWidth = 240;
+        int barHeight = 6;
+        int barX = centerX - (barWidth / 2);
+        int barY = centerY + 35;
 
-    private void drawBottomInfo(int width, int height) {
-        if (mc.fontRendererObj == null) return;
+        drawRect(barX, barY, barX + barWidth, barY + barHeight, BAR_BG_COLOR);
+
+        int fill = (int) (barWidth * visualProgress);
+        if (fill > 0) {
+            drawGradientRectHorizontal(barX, barY, barX + fill, barY + barHeight, 0xFFFFAA00, 0xFFFF5500);
+            drawRect(barX + fill - 2, barY, barX + fill, barY + barHeight, 0xFFFFFFFF);
+        }
+
+        if (mc.fontRendererObj != null) {
+            String percentText = (int) (visualProgress * 100) + "%";
+            mc.fontRendererObj.drawStringWithShadow(percentText, centerX - (mc.fontRendererObj.getStringWidth(percentText) / 2), barY - 12, TEXT_COLOR);
+            mc.fontRendererObj.drawStringWithShadow(this.currentStep, centerX - (mc.fontRendererObj.getStringWidth(this.currentStep) / 2), barY + 10, 0xAAAAAA);
+        }
 
         if (CLIENT_LOGO_LOC != null) {
+            GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f);
+            mc.getTextureManager().bindTexture(CLIENT_LOGO_LOC);
+
+            int bottomLogoH = 35;
+            int bottomLogoW = (int) (bottomLogoH * (1640.0f / 664.0f));
+            int bottomLogoX = centerX - (bottomLogoW / 2);
+            int bottomLogoY = height - 60;
+
             GlStateManager.enableBlend();
-            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-            try {
-                mc.getTextureManager().bindTexture(CLIENT_LOGO_LOC);
-
-                int logoH = 25;
-                int logoW = (int) (logoH * (1640.0f / 664.0f));
-
-                int logoX = 5;
-                int logoY = height - logoH - 5;
-
-                drawModalRectWithCustomSizedTexture(logoX, logoY, 0, 0, logoW, logoH, logoW, logoH);
-            } catch (Exception ignored) {}
-        } else {
-            mc.fontRendererObj.drawStringWithShadow("WorthClient", 5, height - 12, 0xAAAAAA);
+            drawModalRectWithCustomSizedTexture(bottomLogoX, bottomLogoY, 0, 0, bottomLogoW, bottomLogoH, bottomLogoW, bottomLogoH);
         }
 
-        int tipWidth = mc.fontRendererObj.getStringWidth(currentTip);
-        mc.fontRendererObj.drawStringWithShadow(currentTip, (width / 2) - (tipWidth / 2), height - 35, 0xFFCC00);
+        if (mc.fontRendererObj != null) {
+            mc.fontRendererObj.drawStringWithShadow(currentTip, centerX - (mc.fontRendererObj.getStringWidth(currentTip) / 2), height - 20, 0xFFFFCC);
 
-        long maxMem = Runtime.getRuntime().maxMemory();
-        long totalMem = Runtime.getRuntime().totalMemory();
-        long freeMem = Runtime.getRuntime().freeMemory();
-        long usedMem = totalMem - freeMem;
+            long maxMem = Runtime.getRuntime().maxMemory();
+            long totalMem = Runtime.getRuntime().totalMemory();
+            long freeMem = Runtime.getRuntime().freeMemory();
+            long usedMem = totalMem - freeMem;
 
-        String memText = String.format("Memória: %dMB / %dMB", usedMem / 1024 / 1024, maxMem / 1024 / 1024);
-        int memWidth = mc.fontRendererObj.getStringWidth(memText);
+            String ramText = String.format("MEM: %dMB / %dMB", usedMem / 1024 / 1024, maxMem / 1024 / 1024);
+            int ramW = mc.fontRendererObj.getStringWidth(ramText);
+            mc.fontRendererObj.drawStringWithShadow(ramText, width - ramW - 5, height - 12, RAM_TEXT_COLOR);
+            mc.fontRendererObj.drawStringWithShadow("(BETA)", 5, height - 12, 0x555555);
+        }
 
-        mc.fontRendererObj.drawStringWithShadow(memText, width - memWidth - 5, height - 12, SUB_TEXT_COLOR);
+        GlStateManager.enableAlpha();
+        GlStateManager.enableDepth();
+        GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f);
+    }
+
+    protected void drawGradientRectHorizontal(int left, int top, int right, int bottom, int startColor, int endColor) {
+        float f = (float) (startColor >> 24 & 255) / 255.0F;
+        float f1 = (float) (startColor >> 16 & 255) / 255.0F;
+        float f2 = (float) (startColor >> 8 & 255) / 255.0F;
+        float f3 = (float) (startColor & 255) / 255.0F;
+        float f4 = (float) (endColor >> 24 & 255) / 255.0F;
+        float f5 = (float) (endColor >> 16 & 255) / 255.0F;
+        float f6 = (float) (endColor >> 8 & 255) / 255.0F;
+        float f7 = (float) (endColor & 255) / 255.0F;
+
+        GlStateManager.disableTexture2D();
+        GlStateManager.enableBlend();
+        GlStateManager.disableAlpha();
+        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+        GlStateManager.shadeModel(7425);
+        Tessellator tessellator = Tessellator.getInstance();
+        WorldRenderer worldrenderer = tessellator.getWorldRenderer();
+        worldrenderer.begin(7, DefaultVertexFormats.POSITION_COLOR);
+        worldrenderer.pos((double) right, (double) top, 0.0D).color(f5, f6, f7, f4).endVertex();
+        worldrenderer.pos((double) left, (double) top, 0.0D).color(f1, f2, f3, f).endVertex();
+        worldrenderer.pos((double) left, (double) bottom, 0.0D).color(f1, f2, f3, f).endVertex();
+        worldrenderer.pos((double) right, (double) bottom, 0.0D).color(f5, f6, f7, f4).endVertex();
+        tessellator.draw();
+        GlStateManager.shadeModel(7424);
+        GlStateManager.disableBlend();
+        GlStateManager.enableAlpha();
+        GlStateManager.enableTexture2D();
     }
 }
